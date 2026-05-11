@@ -1,0 +1,121 @@
+- main [ref=e3]:
+  - navigation [ref=e4]:
+    - list [ref=e5]:
+      - link "5GNU" [ref=e7] [cursor=pointer]:
+        - /url: /org/5g-numultimedia
+      - listitem [ref=e8]:
+        - button "EN" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: EN
+          - img [ref=e12]
+      - listitem [ref=e14]:
+        - img [ref=e15]
+      - listitem [ref=e17]:
+        - button [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+      - listitem
+  - generic [ref=e22]:
+    - complementary [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - paragraph [ref=e29]: 5G NUMULTIMEDIA LIMITED
+          - list [ref=e30]:
+            - link "Dashboard" [ref=e31] [cursor=pointer]:
+              - /url: /org/5g-numultimedia
+              - listitem [ref=e32]:
+                - img [ref=e33]
+                - paragraph [ref=e35]: Dashboard
+            - link "Courses" [ref=e36] [cursor=pointer]:
+              - /url: /org/5g-numultimedia/courses
+              - listitem [ref=e37]:
+                - img [ref=e38]
+                - paragraph [ref=e40]: Courses
+            - link "Community" [ref=e41] [cursor=pointer]:
+              - /url: /org/5g-numultimedia/community
+              - listitem [ref=e42]:
+                - img [ref=e43]
+                - paragraph [ref=e46]: Community
+            - link "Audience" [ref=e47] [cursor=pointer]:
+              - /url: /org/5g-numultimedia/audience
+              - listitem [ref=e48]:
+                - img [ref=e49]
+                - paragraph [ref=e51]: Audience
+        - list [ref=e53]:
+          - link "Help" [ref=e54] [cursor=pointer]:
+            - /url: /org/5g-numultimedia
+            - listitem [ref=e55]:
+              - img [ref=e56]
+              - paragraph [ref=e60]: Help
+          - button "student1702919337513 John Doe" [ref=e61] [cursor=pointer]:
+            - generic [ref=e62]:
+              - generic [ref=e63]:
+                - img "student1702919337513" [ref=e64]
+                - paragraph [ref=e65]: John Doe
+              - img [ref=e67]
+    - generic [ref=e70]:
+      - generic [ref=e71]:
+        - heading "Good Afternoon John Doe!" [level=1] [ref=e72]
+        - generic [ref=e73]:
+          - button "Create Course" [disabled] [ref=e74]
+          - link "View site" [ref=e75] [cursor=pointer]:
+            - /url: http://localhost:5173
+            - button "View site" [ref=e76]:
+              - text: View site
+              - img [ref=e78]
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - img [ref=e87]
+          - generic [ref=e89]:
+            - paragraph [ref=e90]: Revenue ($)
+            - paragraph [ref=e91]: "0"
+            - paragraph [ref=e92]: Approximate revenue made from course sales
+        - generic [ref=e93]:
+          - img [ref=e95]
+          - generic [ref=e98]:
+            - paragraph [ref=e99]: Number of courses
+            - paragraph [ref=e100]: "2"
+            - paragraph [ref=e101]: Courses created within this organization
+        - generic [ref=e102]:
+          - img [ref=e104]
+          - generic [ref=e106]:
+            - paragraph [ref=e107]: Total students
+            - paragraph [ref=e108]: "2"
+            - paragraph [ref=e109]: Based on student enrollments
+      - generic [ref=e110]:
+        - generic [ref=e111]:
+          - heading "Top Courses" [level=3] [ref=e112]
+          - generic [ref=e113]:
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - link "Vibe coding" [ref=e116] [cursor=pointer]:
+                  - /url: /courses/0baf93d6-8b52-4804-a17f-a81e2b3f7eef
+                  - paragraph [ref=e117]: Vibe coding
+                - paragraph [ref=e118]: 2 students
+              - generic [ref=e121]: 0% completion
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - link "繁體中文測試課程" [ref=e124] [cursor=pointer]:
+                  - /url: /courses/29379892-4be5-44e1-a41c-6fd4215b3018
+                  - paragraph [ref=e125]: 繁體中文測試課程
+                - paragraph [ref=e126]: 0 students
+              - generic [ref=e129]: 0% completion
+        - generic [ref=e130]:
+          - heading "Recent Enrollments" [level=3] [ref=e131]
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]:
+                - img "Elon Gates" [ref=e135]
+                - generic [ref=e136]:
+                  - paragraph [ref=e137]: Elon Gates
+                  - paragraph [ref=e138]: 25 minutes ago
+              - link "Vibe coding" [ref=e140] [cursor=pointer]:
+                - /url: /courses/0baf93d6-8b52-4804-a17f-a81e2b3f7eef
+                - paragraph [ref=e141]: Vibe coding
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - img "student" [ref=e144]
+                - generic [ref=e145]:
+                  - paragraph [ref=e146]: student
+                  - paragraph [ref=e147]: 3 days ago
+              - link "Vibe coding" [ref=e149] [cursor=pointer]:
+                - /url: /courses/0baf93d6-8b52-4804-a17f-a81e2b3f7eef
+                - paragraph [ref=e150]: Vibe coding

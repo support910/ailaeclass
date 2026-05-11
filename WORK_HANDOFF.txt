@@ -1,0 +1,188 @@
+ClassroomIO local run handoff log
+Updated: 2026-05-08
+
+Project root:
+D:\New Project in D\For5G\KK Project\classroomio-main-clean\classroomio-main
+
+Current objective:
+Run the full local stack and identify missing prerequisites.
+
+Confirmed so far:
+- Repo is a pnpm/turbo monorepo.
+- Root dev command is `pnpm dev`.
+- Apps present: `api`, `dashboard`, `classroomio-com`, `docs`, `course-app`.
+- Node installed: v22.21.0.
+- pnpm installed: 11.0.8.
+- Docker CLI installed: 29.4.2.
+- Docker Desktop was initially not running, then started successfully.
+- Project `.nvmrc` requests Node v20.19.3.
+- `supabase` global CLI was missing.
+- `pnpm dlx supabase --version` works and fetched Supabase CLI v2.98.2.
+- Root dev logs are being written to:
+  - `pnpm-dev.stdout.log`
+  - `pnpm-dev.stderr.log`
+- Latest restart logs are being written to:
+  - `pnpm-dev.live.stdout.log`
+  - `pnpm-dev.live.stderr.log`
+
+Environment file status:
+- `apps/api/.env` exists.
+- `apps/dashboard/.env` exists.
+- Core local Supabase variables already point to `http://localhost:54321`.
+- Many optional third-party variables are empty and may disable related features:
+  Cloudflare storage, SMTP, OpenAI, Unsplash, Lemon Squeezy, Sentry, some server tokens.
+- `REDIS_URL` is not set in the checked env files.
+
+Ports checked and currently free:
+- 3000
+- 3002
+- 5173
+- 5174
+- 54320
+- 54321
+- 54322
+- 54323
+- 54324
+
+Current blocker:
+- `supabase start` was interrupted by the user during the first-run image download/bootstrap.
+- The interrupted run later completed enough bootstrap work for the local stack to come up.
+
+Latest observed runtime state:
+- Docker Desktop processes are running.
+- A `supabase` process is still present after the interrupted run.
+- Short CPU sample on the `supabase` process still increased slightly, so it does not look fully dead.
+- `public.ecr.aws/supabase/edge-runtime:v1.73.13` is now present, indicating image download/bootstrap is still progressing.
+- Supabase containers are now running, including db, kong, auth, realtime, storage, rest, studio, pg-meta, inbucket, and edge-runtime.
+- Confirmed open local ports: 54321, 54322, 54323, 54324.
+- `pnpm dlx supabase status` reports the local development setup is running.
+- Local tools confirmed:
+  Studio: http://127.0.0.1:54323
+  Mailpit: http://127.0.0.1:54324
+  API URL: http://127.0.0.1:54321
+  DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+- A local Redis container was started:
+  - name: `classroomio-redis`
+  - port: `6379`
+
+Final runtime result:
+- `pnpm dev` is running in the background.
+- Working local URLs:
+  - Docs: `http://localhost:3000/docs`
+  - API: `http://localhost:3002`
+  - Supabase Studio: `http://localhost:54323`
+  - Mailpit: `http://localhost:54324`
+- Important note:
+  - Some Vite apps are bound to IPv6 localhost (`::1`), so `127.0.0.1` may fail while `localhost` works.
+- Port drift from README:
+- README expects dashboard on `5173`.
+- In this run, `5173` and `5174` were already taken by other dev apps inside the monorepo, so dashboard moved to `5175` and course-app moved to `5176`.
+- After the later dev restart, ports shifted again.
+- Current observed app URLs after the latest restart on 2026-05-08:
+  - `courseapp` template app: `http://localhost:5173`
+  - Marketing site `classroomio-com`: `http://localhost:5174`
+  - `apps/course-app`: `http://localhost:5175`
+  - Dashboard: `http://localhost:5176`
+- Reason:
+  - This monorepo starts multiple Vite apps in parallel.
+  - If a requested port is already occupied by another app in the same run, Vite automatically moves to the next free port.
+  - In this verified run, `http://localhost:5174/login` returned `404`, which confirms that port was not the dashboard.
+
+Missing or non-blocking items:
+- Global `supabase` CLI is still not installed, but `pnpm dlx supabase ...` works.
+- Node version differs from `.nvmrc` / engine target:
+  - expected: `20.19.3`
+  - current: `22.21.0`
+  - current run works, but pnpm prints engine warnings.
+- Optional services and features likely remain unavailable until env values are provided:
+  - SMTP mail sending
+  - Cloudflare storage-related flows
+  - OpenAI-backed features
+  - Unsplash-backed features
+  - Lemon Squeezy payment flows
+  - Sentry-related integrations
+
+Why some pages or actions may not load
+- `apps/dashboard/.env` originally had `PUBLIC_SERVER_URL` empty.
+- That breaks dashboard features that need the local API on `http://localhost:3002`.
+- Examples from code usage:
+  - course export / download
+  - certificate download
+  - some upload actions
+  - KaTeX-related API calls
+- Fix applied:
+  - `apps/dashboard/.env` -> `PUBLIC_SERVER_URL=http://localhost:3002`
+  - `apps/dashboard/.env.example` -> `PUBLIC_SERVER_URL=http://localhost:3002`
+- `apps/api/.env` also did not define `REDIS_URL`.
+- Because of that, the API defaulted to `127.0.0.1:6379`.
+- Fix applied:
+  - `apps/api/.env` -> `REDIS_URL=redis://127.0.0.1:6379`
+  - `apps/api/.env.example` -> `REDIS_URL=redis://127.0.0.1:6379`
+- A dev restart is required after these env changes.
+
+Why "My Learning" and "Explore" do not match the guidance files
+- `My Learning` and `Explore` are LMS student pages inside `apps/dashboard`.
+- Their route files are:
+  - `apps/dashboard/src/routes/lms/mylearning`
+  - `apps/dashboard/src/routes/lms/explore`
+- The checked guidance files in the repo root are not those pages:
+  - `current-page.yml` describes a course / lesson page view
+  - `org-dashboard.yml` describes the admin org dashboard
+- So comparing `My Learning` or `Explore` against those files will not match.
+- I also found e2e coverage for the LMS pages:
+  - `apps/dashboard/e2e/courses.spec.ts` uses `/lms/explore`
+  - `apps/dashboard/e2e/courses.spec.ts` uses `/lms/mylearning`
+- Conclusion:
+  - The repo does contain LMS pages for `My Learning` and `Explore`
+  - But the root guidance YAML files currently in this workspace are for different screens
+  - Any visual mismatch here is expected unless a separate LMS design/spec file exists
+
+Next actions:
+1. Keep Docker Desktop running.
+2. Keep the background `pnpm dev` process running while testing.
+3. Prefer `localhost` over `127.0.0.1` for the Vite apps in this workspace.
+4. If a clean long-term setup is needed, install Supabase CLI globally and align Node to `20.19.3`.
+
+After reboot: how to open again
+1. Start `Docker Desktop`.
+2. Wait until Docker shows it is running.
+3. Open PowerShell.
+4. Run:
+   `cd "D:\New Project in D\For5G\KK Project\classroomio-main-clean\classroomio-main"`
+5. Start local Supabase:
+   `pnpm dlx supabase start`
+6. Start local Redis:
+   `docker start classroomio-redis`
+   If the container does not exist anymore, run:
+   `docker run -d --name classroomio-redis -p 6379:6379 redis:7-alpine`
+7. Start the app stack:
+   `pnpm dev`
+8. Keep that terminal window open while using the site.
+
+After reboot: local URLs to open in browser
+- Docs: `http://localhost:3000/docs`
+- API: `http://localhost:3002`
+- Dashboard login for the latest verified run: `http://localhost:5176/login`
+- Marketing site for the latest verified run: `http://localhost:5174`
+- Course app for the latest verified run: `http://localhost:5175`
+- `courseapp` template app for the latest verified run: `http://localhost:5173`
+- Supabase Studio: `http://localhost:54323`
+- Mailpit: `http://localhost:54324`
+
+How to avoid opening the wrong app
+- If you start the full monorepo with `pnpm dev`, ports `5173` to `5176` may shift between apps.
+- For the latest verified run, the correct dashboard login page was `http://localhost:5176/login`.
+- `http://localhost:5174/login` is not the dashboard login page in this workspace; it returned `404`.
+- If you only need the dashboard and want the most stable login URL, run:
+  `pnpm dev --filter=@cio/dashboard`
+
+After reboot: dashboard test login
+- Email: `admin@test.com`
+- Password: `123456`
+
+If something does not open
+1. Confirm Docker Desktop is still running.
+2. Confirm the PowerShell window running `pnpm dev` is still open.
+3. Use `localhost`, not `127.0.0.1`.
+4. If Supabase fails to start, rerun:
+   `pnpm dlx supabase start`

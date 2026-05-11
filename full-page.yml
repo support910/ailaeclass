@@ -1,0 +1,58 @@
+- generic [active] [ref=e1] [box=0,0,1459,843]:
+  - alert [box=0,843,0,0]
+  - generic [ref=e2] [box=0,0,0,0]:
+    - main [ref=e3] [box=0,0,1459,843]:
+      - navigation [ref=e4] [box=0,0,1459,48]:
+        - list [ref=e5] [box=24,4,1411,40]:
+          - generic [ref=e6] [box=24,4,182,40]:
+            - listitem [ref=e7] [box=24,4,40,40]:
+              - button [ref=e8] [cursor=pointer] [box=24,4,40,40]:
+                - img [ref=e9] [box=36,16,16,16]
+            - listitem [ref=e11] [box=64,4,40,40]:
+              - button [ref=e12] [cursor=pointer] [box=64,4,40,40]:
+                - img [ref=e13] [box=76,16,16,16]
+            - link "Vibe coding" [ref=e15] [cursor=pointer] [box=104,10,102,28]:
+              - /url: /org/5g-numultimedia/courses
+          - listitem [ref=e16] [box=1321,10,60,28]:
+            - button "繁中" [ref=e18] [cursor=pointer] [box=1321,10,60,28]:
+              - generic [ref=e19] [box=1329,14,28,20]: 繁中
+              - img [ref=e20] [box=1361,18,12,12]
+          - listitem [ref=e22] [box=1381,14,28,20]:
+            - img [ref=e23] [box=1381,14,20,20]
+          - listitem [ref=e25] [box=1409,11,26,26]:
+            - button [ref=e26] [cursor=pointer] [box=1409,11,26,26]:
+              - img [ref=e27] [box=1414,16,16,16]
+          - listitem [box=1435,24,0,0]
+      - generic [ref=e30] [box=0,48,1459,795]:
+        - complementary [ref=e31] [box=0,48,300,795]:
+          - list [ref=e33] [box=0,68,299,228]:
+            - button "動態" [ref=e35] [cursor=pointer] [box=8,68,284,44]:
+              - img [ref=e36] [box=24,80,20,20]
+              - generic [ref=e38] [box=52,82,28,16]: 動態
+            - generic [ref=e39] [box=0,116,299,132]:
+              - button "內容 (1)" [ref=e40] [cursor=pointer] [box=8,116,284,45]:
+                - img [ref=e41] [box=24,129,20,20]
+                - generic [ref=e44] [box=52,131,28,16]: 內容
+                - generic [ref=e45] [box=84,128,16,21]: (1)
+              - generic [ref=e53] [box=16,165,283,83]:
+                - button "Claude Code" [ref=e54] [cursor=pointer] [box=24,165,269,36]:
+                  - img [ref=e55] [box=36,173,20,20]
+                  - generic [ref=e57] [box=64,175,88,16]: Claude Code
+                - link "lesson 1" [ref=e65] [cursor=pointer] [box=16,205,269,35]:
+                  - /url: /courses/0baf93d6-8b52-4804-a17f-a81e2b3f7eef/lessons/e5aa40c1-9e2d-411b-84d8-e8bf5e5d6d4f
+                  - generic [ref=e67] [box=60,213,178,19]: lesson 1
+            - button "證書" [ref=e80] [cursor=pointer] [box=8,248,284,44]:
+              - img [ref=e81] [box=24,260,20,20]
+              - generic [ref=e84] [box=52,262,28,16]: 證書
+        - generic [ref=e102] [box=300,48,1159,795]:
+          - generic "內容" [ref=e105] [box=440,50,440,57]:
+            - heading "內容" [level=4] [ref=e106] [box=440,65,36,28]
+          - list [ref=e108] [box=352,126,1056,165]:
+            - listitem [ref=e109] [box=592,138,576,129]:
+              - paragraph [ref=e111] [box=606,153,365,24]: Claude Code
+              - list [ref=e112] [box=606,198,548,67]:
+                - listitem [ref=e113] [box=606,202,548,51]:
+                  - generic [ref=e114] [box=619,207,418,41]:
+                    - paragraph [ref=e115] [box=619,216,21,24]: "01"
+                    - generic [ref=e116] [box=648,207,58,41]
+    - generic [ref=e123] [box=0,0,1,1]: Vibe coding

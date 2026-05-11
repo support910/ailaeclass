@@ -1,0 +1,1655 @@
+{
+  "verify_email_modal": {
+    "heading": "驗證您的郵箱",
+    "sent_verification": "我們已向以下郵箱發送了驗證郵件：",
+    "to_confirm": "以確認所提供郵箱的有效性。",
+    "loading": "加載中...",
+    "resend": "重新發送驗證碼",
+    "resend_in": "重新發送驗證碼倒計時：",
+    "seconds": "秒",
+    "snackbar_error": "發送驗證碼時出錯"
+  },
+  "email_verification": {
+    "errors": {
+      "invalid_token": {
+        "title": "驗證鏈接無效",
+        "message": "此驗證鏈接無效或格式錯誤。請檢查您的郵箱中的正確鏈接，或請求新的驗證郵件。"
+      },
+      "token_used": {
+        "title": "鏈接已被使用",
+        "message": "此驗證鏈接已被使用。如果您需要再次驗證郵箱，請請求新的驗證鏈接。"
+      },
+      "token_expired": {
+        "title": "驗證鏈接已過期",
+        "message": "此驗證鏈接已出於安全原因過期。請請求新的驗證郵件以繼續。"
+      },
+      "email_mismatch": {
+        "title": "郵箱地址已更改",
+        "message": "您的郵箱地址自生成此驗證鏈接以來已發生更改。請為當前郵箱地址請求新的驗證鏈接。"
+      },
+      "legacy_blocked": {
+        "title": "不支持的驗證方式",
+        "message": "此驗證方式出於安全原因已不再支持。請使用我們的安全驗證系統請求新的驗證郵件。"
+      },
+      "database": {
+        "title": "系統錯誤",
+        "message": "我們正在經歷技術困難。請稍後再試，如果問題持續存在，請聯繫我們的支持團隊。"
+      },
+      "unknown": {
+        "title": "驗證失敗",
+        "message": "郵箱驗證過程中發生了意外錯誤。請重試或聯繫我們的支持團隊獲取幫助。"
+      }
+    },
+    "security_notice": {
+      "title": "安全增強",
+      "message": "我們已升級郵箱驗證系統以提供更好的安全性。舊的驗證鏈接不再有效，以保護您的賬戶安全。"
+    },
+    "actions": {
+      "request_new": "請求新的驗證郵件",
+      "contact_support": "聯繫支持",
+      "back_to_dashboard": "返回控制檯"
+    },
+    "security_footer": "您的賬戶安全是我們的首要任務。所有驗證嘗試都會被記錄以進行安全監控。"
+  },
+  "delete_modal": {
+    "label": "刪除",
+    "content": "您確定嗎？",
+    "no": "否",
+    "yes": "是"
+  },
+  "onboarding": {
+    "sell": "在線銷售課程",
+    "teach": "在線教授現有學生",
+    "expanding": "在其他平臺，擴展到這裡",
+    "employees": "培訓我的員工",
+    "customers": "為客戶創建課程",
+    "explore": "只是來看看",
+    "articles": "文章",
+    "search": "搜索引擎",
+    "social": "社交媒體",
+    "friends": "朋友和家人",
+    "fullname": "全名",
+    "name": "組織名稱",
+    "organisation_sitename": "組織站點名稱",
+    "what_brings": "是什麼讓您來到",
+    "how": "您是如何瞭解到我們的？",
+    "back": "返回",
+    "continue": "繼續"
+  },
+  "welcome_modal": {
+    "we_at": "我們在",
+    "small_team": "是一個擁有偉大使命的小團隊，致力於為教育工作者提供優秀的軟件，幫助他們對人們的生活產生影響。教育是您可以給予任何人的最強大的禮物，為您提供所有所需工具，將這份禮物傳遞給更多人，意義非凡。",
+    "thank_you": "感謝您選擇我們",
+    "deeply_appreciate": "我們深表感激，並隨時為您服務。"
+  },
+  "login": {
+    "welcome": "歡迎回來",
+    "email": "您的郵箱",
+    "password": "您的密碼",
+    "forgot": "忘記密碼？",
+    "login": "登錄",
+    "login_with": "或使用以下方式登錄",
+    "signup_with": "或使用以下方式註冊",
+    "already_have_account": "已有賬號？",
+    "not_registered_yet": "尚未註冊？",
+    "signup": "註冊",
+    "signup_with_google": "使用 Google 註冊",
+    "login_with_google": "使用 Google 登錄",
+    "create_to_join": "創建免費賬號以加入",
+    "create_account": "創建賬號",
+    "login_to_join": "登錄以加入",
+    "fields": {
+      "email": "您的郵箱",
+      "full_name": "全名",
+      "password": "您的密碼",
+      "confirm_password": "確認密碼",
+      "password_helper_message": "密碼必須超過 6 個字符",
+      "create_account": "創建賬號"
+    },
+    "validation": {
+      "unable_to_create_profile": "無法創建個人資料",
+      "user_cannot_be_created": "無法創建用戶"
+    }
+  },
+  "profileMenu": {
+    "profile": "個人資料",
+    "current_org": "當前組織",
+    "free_tools": "免費工具",
+    "progress": "進度報告",
+    "timer": "活動計時器",
+    "tic_tac": "井字棋",
+    "see_more": "查看更多",
+    "whats_new": "更新內容",
+    "launch_week": "發佈周"
+  },
+  "settings": {
+    "heading": "設置",
+    "subheadings": {
+      "view_site": "查看站點"
+    },
+    "tabs": {
+      "profile_tab": "個人資料",
+      "organization_tab": "組織",
+      "landing_page_tab": "著陸頁",
+      "billing_tab": "賬單",
+      "integrations_tab": "集成",
+      "language_tab": "語言"
+    },
+    "profile": {
+      "profile_picture": {
+        "heading": "頭像",
+        "upload_image": "上傳圖片",
+        "file_size": "最大文件大小：",
+        "accepted": "接受格式：",
+        "validation_error": "文件大小超過最大限制："
+      },
+      "personal_information": {
+        "heading": "個人信息",
+        "full_name": "全名",
+        "username": "用戶名",
+        "email": "郵箱"
+      },
+      "update_profile": "更新個人資料",
+      "logout": "退出登錄"
+    },
+    "organization": {
+      "organization_profile": {
+        "heading": "組織資料",
+        "organization_name": "組織名稱",
+        "upload_image": "上傳圖片",
+        "update_organization": "更新組織",
+        "theme": {
+          "heading": "主題",
+          "sub_heading": "設置您的品牌顏色",
+          "custom_theme": "自定義主題",
+          "add_theme": "添加主題"
+        },
+        "customize_lms": {
+          "heading": "自定義學習管理系統",
+          "sub_heading": "個性化您的組織學習管理系統",
+          "body": "控制學生的學習體驗。您可以根據組織需求啟用或禁用標籤頁和頁面，更新學習管理系統橫幅和應用內評論",
+          "button": "自定義學習管理系統"
+        },
+        "custom_domain": {
+          "heading": "自定義域名",
+          "sub_heading": "自定義您的域名",
+          "body": "創建自定義 URL，讓您的受眾可以輕鬆訪問您的組織",
+          "button": "編輯域名"
+        },
+        "team": {
+          "heading": "團隊",
+          "sub_heading": "設置您的團隊",
+          "body": "將團隊成員添加到您的組織，以便在項目上協作。",
+          "button": "管理團隊"
+        }
+      }
+    },
+    "landing_page": {
+      "heading": "著陸頁",
+      "show_section": "顯示板塊",
+      "hide_section": "隱藏板塊",
+      "title": "標題",
+      "title_highlight": "標題高亮",
+      "subtitle": "副標題",
+      "background": {
+        "title": "背景圖片",
+        "show_background": "顯示背景",
+        "hide_background": "隱藏背景"
+      },
+      "actions": {
+        "heading": "操作",
+        "label": "標籤",
+        "link": "鏈接",
+        "no_redirect": "不重定向",
+        "redirect": "重定向",
+        "banner_type": {
+          "heading": "橫幅類型",
+          "video": "視頻",
+          "image": "圖片"
+        },
+        "show_banner": "顯示橫幅",
+        "hide_banner": "隱藏橫幅"
+      },
+      "about": {
+        "heading": "關於我們",
+        "title": "標題",
+        "content": "內容",
+        "upload_an_image": "上傳圖片",
+        "select_image": "選擇圖片"
+      },
+      "courses": {
+        "heading": "課程",
+        "show_section": "顯示板塊",
+        "hide_section": "隱藏板塊",
+        "title": "標題",
+        "title_highlight": "標題高亮",
+        "subtitle": "副標題"
+      },
+      "faq": {
+        "heading": "常見問題",
+        "show_section": "顯示板塊",
+        "hide_section": "隱藏板塊",
+        "title": "標題",
+        "question": "問題",
+        "answer": "答案",
+        "button": "添加新問題",
+        "save": "保存",
+        "cancel": "取消"
+      },
+      "contact_us": {
+        "heading": "聯繫我們",
+        "show_section": "顯示板塊",
+        "hide_section": "隱藏板塊",
+        "title": "標題",
+        "title_highlight": "標題高亮",
+        "subtitle": "副標題",
+        "phone_number": "電話號碼",
+        "email": "郵箱",
+        "address": "地址"
+      },
+      "mailing_list": {
+        "heading": "郵件列表",
+        "show_section": "顯示板塊",
+        "hide_section": "隱藏板塊",
+        "title": "標題",
+        "subtitle": "副標題",
+        "button_label": "按鈕標籤"
+      },
+      "footer": {
+        "heading": "頁腳",
+        "show_section": "顯示板塊",
+        "hide_section": "隱藏板塊",
+        "facebook": "Facebook",
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn"
+      },
+      "custom_links": {
+        "heading": "自定義鏈接",
+        "hide_links": "隱藏鏈接",
+        "show_links": "顯示鏈接",
+        "description": "添加將出現在頂部導航欄中的自定義導航鏈接。",
+        "label": "標籤",
+        "url": "URL",
+        "label_placeholder": "例如：關於我們",
+        "url_placeholder": "例如：#about-us 或 https://example.com",
+        "new_tab": "在新標籤頁中打開",
+        "save": "保存",
+        "cancel": "取消",
+        "add": "添加新鏈接"
+      },
+      "save_changes": "保存更改"
+    },
+    "integrations": {
+      "heading": "Telegram",
+      "sub_heading": "將您的賬號連接到 Telegram，以便在應用內發生任何更改時收到通知。",
+      "step_authenticate": "第一步：通過機器人驗證您的賬號。",
+      "open_bot_button": "打開機器人",
+      "step_chatId": "第二步：輸入機器人給您的聊天 ID。",
+      "connect_button": "連接",
+      "success_message": "集成成功",
+      "disconnect": "斷開連接"
+    },
+    "billing": {
+      "sub_title": "賬單詳情",
+      "manage": "管理您的賬單",
+      "active": "您沒有活躍的賬單",
+      "provider": "我們使用 Polar 來幫助管理您的賬單",
+      "open_billing": "打開賬單",
+      "error": "打開賬單時發生錯誤"
+    }
+  },
+  "org_navigation": {
+    "dashboard": "控制檯",
+    "courses": "課程",
+    "community": "社區",
+    "audience": "受眾",
+    "setup": "設置",
+    "help": "幫助",
+    "settings": "設置",
+    "early_adopter": "成為早期用戶",
+    "unlock": "解鎖無限功能並投資我們的未來",
+    "upgrade": "立即升級"
+  },
+  "pricing": {
+    "plan_names": {
+      "free": "免費",
+      "early": "早期用戶",
+      "enterprise": "企業版"
+    },
+    "modal": {
+      "heading": "升級方案",
+      "thanks": "感謝您的支持",
+      "plan": "您的方案包含很酷的福利和好處，包括訪問我們未來發布的所有功能。",
+      "save": "節省 2 個月",
+      "close": "關閉",
+      "learn": "瞭解更多",
+      "month": "月",
+      "monthly": "月付",
+      "annually": "年付"
+    }
+  },
+  "setup": {
+    "get_started": "開始使用",
+    "personal_profile": {
+      "title": "上傳頭像並更新用戶名",
+      "desc": "個性化並添加人情味，使互動更加個人化和難忘",
+      "button_label": "更新個人資料"
+    },
+    "organization_profile": {
+      "title": "更新組織頭像",
+      "desc": "為您的組織建立專業且可識別的身份",
+      "button_label": "更新組織資料"
+    },
+    "course": {
+      "title": "創建課程",
+      "desc": "創建您將與學生分享的課程",
+      "button_label": "創建課程"
+    },
+    "lesson": {
+      "title": "創建課時",
+      "desc": "將課程分解為學生易於理解的課時",
+      "button_label": "創建課時"
+    },
+    "exercise": {
+      "title": "創建練習",
+      "desc": "測試學生，讓他們展示對主題的理解",
+      "button_label": "創建作業"
+    },
+    "publish_course": {
+      "title": "發佈課程",
+      "desc": "使您的課程公開並可購買",
+      "button_label": "發佈課程"
+    }
+  },
+  "add_org": {
+    "create_org": "創建組織",
+    "name": "組織名稱",
+    "org_sitename": "組織站點名稱",
+    "create": "創建",
+    "sitename": "站點名稱已存在",
+    "error_organization": "創建此組織時出現問題。請重新加載並重試"
+  },
+  "navigation": {
+    "goto": "前往",
+    "courses": "課程",
+    "home": "首頁",
+    "classroomio_home": "首頁",
+    "dashboard": "控制檯",
+    "discussion": "討論",
+    "people": "人員",
+    "goto_lms": "前往學習管理系統",
+    "goto_home": "前往首頁",
+    "login": "登錄",
+    "signup": "註冊",
+    "redirecting": "正在重定向",
+    "loading_state": "正在為您跳轉到下一頁，請稍候。",
+    "org_loading_state": "正在前往您的組織...",
+    "add_organization": "+ 添加組織",
+    "language_switcher": "切換語言",
+    "language": "語言"
+  },
+  "markdown_editor": {
+    "write": "編寫",
+    "preview": "預覽"
+  },
+  "components": {
+    "quiz": {
+      "title": "測驗",
+      "second": "秒",
+      "answer": "答案",
+      "question_delete": "刪除問題",
+      "add_more": "+ 添加更多答案",
+      "remove_last": "- 刪除最後一個答案",
+      "quiz_delete": "刪除測驗",
+      "delete_question": "您確定要刪除此問題嗎？",
+      "delete_quiz": "您確定要刪除此測驗嗎？",
+      "lose_content": "您將丟失內容，此操作無法撤消。",
+      "delete": "刪除",
+      "update": "更新",
+      "create": "創建",
+      "a_quiz": "測驗",
+      "quiz_title": "測驗標題",
+      "placeholder": "您的測驗標題",
+      "save": "保存更改",
+      "continue": "繼續",
+      "rename": "重命名",
+      "updated": "已更新",
+      "start": "開始測驗",
+      "start_typing": "開始輸入您的問題",
+      "required_field": "此字段為必填項",
+      "type_answer": "輸入答案",
+      "label": "請輸入標籤",
+      "no_quizz": "未創建測驗",
+      "interactive": "為您的學生創建帶有計分板的互動測驗。",
+      "interactive_quizzes": "互動測驗",
+      "create_quiz": "創建測驗"
+    },
+    "settings": {
+      "domains": {
+        "title": "自定義域名",
+        "add": "添加",
+        "url": "URL",
+        "update": "更新域名",
+        "custom": "自定義域名",
+        "domain": "添加您自己的域名",
+        "save": "保存",
+        "your_domain": "您的域名",
+        "custom_domain_error": "您不能添加頂級域名作為自定義域名。請使用子域名，如 'courses.[您的網站].com' 或 'www.[您的網站].com'。",
+        "custom_domain_not_classroomio": "域名不能包含 'classroomio'",
+        "custom_domain_success": "自定義域名添加成功",
+        "dns_description": "在您的 DNS 提供商中設置以下記錄以繼續：",
+        "dns_type": "類型",
+        "dns_value": "值",
+        "dns_name": "名稱",
+        "refresh": "刷新",
+        "remove": "移除",
+        "custom_favicon": "自定義圖標",
+        "custom_code": "自定義代碼"
+      },
+      "customize_lms": {
+        "title": "自定義學習管理系統",
+        "disabled": "已禁用",
+        "enabled": "已啟用",
+        "save": "保存更改",
+        "dashboard": {
+          "title": "控制檯",
+          "community": "社區",
+          "exercises": "練習",
+          "banner_image": "橫幅圖片",
+          "banner_image_btn": "更新橫幅圖片",
+          "banner_text": "橫幅文字",
+          "banner_text_label": "更新橫幅文字",
+          "banner_text_placeholder": "在此處輸入文字"
+        },
+        "course": {
+          "title": "課程",
+          "newsfeed": "動態",
+          "grading": "評分"
+        },
+        "apps": {
+          "title": "應用",
+          "poll": "投票",
+          "live_comment": "實時評論"
+        }
+      }
+    }
+  },
+  "schedule": {
+    "title": "您的日程",
+    "essence": "設計協作的精髓",
+    "figma": "Figma 入門",
+    "join": "加入通話",
+    "no": "今天沒有課程"
+  },
+  "dashboard": {
+    "morning_heading": "早上好",
+    "afternoon_heading": "下午好",
+    "evening_heading": "晚上好",
+    "create_course": "創建課程",
+    "view_site": "查看站點",
+    "visit_site": "訪問網站",
+    "current_lesson": "正在學習",
+    "your_progress": "您的進度",
+    "continue": "繼續",
+    "no_courses": "暫無進行中的課程",
+    "start_course": "當您開始課程後，您的進度將在此處顯示",
+    "lms_dashboard_hero": "今天是讓您更接近學習目標的又一天。不要放棄，學得越多，進步越大。",
+    "dont": "不要放棄",
+    "lessons_completed": "已完成課時",
+    "no_courses_started": "尚未開始課程",
+    "revenue": "收入",
+    "revenue_description": "課程銷售所得的近似收入",
+    "no_of_courses": "課程數量",
+    "no_courses_description": "在此組織中創建的課程",
+    "total_students": "學生總數",
+    "total_students_description": "基於學生註冊數",
+    "top_courses": "熱門課程",
+    "students": "學生",
+    "student": "學生",
+    "completion": "完成率",
+    "create_first_course": "創建您的第一門課程",
+    "create_first_course_description": "開始創建課程以跟蹤課程進度",
+    "recent_enrollments": "最近註冊",
+    "publish_first_course": "發佈您的第一門課程",
+    "publish_first_course_description": "要跟蹤註冊情況，請發佈課程並邀請學生",
+    "publish_course": "發佈課程"
+  },
+  "ai": {
+    "help_me": "幫我寫",
+    "placeholder": "幫我寫一段簡短的描述",
+    "text": "開始輸入...",
+    "reset": "重置",
+    "rephrase": "改寫",
+    "insert": "插入",
+    "can_you": "您能幫我改寫一下嗎"
+  },
+  "courses": {
+    "heading": "課程",
+    "heading_button": "創建課程",
+    "search_placeholder": "查找課程",
+    "course_filter": {
+      "date_created": "創建日期",
+      "published": "已發佈",
+      "lessons": "課時"
+    },
+    "course_card": {
+      "empty_title": "未創建課程",
+      "empty_description": "通過為學生創建引人入勝的課程來分享您的知識。",
+      "context_menu": {
+        "clone": "克隆",
+        "share": "分享",
+        "invite": "邀請",
+        "delete": "刪除"
+      },
+      "error_message": "發生錯誤。",
+      "lessons_number": "課時",
+      "students": "學生",
+      "published": "已發佈",
+      "unpublished": "未發佈",
+      "continue_course": "繼續課程",
+      "learn_more": "瞭解更多",
+      "list_view": {
+        "title": "標題",
+        "description": "描述",
+        "lessons": "課時",
+        "students": "學生",
+        "published": "已發佈",
+        "type": "類型"
+      }
+    },
+    "new_course_modal": {
+      "heading": "創建課程",
+      "course_name": "課程名稱",
+      "type": "課程類型",
+      "course_name_placeholder": "您的課程名稱",
+      "short_description": "簡短描述",
+      "short_description_placeholder": "關於此課程的簡短描述",
+      "type_selector_title": "您想創建什麼類型的課程？",
+      "button": "完成",
+      "back": "返回",
+      "next": "下一步"
+    },
+    "copy_course": {
+      "title": "創建課程",
+      "course_name_label": "課程名稱",
+      "course_name_placeholder": "您的課程名稱",
+      "course_description_label": "課程描述",
+      "course_description_placeholder": "輸入課程描述",
+      "create_button": "創建",
+      "error": {
+        "failed_to_clone": "克隆課程失敗"
+      }
+    }
+  },
+  "course": {
+    "navItems": {
+      "nav_news_feed": "動態",
+      "nav_content": "內容",
+      "nav_attendance": "考勤",
+      "nav_submissions": "提交",
+      "nav_marks": "成績",
+      "nav_people": "人員",
+      "nav_analytics": "分析",
+      "nav_certificates": "證書",
+      "nav_landing_page": "著陸頁",
+      "nav_settings": "設置"
+    },
+    "navItem": {
+      "news_feed": {
+        "heading": "動態",
+        "heading_button": {
+          "title": "添加",
+          "edit_post": "編輯帖子",
+          "make_a_post": "發帖",
+          "placeholder": "與學生分享更新",
+          "cancel": "取消",
+          "post": "發佈"
+        },
+        "body_header": "暫無帖子",
+        "body_content": "向您的班級發帖。點擊添加按鈕開始。",
+        "pinned": "已置頂",
+        "snackbar": {
+          "comment_deleted": "評論已刪除",
+          "reaction_error": "對動態進行反應時發生錯誤",
+          "comment_creation_error": "創建評論時發生錯誤",
+          "add_comment_success": "評論已添加",
+          "toggle_pin_error": "切換置頂動態失敗",
+          "unpinned": "已取消置頂",
+          "successfully": "成功",
+          "feed_delete_success": "動態刪除成功",
+          "fetch_feed_fail": "獲取動態失敗",
+          "fetching_error": "獲取動態時發生錯誤"
+        }
+      },
+      "lessons": {
+        "heading": "課時",
+        "heading_v2": "內容",
+        "drag": "拖動卡片以重新排序",
+        "no_lesson": "暫無課時",
+        "share_your_knowledge": "通過創建引人入勝的課時來分享您的知識。點擊添加按鈕開始。",
+        "section_prompt": {
+          "cta": "啟用章節",
+          "header": "啟用章節",
+          "title": "我們推出了課程章節",
+          "description": "您現在可以將課時分組到章節中，以組織內容並使學生的學習更順暢。",
+          "activate": "激活",
+          "cancel": "取消"
+        },
+        "add_lesson": {
+          "button_title": "添加",
+          "start_reorder": "重新排序",
+          "end_reorder": "結束排序",
+          "modal_heading": "添加新課時",
+          "modal_heading_section": "添加新章節",
+          "lesson_title": "課時標題",
+          "lesson_section_title": "章節標題",
+          "click_to": "點擊以",
+          "lock": "鎖定",
+          "unlock": "解鎖",
+          "fullname": "全名",
+          "save": "保存",
+          "edit": "編輯",
+          "delete": "刪除",
+          "cancel": "取消"
+        },
+        "join_lesson": "加入課時",
+        "no_link": "無鏈接",
+        "no_tutor": "未添加導師",
+        "body_header": "暫無課時",
+        "body_content": "通過創建引人入勝的課時來分享您的知識。點擊添加按鈕開始。",
+        "lesson_nav": {
+          "materials": "資料",
+          "exercises": "練習"
+        },
+        "download_pdf": "下載 PDF",
+        "autosaving": "自動保存中...",
+        "done": "完成",
+        "edit": "編輯",
+        "mark_as": "標記為",
+        "incomplete": "未完成",
+        "complete": "已完成",
+        "next": "下一個",
+        "prev": "上一個",
+        "materials": {
+          "body_heading": "此課時尚未添加筆記、視頻或幻燈片",
+          "body_content": "通過創建引人入勝的內容與學生分享您的知識。點擊",
+          "get_started": "開始使用",
+          "no_translation": "所選語言沒有翻譯",
+          "button": "按鈕",
+          "tabs": {
+            "note": {
+              "title": "筆記",
+              "placeholder": "在此處編寫課時筆記",
+              "ai": {
+                "outline": "生成課時大綱",
+                "note": "生成課時筆記",
+                "activities": "生成課時活動"
+              }
+            },
+            "slide": {
+              "title": "幻燈片",
+              "slide_link": "幻燈片鏈接",
+              "helper_message": "您可以嵌入 Google 幻燈片或 Canva 演示文稿"
+            },
+            "video": {
+              "title": "視頻",
+              "embed_link": "嵌入鏈接",
+              "upload": "上傳",
+              "button": "添加/編輯視頻",
+              "add_video": {
+                "title": "添加視頻",
+                "add_by": "添加方式",
+                "youtube_link": "Youtube 鏈接",
+                "videos_added": "已添加視頻",
+                "add_video": "添加視頻",
+                "upload_video": "上傳視頻",
+                "select_file": "選擇文件（Mp4、MOV、AVI）上傳到您的課時。",
+                "size": "（最大 500 MB）",
+                "oops": "糟糕 `😬，無法上傳視頻",
+                "big_file": "抱歉，視頻未上傳。文件大小太大，",
+                "maximum_size": "最大大小為 30 MB。請重試！",
+                "button": "嘗試其他文件",
+                "try_again": "請重試",
+                "unsupported_format": "抱歉，視頻未上傳，文件格式不支持或服務器出現問題。",
+                "format": "上傳 MP4、MOV 和 AVI 文件。",
+                "upgrade": "升級您的方案以上傳視頻",
+                "uploading": "上傳中...",
+                "invalid_youtube": "無效的 YouTube 鏈接",
+                "invalid_link": "無效的鏈接",
+                "cancel_upload": "取消上傳",
+                "upload_cancelled": "用戶取消了上傳"
+              }
+            },
+            "document": {
+              "title": "文檔",
+              "add_document": "添加文檔",
+              "no_document": "尚未上傳文檔",
+              "view_document": "查看文檔",
+              "download": "下載",
+              "upload_document": "上傳文檔",
+              "upload_title": "上傳文檔",
+              "upload_description": "上傳 PDF、DOCX 或 DOC 文件。最大大小：5MB",
+              "drag_drop": "將文檔拖放到此處",
+              "or": "或",
+              "choose_file": "選擇文件",
+              "cancel": "取消",
+              "uploading": "上傳中...",
+              "upload_success": "文檔上傳成功！",
+              "upload_error": "文檔上傳失敗",
+              "file_type_error": "不支持的文件類型。請上傳 PDF、DOCX 或 DOC 文件。",
+              "file_size_error": "文件大小過大。最大大小為 {size}。",
+              "type": "類型",
+              "size": "大小",
+              "upload_error_title": "上傳錯誤",
+              "upload_error_message": "不支持的文件格式或上傳失敗",
+              "upload_error_try_again": "請使用有效的文檔文件重試",
+              "try_again": "重試",
+              "upgrade": "升級您的方案以上傳文檔",
+              "cancel_upload": "取消上傳",
+              "upload_cancelled": "用戶取消了上傳",
+              "downloading": "下載中...",
+              "view_pdf": "查看 PDF",
+              "delete": "刪除",
+              "page_of": "第 {page} 頁，共 {total} 頁",
+              "loading_pdf": "正在加載 PDF...",
+              "failed_to_load_pdf": "加載 PDF 文檔失敗",
+              "failed_to_render_pdf": "渲染 PDF 頁面失敗",
+              "use_arrow_keys": "使用方向鍵導航，+/- 縮放，或點擊上方控件。右鍵已禁用。"
+            }
+          },
+          "button_done": "完成"
+        },
+        "exercises": {
+          "heading": "所有練習",
+          "add_button": "添加",
+          "no_exercises": "此課時未添加練習",
+          "no_assigned_exercises": "您的導師尚未為此課時分配練習。目前，您可以",
+          "chill": "放鬆一下",
+          "add_exercise": "通過創建引人入勝的練習來分享您的知識。立即添加練習。",
+          "new_exercise_modal": {
+            "heading": "新練習",
+            "options": {
+              "from_scratch": "從零開始",
+              "from_scratch_subtitle": "如果您已準備好問題，請從零開始創建練習",
+              "use_template": "使用模板",
+              "use_template_subtitle": "從 100 多個預定義練習模板中選擇，幫助您開始",
+              "use_ai": "使用 AI",
+              "use_ai_subtitle": "您可以使用 AI 從筆記生成練習"
+            },
+            "how": "您想如何創建練習？",
+            "coming_soon": "即將推出",
+            "next": "下一步",
+            "title": "為練習命名",
+            "title_placeholder": "練習名稱",
+            "finish": "完成",
+            "select_template": "選擇模板",
+            "questions": "問題",
+            "points": "分數",
+            "back": "返回",
+            "create_exercises": "使用 AI 從筆記創建練習",
+            "choose_questions": "選擇您想要的問題和選項數量，AI 將幫助您從筆記創建練習。開始吧。",
+            "how_many_questions": "您想創建多少個問題？",
+            "how_many_options": "每個問題需要多少個選項？",
+            "add_note": "請添加筆記以使用此功能",
+            "generate": "生成",
+            "completion": "AI 生成完成",
+            "click_generate": "點擊「生成」開始神奇之旅"
+          },
+          "all_exercises": {
+            "heading": "所有練習",
+            "questions": "問題",
+            "submissions": "提交",
+            "save": "保存",
+            "preview": "預覽",
+            "reorder": "重新排序問題",
+            "delete_exercise": "刪除練習",
+            "order_questions": "排列問題",
+            "write_your_answer": "寫下您的答案",
+            "write_your_answer_here": "在此處寫下您的答案",
+            "no_answer": "未提供答案",
+            "write_your_question_here": "在此處寫下您的問題",
+            "write_your_title": "在此處寫下標題",
+            "write_your_subtitle": "在此處寫下副標題",
+            "highlight": "在此處寫下標題高亮",
+            "content": "在此處編寫內容",
+            "video": "在此處編寫視頻鏈接",
+            "link": "在此處編寫鏈接",
+            "label": "在此處編寫標籤",
+            "email": "在此處編寫郵箱",
+            "facebook": "在此處編寫 Facebook 鏈接",
+            "twitter": "在此處編寫 Twitter 鏈接",
+            "linkedin": "在此處編寫 LinkedIn 鏈接",
+            "number": "在此處編寫電話號碼",
+            "previous": "上一個",
+            "finish": "完成",
+            "next": "下一個",
+            "check": "檢查",
+            "description": {
+              "title": "標題",
+              "heading": "描述",
+              "describe": "向學生描述練習",
+              "no": "無描述"
+            },
+            "delete_confirmation": {
+              "title": "刪除問題",
+              "sure": "您確定要刪除此問題嗎？",
+              "no": "不，請保留",
+              "yes": "是，刪除"
+            },
+            "edit_mode": {
+              "delete_modal": "刪除練習",
+              "sure": "您確定要刪除此練習嗎？",
+              "no": "不，取消",
+              "yes": "是，刪除",
+              "deleting": "刪除中...",
+              "error": "您有一些錯誤",
+              "question": "問題",
+              "write": "編寫代碼",
+              "option": "添加選項",
+              "question_types": {
+                "single": "單選",
+                "multiple": "多選",
+                "paragraph": "段落"
+              }
+            },
+            "view_mode": {
+              "no_question": "此練習未添加問題",
+              "edit": "編輯",
+              "button": "按鈕以添加",
+              "questions": "問題",
+              "points": "分數",
+              "all": "全部必填",
+              "due": "截止日期",
+              "no_description": "無描述",
+              "start": "開始",
+              "graded": "已評分",
+              "pending": "待處理",
+              "submitted": "已提交",
+              "status_pending": "狀態：待審核",
+              "status_graded": "狀態：審核完成",
+              "status_submitted": "狀態：已提交"
+            },
+            "analytics": {
+              "summary": {
+                "heading": "摘要",
+                "question_chart": "問題圖表"
+              },
+              "individual": {
+                "heading": "個人",
+                "answers": "個人答案",
+                "no": "未提供答案"
+              },
+              "submissions": "提交"
+            }
+          }
+        },
+        "disabled": "功能已禁用",
+        "comments": {
+          "title": "評論",
+          "you": "您",
+          "text_area_title": "發表評論",
+          "placeholder": "您對此課時有什麼看法？",
+          "comment_btn": "評論",
+          "cancel_btn": "取消",
+          "load_more_btn": "加載更多",
+          "comment_error": "評論發佈失敗。請重試。"
+        },
+        "polls": {
+          "title": "投票",
+          "active_polls": "進行中的投票",
+          "expired_polls": "已過期的投票",
+          "loading": "加載中...",
+          "no_polls": "沒有可顯示的投票"
+        },
+        "poll": {
+          "voted": "已投票",
+          "created_by": "創建者",
+          "status": "狀態",
+          "draft": "草稿",
+          "publish": "發佈",
+          "expiration": "過期時間",
+          "total_voted": "總票數",
+          "responses": "回覆",
+          "expires": "過期",
+          "today": "今天",
+          "back": "返回",
+          "result": "結果",
+          "delete": "刪除",
+          "create_poll": "創建投票",
+          "question": "問題",
+          "options": "選項",
+          "option_label": "選項標籤",
+          "cancel": "取消",
+          "poll_question": "投票問題"
+        },
+        "version_history": {
+          "title": "版本歷史",
+          "fetch_more_versions": "獲取更多版本",
+          "current_version": "當前版本",
+          "restore_version": "恢復此版本"
+        }
+      },
+      "attendance": {
+        "title": "考勤",
+        "present": "出勤",
+        "absent": "缺勤",
+        "search_students": "搜索學生",
+        "student": "學生",
+        "lesson": "課時",
+        "no_student": "未添加學生"
+      },
+      "submissions": {
+        "title": "已提交的練習",
+        "submission_status": {
+          "submitted": "已提交",
+          "in_progress": "進行中",
+          "graded": "已評分"
+        },
+        "grading_modal": {
+          "details": "詳情",
+          "early": "提前",
+          "late": "遲到",
+          "total_grade": "總成績",
+          "student": "學生",
+          "status": "狀態",
+          "add_comment": "添加評論",
+          "add_comment_placeholder": "發表評論",
+          "grade_with_ai": "使用 AI 評分",
+          "submit_grades": "提交成績",
+          "accept_grade": "接受",
+          "reject_grade": "拒絕",
+          "allocated": "分配此分數是因為",
+          "total_try": "總嘗試次數：",
+          "options_correct": "選擇了正確選項",
+          "out_of": "共",
+          "options_wrong": "錯誤選擇的數量為",
+          "questions_tried": "分配此分數是因為總嘗試次數：",
+          "delete_prompt": "刪除",
+          "delete_error": "刪除提交失敗",
+          "delete_success": "提交刪除成功"
+        }
+      },
+      "marks": {
+        "title": "成績",
+        "student": "學生",
+        "total": "總計",
+        "export": {
+          "csv": "導出為 CSV",
+          "pdf": "導出為 PDF"
+        },
+        "no_student": "未添加學生"
+      },
+      "people": {
+        "title": "人員",
+        "add": "添加",
+        "search": "搜索人員",
+        "you": "您",
+        "pending": "待處理",
+        "name": "姓名",
+        "role": "角色",
+        "action": "操作",
+        "feedback": "郵箱已複製到剪貼板",
+        "view": "查看",
+        "delete_profile": "刪除個人資料",
+        "invite_modal": {
+          "title": "邀請人員",
+          "invite": "邀請導師",
+          "select": "選擇組織中的導師...",
+          "to_add": "要將導師添加到您的組織，",
+          "go_to": "請前往組織設置",
+          "invite_students": "邀請學生",
+          "via_link": "您可以通過邀請鏈接邀請學生",
+          "via_qr": "您可以通過二維碼邀請學生",
+          "download_qr": "下載二維碼",
+          "qr_downloading_snackbar": "二維碼生成成功，請等待下載",
+          "copy_link": "複製鏈接",
+          "success": "複製成功",
+          "finish": "完成"
+        },
+        "delete_confirmation": {
+          "title": "刪除",
+          "sure": "您確定要刪除嗎",
+          "no": "否",
+          "yes": "是"
+        },
+        "roles": {
+          "admin": "管理員",
+          "tutor": "導師",
+          "student": "學生",
+          "filter": "篩選"
+        },
+        "teams": {
+          "add": "添加",
+          "add_team": "將您的團隊成員或協作者添加到您的組織。開始協作吧",
+          "invite": "邀請",
+          "placeholder": "郵箱，逗號分隔",
+          "role": "角色",
+          "send_invite": "發送邀請",
+          "members": "成員",
+          "invite_sent": "邀請已發送",
+          "you": "您",
+          "remove": "移除"
+        }
+      },
+      "certificates": {
+        "title": "證書",
+        "certificate_settings": "證書設置",
+        "theme": "選擇主題",
+        "logo": "品牌標誌",
+        "to_update": "要更新您的品牌圖片，請前往",
+        "settings": "設置 > 組織設置",
+        "and_upload": "並上傳您的品牌標誌",
+        "goto_settings": "前往設置",
+        "description": "課程描述",
+        "placeholder": "關於課程的簡短描述",
+        "allow": "允許學生下載證書",
+        "locked": "已鎖定",
+        "unlocked": "已解鎖",
+        "save": "保存更改",
+        "unlocked_certificate": "恭喜！🎉 您的證書已準備就緒",
+        "unlocked_certificate_subtitle": "您已完成本課程，您的努力有目共睹。下載證書並與您的社交網絡分享，證明您新獲得的技能",
+        "locked_certificate": "證書不可用",
+        "instructor_unlock": "您的講師需要解鎖您的證書。",
+        "contact_instructor": "如果您需要證書，請聯繫您的講師。",
+        "download_certificate": "下載證書",
+        "complete_to_download_title": "課程未完成 😔",
+        "complete_to_download_subtitle": "當您完成本課程的所有課時和練習後，您的證書將可用",
+        "description_error": "描述不能超過 200 個字符",
+        "characters": "字符",
+        "unexpected_error": "發生意外錯誤"
+      },
+      "landing_page": {
+        "editor": {
+          "title": {
+            "header": "頁眉",
+            "requirement": "要求",
+            "description": "描述",
+            "goals": "目標",
+            "reviews": "評價",
+            "instructor": "講師",
+            "pricing": "定價",
+            "certificate": "證書"
+          },
+          "save": "保存",
+          "page_builder": "頁面構建器",
+          "section": "板塊",
+          "display_section": "顯示板塊",
+          "header_form": {
+            "title": "標題",
+            "description": "描述",
+            "short_video": "短視頻",
+            "replace_cover": "替換封面圖片",
+            "replace": "替換",
+            "helper": "輸入 YouTube 視頻鏈接"
+          },
+          "reviews_form": {
+            "add_reviews": "添加評價",
+            "fullname": "全名",
+            "description": "描述",
+            "rating": "評分",
+            "hide": "隱藏評價",
+            "validations": {
+              "name": {
+                "min_char": "名稱太短，最少 5 個字符"
+              },
+              "avatar_url": {
+                "message": "請上傳圖片"
+              },
+              "rating": {
+                "message": "評分必須為 1-5"
+              },
+              "description": {
+                "min_char": "描述太短，最少 5 個字符"
+              }
+            }
+          },
+          "certificate_form": {
+            "upload_template": "證書模板"
+          },
+          "instructor_form": {
+            "upload": "講師標誌",
+            "name": "講師姓名",
+            "name_placeholder": "您的公司名稱",
+            "role": "講師角色",
+            "about": "關於講師",
+            "about_placeholder": "講師的簡短背景介紹",
+            "total": "課程總數"
+          },
+          "pricing_form": {
+            "currency": "貨幣",
+            "cost": "費用",
+            "payment": "支付鏈接",
+            "discount": "折扣",
+            "no": "否",
+            "yes": "是",
+            "percent": "折扣百分比",
+            "gift": "關於禮物"
+          }
+        },
+        "upload_widget": {
+          "title": "橫幅小部件",
+          "width": "寬度超過 1500 像素的圖片效果最佳。",
+          "size": "每個文件的最大大小為 500kb。",
+          "submit": "提交",
+          "no_images": "沒有可用的圖片。"
+        },
+        "pricing_section": {
+          "free": "免費",
+          "not_accepting": "本課程目前不接受新學生。",
+          "discount": "折扣",
+          "enroll": "立即註冊",
+          "buy": "立即購買",
+          "bird": "早鳥優惠。儘快購買"
+        },
+        "course_content": "課程內容",
+        "modules": "模塊",
+        "lessons": "課時",
+        "exercises": "練習",
+        "start_course": "開始課程",
+        "requirement": "要求",
+        "description": "課程描述",
+        "learn": "您將學到什麼",
+        "certificate": "證書",
+        "certificate_text": "當您完成項目中的所有課程後，您將獲得一張證書，可與您的專業網絡分享。",
+        "content": "課程內容",
+        "slide": "1 張幻燈片",
+        "note": "筆記",
+        "video": "視頻",
+        "reviews": "評價",
+        "see_all": "查看全部",
+        "header_video": "頁眉視頻",
+        "no_course_published": "未發佈課程",
+        "coming_your_way": "我們有很棒的課程即將推出，敬請期待！！！",
+        "view_less": "收起",
+        "view_all": "查看全部",
+        "thank_you": "感謝您的留言，我們將盡快回復您",
+        "name": "您的姓名",
+        "email": "您的郵箱",
+        "phone": "您的電話",
+        "message": "您的留言",
+        "your_message": "在此輸入留言",
+        "submit": "提交",
+        "successful_sub": "您已成功添加。感謝訂閱。",
+        "enter": "輸入您的郵箱...",
+        "powered_by": "技術支持",
+        "landing_page": "著陸頁",
+        "explore": "探索課程",
+        "find": "從全球最優秀的教師那裡找到您喜歡的課程",
+        "find_course": "查找課程...",
+        "reviews_modal": {
+          "title": "評價",
+          "rating": "評分",
+          "ratings": "評分"
+        },
+        "instructor": "講師",
+        "courses": "課程"
+      },
+      "analytics": {
+        "title": "分析"
+      },
+      "settings": {
+        "heading": "設置",
+        "cover_image": "封面圖片",
+        "optional_image": "此可選圖片將顯示在您的歡迎頁面上。如果包含，尺寸應至少為 280 x 200",
+        "replace": "替換",
+        "del": "刪除",
+        "course_details": "課程詳情",
+        "course_title": "課程標題",
+        "course_description": "課程描述",
+        "placeholder": "在此處編寫課程描述",
+        "link": "課程鏈接",
+        "grading": "評分",
+        "reports": "為課時提供評分報告",
+        "disabled": "已禁用",
+        "enabled": "已啟用",
+        "order": "課時標籤排序",
+        "drag": "拖放標籤以重新排列資料標籤",
+        "lesson_download": "課時下載",
+        "available": "使課時可供註冊學生以 PDF 格式下載",
+        "course_download": "課程下載",
+        "course_avail": "使課程可供註冊學生下載",
+        "download": "下載",
+        "allow": "允許新學生",
+        "access": "允許新學生訪問此課程",
+        "publish": "發佈課程",
+        "determines": "這決定了您的課程是否顯示在著陸頁上",
+        "published": "已發佈",
+        "unpublished": "未發佈",
+        "type": "課程類型",
+        "course_type_desc": "更新課程類型以獲得更個性化的體驗",
+        "live_class": "直播課程",
+        "self_paced": "自主學習",
+        "delete": "刪除課程",
+        "delete_text": "刪除此課程，此操作無法撤消",
+        "save": "保存更改"
+      }
+    },
+    "not_permitted": {
+      "header": "無權限",
+      "body": "很遺憾，您沒有訪問此課程的權限。",
+      "button": "返回首頁"
+    }
+  },
+  "community": {
+    "title": "社區",
+    "ask_button": "提問社區",
+    "ask": {
+      "go_back": "返回",
+      "ask_the": "向社區提問",
+      "publish": "發佈",
+      "title": "標題",
+      "select_course": "選擇課程",
+      "ask_community": "向社區提出您的任何問題",
+      "question": "問題",
+      "save": "保存",
+      "edit": "編輯",
+      "cancel": "取消",
+      "give": "給出答案",
+      "comment": "評論"
+    },
+    "find_question": "查找問題",
+    "asked": "已提問",
+    "answers": "答案",
+    "no_question": "未提問",
+    "ask_a_question": "向社區提問",
+    "delete": {
+      "title": "刪除",
+      "question": "問題",
+      "comment": "評論",
+      "sure": "您確定要刪除此",
+      "no": "否，保留",
+      "yes": "是，刪除"
+    },
+    "all": "全部"
+  },
+  "audience": {
+    "title": "受眾",
+    "export": "導出",
+    "no_audience": "沒有可管理的受眾",
+    "manage": "在此管理所有學生並保持聯繫",
+    "name": "姓名",
+    "email": "郵箱",
+    "date_joined": "加入日期",
+    "upgrade": "升級您的方案以邀請更多學生"
+  },
+  "analytics": {
+    "courses": "課程",
+    "progress": "進度",
+    "progress_description": "{total, number} 箇中已完成 {value, number} 個",
+    "incomplete": "未完成",
+    "completed": "已完成",
+    "complete": "完成",
+    "last_seen": "最後訪問",
+    "a_while_ago": "一段時間前",
+    "exercises": "練習",
+    "graded": "已評分",
+    "not_graded": "未評分",
+    "enrolled_courses": "已註冊課程",
+    "enrolled_courses_description": "所有已註冊課程",
+    "overall_course_progress": "整體課程進度",
+    "overall_course_progress_description": "已完成課時的百分比",
+    "total_average_grade": "總平均成績",
+    "total_average_grade_description": "基於所有課程的練習成績",
+    "overall_course_progress_user_description": "基於課時完成情況",
+    "assignment_completion": "作業完成率",
+    "assignment_completion_description": "已完成作業的百分比",
+    "average_grade_description": "所有已完成作業的平均成績",
+    "students": "學生",
+    "lessons": "課時",
+    "tutors": "導師",
+    "avg_grade": "平均成績",
+    "completion_rate": "完成率",
+    "student_progress_overview": "學生進度概覽",
+    "student_name": "學生姓名",
+    "lessons_completed": "已完成課時",
+    "exercises_submitted": "已提交練習",
+    "average_grade": "平均成績",
+    "actions": "操作",
+    "view_details": "查看詳情",
+    "no_students_found": "未找到學生",
+    "no_students_description": "目前沒有學生註冊此課程。學生加入後將在此處顯示。",
+    "showing_students": "顯示第 {start} 到 {end} 名學生，共 {total} 名",
+    "no_analytics_data": "無分析數據",
+    "no_analytics_description": "無法加載此課程的分析數據。請稍後重試，如果問題持續存在，請聯繫支持。"
+  },
+  "upgrade": {
+    "certificate": "升級您的方案以生成證書",
+    "team": "升級您的方案以添加團隊成員",
+    "domain": "升級您的方案以添加自定義域名",
+    "team_members": "團隊成員",
+    "back": "返回設置",
+    "download_lessons": "升級以下載課時",
+    "download_course": "升級以下載課程",
+    "required": "需要升級"
+  },
+  "lms_navigation": {
+    "home": "首頁",
+    "my_learning": "我的學習",
+    "exercise": "練習",
+    "community": "社區",
+    "explore": "探索",
+    "help": "幫助",
+    "settings": "設置"
+  },
+  "my_learning": {
+    "heading": "我的學習",
+    "progress": "進行中",
+    "complete": "已完成",
+    "search": "搜索課程",
+    "not_in_progress": "沒有進行中的課程",
+    "any_progress": "您開始的任何課程都將顯示在此處",
+    "not_completed": "沒有已完成的課程",
+    "any_course": "您完成的任何課程都將顯示在此處"
+  },
+  "exercises": {
+    "heading": "練習",
+    "not_submitted": "未提交",
+    "submitted": "已提交",
+    "in_progress": "評分中",
+    "graded": "已評分",
+    "lesson": "課時"
+  },
+  "explore": {
+    "heading": "探索我們的課程",
+    "empty_heading": "暫無課程",
+    "empty_description": "目前沒有已發佈的課程"
+  },
+  "snackbar": {
+    "success": "成功",
+    "success_update": "更新成功",
+    "success_delete": "刪除成功",
+    "something": "出現問題 - 請稍後重試",
+    "update": "更新",
+    "poll": {
+      "error": {
+        "creating_poll": "創建投票時發生錯誤",
+        "updating_poll": "更新投票狀態時發生錯誤",
+        "submitting_poll": "提交投票時發生錯誤"
+      },
+      "info": {
+        "not_published": "投票尚未發佈",
+        "vote_once": "您只能投票一次"
+      }
+    },
+    "exercise": {
+      "success": "保存成功",
+      "submission_updated": "提交已更新為",
+      "error_fetching": "獲取練習失敗，請重新加載頁面"
+    },
+    "materials": {
+      "apology": "很抱歉，保存課時內容時出錯。",
+      "update_translations": "更新翻譯失敗",
+      "creating_new": "創建新翻譯失敗"
+    },
+    "newsfeed": {
+      "success": {
+        "edit": "動態編輯成功",
+        "add": "新動態添加成功"
+      },
+      "error": {
+        "error": "發生錯誤，",
+        "editing": "編輯動態時",
+        "creating": "創建動態時"
+      }
+    },
+    "people": {
+      "error": {
+        "missing_data": "組織數據缺失，請重新加載頁面",
+        "no": "當前沒有組織域名"
+      },
+      "success": {
+        "copied": "已複製到剪貼板"
+      }
+    },
+    "course_settings": {
+      "success": {
+        "download": "下載完成",
+        "saved": "保存成功",
+        "successful_integration": "集成成功",
+        "successful_deletion": "集成已刪除",
+        "update_successful": "更新成功"
+      },
+      "error": {
+        "not_right": "出現問題 - 請稍後重試",
+        "went_wrong": "出現問題 - 請稍後重試",
+        "title": "標題不能為空",
+        "description": "描述不能為空",
+        "failed_integration": "集成失敗，請稍後重試",
+        "failed_deletion": "刪除失敗，請稍後重試"
+      }
+    },
+    "lms": {
+      "error": {
+        "username_exists": "用戶名已存在",
+        "update": "更新失敗：",
+        "try_again": "請重試"
+      }
+    },
+    "team_members": {
+      "invite_sent": "邀請已發送！",
+      "user_exists": "用戶已存在",
+      "invite_fail": "發送邀請失敗，請重試",
+      "remove_fail": "移除用戶失敗，請重試"
+    },
+    "landing_page_settings": {
+      "error": {
+        "file_size": "文件大小不能超過 500kb",
+        "try_again": "重試",
+        "label": "上傳圖片",
+        "fetch_error": "從 Unsplash 獲取圖片時出錯"
+      },
+      "success": {
+        "complete": "完成 :)"
+      }
+    },
+    "course": {
+      "success": {
+        "comment_deleted": "評論已刪除",
+        "comment_added": "評論已添加",
+        "pinned": "已置頂",
+        "unpinned": "已取消置頂",
+        "successfully": "成功",
+        "feed_delete_success": "動態刪除成功"
+      },
+      "error": {
+        "reaction_error": "對動態進行反應時發生錯誤",
+        "commenting_error": "創建評論時發生錯誤",
+        "toggle_error": "切換置頂動態失敗",
+        "news_feed_fail": "獲取動態失敗",
+        "feed_fetch_error": "獲取動態時發生錯誤"
+      }
+    },
+    "attendance": {
+      "error": {
+        "reload": "出現問題。請重新加載並重新考勤"
+      }
+    },
+    "lessons": {
+      "success": {
+        "complete_marked": "已標記為完成",
+        "complete_download": "下載完成",
+        "version_restored": "版本恢復成功"
+      },
+      "error": {
+        "try_later": "出現問題 - 請稍後重試",
+        "exercise_not_complete": "完成所有練習以標記為完成"
+      }
+    },
+    "marks": {
+      "error": "獲取成績時出錯"
+    },
+    "submissions": {
+      "success": {
+        "grading": "成績已保存並已通知學生"
+      }
+    },
+    "invite": {
+      "failed_join": "加入失敗，請聯繫管理員"
+    },
+    "community": {
+      "error": {
+        "try_again": "錯誤 - 請稍後重試",
+        "deleting_comments": "刪除評論時出錯",
+        "deleting_question": "刪除問題時出錯"
+      },
+      "success": {
+        "comment_submitted": "評論已提交！",
+        "success_delete": "刪除成功",
+        "question_submitted": "問題已提交！"
+      }
+    },
+    "signup": {
+      "disposable": "您提供的郵箱是一次性郵箱"
+    },
+    "upgrade": {
+      "generate_fail": "生成成功失敗",
+      "failed": "失敗，請稍後重試"
+    },
+    "setup": {
+      "info_lesson": "您需要創建課時",
+      "info_course": "您需要創建課程"
+    },
+    "generic": {
+      "success_delete": "刪除成功",
+      "try_again": "錯誤 - 請稍後重試"
+    }
+  },
+  "specialization": {
+    "course_tag": "專項課程"
+  },
+  "content": {
+    "heading": "SvelteKit 國際化",
+    "toggle_label": "選擇首選語言"
+  },
+  "generic": {
+    "locked": "已鎖定",
+    "unlocked": "已解鎖",
+    "loading": "加載中"
+  },
+  "validations": {
+    "user_profile": {
+      "email": "郵箱地址無效",
+      "username": "用戶名不能為空",
+      "fullname": "姓名至少需要 5 個字符"
+    },
+    "organization_name": {
+      "min_char": "組織名稱必須包含 5 個或更多字符",
+      "hyphen_rule": "組織名稱不能以連字符開頭或結尾"
+    },
+    "site_name": {
+      "min_char": "站點名稱必須包含 5 個或更多字符",
+      "hyphen_rule": "站點名稱不能以連字符開頭或結尾"
+    },
+    "news_feed": {
+      "min_char": "字段必須包含 5 個或更多字符"
+    },
+    "lesson_schema": {
+      "empty_title": "標題不能為空"
+    },
+    "create_quiz": {
+      "min_char": "必須為 6 個或更多字符"
+    },
+    "ask_community": {
+      "title": {
+        "min_char": "必須為 6 個或更多字符"
+      },
+      "body": {
+        "min_char": "必須為 10 個或更多字符"
+      },
+      "course_id": {
+        "select_course": "選擇課程"
+      }
+    },
+    "comment_in_community": {
+      "min_char": "必須為 6 個或更多字符"
+    },
+    "org_landing_page": {
+      "name": {
+        "min_char": "必須為 6 個或更多字符"
+      },
+      "email": {
+        "invalid_email": "郵箱地址無效"
+      },
+      "phone": {
+        "min_char": "必須為 6 個或更多字符"
+      },
+      "message": {
+        "min_char": "必須為 10 個或更多字符"
+      }
+    },
+    "forgot": {
+      "invalid_email": "郵箱地址無效"
+    },
+    "auth": {
+      "email": {
+        "invalid_email": "郵箱地址無效"
+      },
+      "password": {
+        "min_char": "必須為 6 個或更多字符"
+      }
+    },
+    "reset": {
+      "password": {
+        "min_char": "必須為 6 個或更多字符"
+      }
+    },
+    "onboarding": {
+      "step_one": {
+        "full_name": {
+          "min_char": "全名必須包含 5 個或更多字符"
+        }
+      },
+      "step_two": {
+        "goal": {
+          "required": "請選擇一個選項"
+        },
+        "source": {
+          "required": "請選擇一個選項"
+        }
+      }
+    },
+    "confirm_password": {
+      "not_match": "與密碼不匹配"
+    },
+    "course_payment": {
+      "full_name": {
+        "min_char": "必須為 6 個或更多字符"
+      },
+      "email": {
+        "invalid_email": "郵箱地址無效"
+      }
+    },
+    "email": {
+      "not_valid": "郵箱無效"
+    }
+  },
+  "forgot_password": {
+    "title": "重置密碼",
+    "heading": "忘記密碼",
+    "description": "我們將向您的郵箱發送重置鏈接",
+    "email_sent": "郵件已發送！",
+    "email_sent_description": "我們已向 {email} 發送了一封確認郵件。請檢查您的收件箱或垃圾郵件以重置密碼。",
+    "okay": "好的",
+    "reset_button": "重置密碼",
+    "cancel": "取消"
+  },
+
+  "reset_password": {
+    "heading": "新密碼",
+    "description": "輸入您的新密碼詳情",
+    "reset_button": "重置密碼"
+  },
+
+  "not_found": {
+    "title": "頁面未找到",
+    "org_not_exist": "組織不存在！",
+    "description": "您要找的頁面不存在或已被移動。請返回首頁。",
+    "go_home": "返回首頁"
+  },
+
+  "common": {
+    "unsaved_changes": {
+      "message": "您有未保存的更改。確定要離開嗎？"
+    }
+  }
+}

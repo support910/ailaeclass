@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClassroomIO LMS 專案交付文件</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm 15mm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
+      color: #1a1a2e;
+      line-height: 1.7;
+      font-size: 11pt;
+      background: #fff;
+    }
+
+    /* ========== Cover Page ========== */
+    .cover {
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      background: linear-gradient(135deg, #0f4c75 0%, #1b262c 100%);
+      color: #fff;
+      padding: 40px;
+    }
+
+    .cover h1 {
+      font-size: 32pt;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+
+    .cover .subtitle {
+      font-size: 16pt;
+      font-weight: 300;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+
+    .cover .meta {
+      font-size: 11pt;
+      opacity: 0.7;
+      line-height: 2;
+    }
+
+    .cover .divider {
+      width: 80px;
+      height: 3px;
+      background: #e0e1dd;
+      margin: 30px auto;
+      border-radius: 2px;
+    }
+
+    /* ========== TOC ========== */
+    .toc {
+      page-break-after: always;
+      padding: 40px 0;
+    }
+
+    .toc h2 {
+      font-size: 20pt;
+      color: #0f4c75;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #0f4c75;
+    }
+
+    .toc-section {
+      margin-bottom: 20px;
+    }
+
+    .toc-section h3 {
+      font-size: 13pt;
+      color: #0f4c75;
+      margin-bottom: 8px;
+      padding-left: 10px;
+      border-left: 4px solid #0f4c75;
+    }
+
+    .toc-list {
+      list-style: none;
+      padding-left: 20px;
+    }
+
+    .toc-list li {
+      padding: 3px 0;
+      font-size: 10.5pt;
+      color: #333;
+    }
+
+    .toc-list li span.num {
+      display: inline-block;
+      width: 30px;
+      color: #0f4c75;
+      font-weight: 600;
+    }
+
+    /* ========== Section Headers ========== */
+    .section-header {
+      page-break-before: always;
+      page-break-after: avoid;
+      break-after: avoid;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      background: linear-gradient(135deg, #0f4c75 0%, #1b262c 100%);
+      color: #fff;
+      padding: 30px 40px;
+      margin: 0;
+      width: 100%;
+      min-height: 100px;
+    }
+
+    .section-header + .page-card,
+    .section-header + .feature-grid,
+    .section-header + .summary-table {
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+
+    /* First section after cover should not have extra page break */
+    .cover + .toc + .section-header,
+    .toc + .section-header {
+      page-break-before: always;
+    }
+
+    .section-header h2 {
+      font-size: 22pt;
+      font-weight: 700;
+      margin-bottom: 6px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .section-header p {
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+
+    .section-header p {
+      font-size: 11pt;
+      opacity: 0.8;
+    }
+
+    /* ========== Page Cards ========== */
+    .page-card {
+      margin: 24px 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .page-card-header {
+      background: #f0f4f8;
+      padding: 12px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .page-card-header h3 {
+      font-size: 13pt;
+      color: #0f4c75;
+      font-weight: 700;
+    }
+
+    .page-card-header .route {
+      font-size: 9pt;
+      color: #666;
+      font-family: "SF Mono", "Fira Code", monospace;
+      background: #e8edf2;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .page-card-body {
+      padding: 16px 20px;
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+
+    .page-card-body .description {
+      font-size: 10.5pt;
+      color: #333;
+      margin-bottom: 14px;
+      line-height: 1.8;
+      page-break-before: avoid;
+      break-before: avoid;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .page-card-body .features {
+      margin-bottom: 14px;
+      page-break-before: avoid;
+      break-before: avoid;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .page-card-body .features h4 {
+      font-size: 10pt;
+      color: #0f4c75;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .page-card-body .features ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .page-card-body .features ul li {
+      background: #e8f4f8;
+      color: #0f4c75;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 9pt;
+      font-weight: 500;
+    }
+
+    .page-card-body .screenshot {
+      margin-top: 12px;
+      text-align: center;
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+
+    .page-card-body .screenshot img {
+      max-width: 100%;
+      max-height: 36vh;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .page-card-body .screenshot .caption {
+      font-size: 9pt;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    /* ========== Feature Grid ========== */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .feature-box {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .feature-box h4 {
+      font-size: 11pt;
+      color: #0f4c75;
+      margin-bottom: 6px;
+    }
+
+    .feature-box p {
+      font-size: 10pt;
+      color: #555;
+    }
+
+    /* ========== Summary Table ========== */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 10pt;
+    }
+
+    .summary-table th {
+      background: #0f4c75;
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .summary-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .summary-table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 8.5pt;
+      font-weight: 600;
+    }
+
+    .badge-green { background: #d4edda; color: #155724; }
+    .badge-blue { background: #cce5ff; color: #004085; }
+    .badge-purple { background: #e8daef; color: #6c3483; }
+
+    /* ========== Footer ========== */
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #0f4c75;
+      text-align: center;
+      font-size: 9pt;
+      color: #888;
+    }
+
+    /* ========== Print ========== */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      html, body {
+        font-size: 10pt;
+        background: #fff !important;
+      }
+
+      .cover {
+        page-break-after: always;
+        min-height: 100vh;
+        background: #0f4c75 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .section-header {
+        page-break-before: always;
+        page-break-after: avoid;
+        break-after: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        background: #0f4c75 !important;
+        padding: 30px 40px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 100px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .section-header h2 {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .section-header p {
+        page-break-before: avoid;
+        break-before: avoid;
+      }
+
+      .section-header + .page-card,
+      .section-header + .feature-grid,
+      .section-header + .summary-table {
+        page-break-before: avoid;
+        break-before: avoid;
+      }
+
+      .toc {
+        page-break-after: always;
+      }
+
+      .page-card {
+        break-inside: auto;
+      }
+
+      .page-card-body {
+        page-break-before: avoid;
+        break-before: avoid;
+      }
+
+      .page-card-body .description {
+        page-break-before: avoid;
+        break-before: avoid;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .page-card-body .features {
+        page-break-before: avoid;
+        break-before: avoid;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .page-card-body .screenshot {
+        page-break-before: avoid;
+        break-before: avoid;
+      }
+
+      .page-card-body .screenshot img {
+        max-width: 100%;
+        max-height: 36vh;
+        object-fit: contain;
+      }
+
+      .feature-grid {
+        page-break-inside: avoid;
+      }
+
+      .summary-table th {
+        background: #0f4c75 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .summary-table tr:nth-child(even) {
+        background: #f8f9fa !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .page-card-header {
+        background: #f0f4f8 !important;
+        page-break-after: avoid;
+        break-after: avoid;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .page-card-body .features ul li {
+        background: #e8f4f8 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .badge-green { background: #d4edda !important; }
+      .badge-blue { background: #cce5ff !important; }
+      .badge-purple { background: #e8daef !important; }
+
+      .page-card-body .screenshot .caption {
+        color: #555 !important;
+      }
+
+      .footer {
+        page-break-before: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover">
+  <h1>5G NUMULTIMEDIA</h1>
+  <div class="subtitle">ClassroomIO 學習管理系統</div>
+  <div class="divider"></div>
+  <h1 style="font-size: 22pt; font-weight: 600;">專案交付文件</h1>
+  <div class="divider"></div>
+  <div class="meta">
+    <div>版本：v1.0</div>
+    <div>日期：2026 年 4 月 29 日</div>
+    <div>技術架構：SvelteKit + Supabase + Hono</div>
+    <div>系統語言：繁體中文（支援中/英文切換）</div>
+  </div>
+</div>
+
+<!-- ==================== TOC ==================== -->
+<div class="toc">
+  <h2>目錄</h2>
+
+  <div class="toc-section">
+    <h3>一、系統概述</h3>
+    <ul class="toc-list">
+      <li><span class="num">1.1</span> 專案簡介</li>
+      <li><span class="num">1.2</span> 技術架構</li>
+      <li><span class="num">1.3</span> 功能總覽</li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>二、課程管理模組</h3>
+    <ul class="toc-list">
+      <li><span class="num">2.1</span> 課程課時管理</li>
+      <li><span class="num">2.2</span> 課時內容播放</li>
+      <li><span class="num">2.3</span> 課時練習管理</li>
+      <li><span class="num">2.4</span> 課程動態消息</li>
+      <li><span class="num">2.5</span> 課程設定</li>
+      <li><span class="num">2.6</span> 學員管理</li>
+      <li><span class="num">2.7</span> 作業提交與批改</li>
+      <li><span class="num">2.8</span> 出勤管理</li>
+      <li><span class="num">2.9</span> 證書管理</li>
+      <li><span class="num">2.10</span> 課程數據分析</li>
+      <li><span class="num">2.11</span> 課程落地頁編輯器</li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>三、學生學習管理系統（LMS）</h3>
+    <ul class="toc-list">
+      <li><span class="num">3.1</span> 學習儀表板</li>
+      <li><span class="num">3.2</span> 課程探索</li>
+      <li><span class="num">3.3</span> 我的學習</li>
+      <li><span class="num">3.4</span> 練習與作業</li>
+      <li><span class="num">3.5</span> 個人設定</li>
+      <li><span class="num">3.6</span> 社群討論</li>
+      <li><span class="num">3.7</span> 社群提問</li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>四、組織管理後台</h3>
+    <ul class="toc-list">
+      <li><span class="num">4.1</span> 管理儀表板</li>
+      <li><span class="num">4.2</span> 課程列表</li>
+      <li><span class="num">4.3</span> 社群管理</li>
+      <li><span class="num">4.4</span> 測驗管理</li>
+      <li><span class="num">4.5</span> 創建測驗</li>
+      <li><span class="num">4.6</span> 受眾與郵件列表</li>
+      <li><span class="num">4.7</span> 組織設定</li>
+      <li><span class="num">4.8</span> 自訂 LMS 外觀</li>
+      <li><span class="num">4.9</span> 自訂網域</li>
+      <li><span class="num">4.10</span> 團隊管理</li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>五、公開頁面</h3>
+    <ul class="toc-list">
+      <li><span class="num">5.1</span> 組織首頁</li>
+      <li><span class="num">5.2</span> 課程公開頁面</li>
+      <li><span class="num">5.3</span> 登入 / 註冊 / 忘記密碼</li>
+      <li><span class="num">5.4</span> 404 頁面</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SECTION 1: OVERVIEW ==================== -->
+<div class="section-header">
+  <h2>一、系統概述</h2>
+  <p>ClassroomIO 學習管理系統核心功能與技術架構說明</p>
+</div>
+
+<div class="feature-grid">
+  <div class="feature-box">
+    <h4>系統簡介</h4>
+    <p>5G NUMULTIMEDIA 學習管理系統是一套基於 ClassroomIO 開源框架打造的全方位線上教學平台，支援課程建立與管理、學生學習追蹤、作業批改、證書頒發、社群互動等完整功能。</p>
+  </div>
+  <div class="feature-box">
+    <h4>技術架構</h4>
+    <p>前端採用 SvelteKit 框架，後端使用 Supabase（PostgreSQL）資料庫及 Hono API 伺服器。支援多租戶架構，可為不同組織提供獨立的學習環境。</p>
+  </div>
+  <div class="feature-box">
+    <h4>多語言支援</h4>
+    <p>系統內建 12 種語言翻譯，預設顯示繁體中文。導航欄提供中/英文即時切換功能，切換後自動儲存至使用者個人資料。</p>
+  </div>
+  <div class="feature-box">
+    <h4>角色權限</h4>
+    <p>系統支援三種角色：管理員（建立與管理課程）、教師（教學與批改作業）、學生（學習與提交作業）。不同角色看到的功能選單不同。</p>
+  </div>
+</div>
+
+<table class="summary-table">
+  <thead>
+    <tr>
+      <th>模組</th>
+      <th>頁面數</th>
+      <th>主要功能</th>
+      <th>適用角色</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>課程管理</td>
+      <td>11 頁</td>
+      <td>課時管理、內容播放、練習、動態、設定、成員、作業、出勤、證書、分析、落地頁</td>
+      <td><span class="badge badge-purple">管理員 / 教師</span></td>
+    </tr>
+    <tr>
+      <td>學生 LMS</td>
+      <td>7 頁</td>
+      <td>學習儀表板、探索課程、我的學習、練習、設定、社群、提問</td>
+      <td><span class="badge badge-blue">學生</span></td>
+    </tr>
+    <tr>
+      <td>組織管理</td>
+      <td>10 頁</td>
+      <td>儀表板、課程、社群、測驗、創建測驗、受眾、設定、外觀、網域、團隊</td>
+      <td><span class="badge badge-purple">管理員</span></td>
+    </tr>
+    <tr>
+      <td>公開頁面</td>
+      <td>6 頁</td>
+      <td>首頁、課程頁、登入、註冊、忘記密碼、404</td>
+      <td><span class="badge badge-green">所有人</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ==================== SECTION 2: COURSE MANAGEMENT ==================== -->
+<div class="section-header">
+  <h2>二、課程管理模組</h2>
+  <p>教師與管理員使用的課程管理功能，涵蓋課時編排、學員管理、作業批改等核心教學流程</p>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.1 課程課時管理</h3>
+    <span class="route">/courses/[id]/lessons</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      「Vibe coding」課程的內容管理頁面。左側導航列顯示課程功能模組（動態、內容、分析、提交、證書、著陸頁、人員、設置），右側顯示「Claude Code」模組及其下的「lesson 1」課時，該課時目前有 0 個練習。提供「重新排序」與「添加」按鈕用於管理課時結構。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>課程模組與課時階層管理</li>
+        <li>課時重新排序</li>
+        <li>新增課時與模組</li>
+        <li>練習數量顯示</li>
+        <li>更多選項操作</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/01-course-lessons.png" alt="課程課時管理">
+      <div class="caption">圖 2-1：「Vibe coding」課程課時管理頁面 — 顯示 Claude Code 模組與 lesson 1</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.2 課時內容播放</h3>
+    <span class="route">/courses/[id]/lessons/[lessonId]</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      「Lesson 1」的課時學習頁面，包含嵌入的 YouTube 教學影片（標題為「What is Vibe Coding?」）。頁面上方有「資料」與「練習」兩個標籤，影片下方顯示評論區（目前 0 條評論），底部有浮動導航列提供上一個 / 下一個課時切換及完成標記功能。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>YouTube 影片嵌入播放</li>
+        <li>資料與練習標籤切換</li>
+        <li>學生評論區</li>
+        <li>課時導航</li>
+        <li>完成狀態標記</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/lesson-content.png" alt="課時內容播放">
+      <div class="caption">圖 2-2：課時內容頁面 — 顯示 Lesson 1 的 YouTube 影片與評論區</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.3 課時練習管理</h3>
+    <span class="route">/courses/[id]/lessons/[lessonId]/exercises</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      「lesson 1」課時的練習管理頁面，目前處於空狀態。頁面中央顯示畢業帽插圖與提示文字「此課時未添加練習」，鼓勵教師創建引人入勝的練習題。右上角提供「添加」按鈕可新增練習內容。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>練習空狀態提示</li>
+        <li>添加練習題入口</li>
+        <li>課時關聯管理</li>
+        <li>多種題型支援（建立後）</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/lesson-exercises.png" alt="課時練習管理">
+      <div class="caption">圖 2-3：課時練習頁面 — 當前課時尚未添加任何練習題</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.4 課程動態消息</h3>
+    <span class="route">/courses/[id]</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      課程社群動態牆頁面。顯示一則由 Admin 於 4 天前發佈的置頂公告「Welcome to this course 🥳」，內容為「Thank you for joining this course and I hope you get the best out of it.」。貼文下方提供表情符號反應（👏 😄 👍 👎）與評論輸入框，方便師生互動交流。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>置頂公告顯示</li>
+        <li>表情符號反應</li>
+        <li>評論互動</li>
+        <li>發佈新動態</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/newsfeed-posts.png" alt="課程動態消息">
+      <div class="caption">圖 2-4：課程動態頁面 — 顯示 Admin 發佈的置頂歡迎公告</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.5 課程設定</h3>
+    <span class="route">/courses/[id]/settings</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      「Vibe coding」課程的設定頁面。包含三個設定區塊：封面圖片上傳（目前顯示兩位女性在廚房互動的照片）、課程詳情（課程標題「Vibe coding」、課程描述「Vibe Coding Course」、自動生成的課程連結 URL）、以及課時標籤排序（可拖曳重新排列 筆記 / 幻燈片 / 視頻 / 文檔 四種標籤順序）。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>封面圖片上傳與替換</li>
+        <li>課程標題與描述編輯</li>
+        <li>課程連結產生與複製</li>
+        <li>課時標籤拖曳排序</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/02-course-settings.png" alt="課程設定">
+      <div class="caption">圖 2-5：課程設定頁面 — 顯示封面圖片、課程詳情與標籤排序</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.6 學員管理</h3>
+    <span class="route">/courses/[id]/people</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      課程成員管理頁面。目前顯示 4 位成員：teacher（管理員，標示為「您」）、admin（導師）、student（學生）、Elon Gates（學生）。提供搜尋人員功能、添加新成員按鈕，以及每位成員的查看詳情入口。可透過邀請連結或電子郵件邀請新學生加入課程。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>成員列表檢視</li>
+        <li>角色識別（管理員/導師/學生）</li>
+        <li>邀請新成員</li>
+        <li>人員搜尋</li>
+        <li>查看成員詳情</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/03-course-people.png" alt="學員管理">
+      <div class="caption">圖 2-6：學員管理頁面 — 顯示 4 位課程成員及其角色</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.7 作業提交與批改</h3>
+    <span class="route">/courses/[id]/submissions</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      教師查看學生作業提交的頁面。目前採用看板視圖顯示三個狀態欄位：已提交（0 件）、進行中（0 件）、已評分（0 件）。當有學生提交作業後，教師可在此進行線上批改與評分，並將作業卡片拖曳至不同狀態欄位。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>看板式作業狀態追蹤</li>
+        <li>已提交 / 進行中 / 已評分三欄</li>
+        <li>線上批改評分</li>
+        <li>作業狀態拖曳更新</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/04-course-submissions.png" alt="作業提交">
+      <div class="caption">圖 2-7：作業提交與批改頁面 — 看板視圖顯示三種作業狀態</div>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/submissions-kanban.png" alt="作業提交看板">
+      <div class="caption">圖 2-7a：作業提交看板視圖 — 已提交 / 進行中 / 已評分</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.8 出勤管理</h3>
+    <span class="route">/courses/[id]/attendance</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      課程出勤管理頁面。顯示學生列表（student、Elon Gates）與「課時 001」的出勤勾選框。提供出勤/缺勤篩選核取方塊、學生搜尋功能，以及分頁控制（每頁 10 筆，共 10 筆資料）。教師可在此按課時記錄每位學生的出席狀態。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>按課時記錄出勤</li>
+        <li>出席/缺勤篩選</li>
+        <li>學生搜尋</li>
+        <li>分頁瀏覽</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/05-course-attendance.png" alt="出勤管理">
+      <div class="caption">圖 2-8：出勤管理頁面 — 顯示學生列表與課時 001 出勤勾選</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.9 證書管理</h3>
+    <span class="route">/courses/[id]/certificates</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      課程證書設計與管理頁面。提供 6 種證書模板供選擇（目前選中第一種），可編輯課程描述文字（目前為「Vibe Coding Course」）。右側即時預覽證書效果，顯示「CERTIFICATE OF COMPLETION」標題、學生姓名 placeholder、課程名稱「VIBE CODING」以及組織品牌「5G NUMULTIMEDIA LIMITED」。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>6 種證書模板選擇</li>
+        <li>即時預覽證書效果</li>
+        <li>課程描述自訂</li>
+        <li>品牌標誌整合</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/06-course-certificates.png" alt="證書管理">
+      <div class="caption">圖 2-9：證書管理頁面 — 選擇模板與預覽 Vibe Coding 課程證書</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.10 課程數據分析</h3>
+    <span class="route">/courses/[id]/analytics</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      「Vibe coding」課程的數據分析面板。頂部統計卡片顯示：學生 2 人 / 導師 2 人、課時 1 個 / 練習 0 個、進度 0% / 平均成績 0%、練習完成率 0%。下方提供兩個柱狀圖：學生進度分布（顯示 2 位學生進度低於 60%）與成績分布（顯示 2 位學生成績低於 70%）。底部為「學生進度概覽」列表。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>關鍵指標總覽卡片</li>
+        <li>學生進度分布圖表</li>
+        <li>成績分布圖表</li>
+        <li>學生進度概覽列表</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/07-course-analytics.png" alt="課程分析">
+      <div class="caption">圖 2-10：課程數據分析面板 — 顯示 2 名學生、1 個課時、0% 進度</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>2.11 課程落地頁編輯器</h3>
+    <span class="route">/courses/[id]/landingpage</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      課程公開宣傳頁面的視覺化編輯器。左側為「頁面構建器」面板，提供 8 種內容區塊（頁眉、要求、描述、目標、證書、評價、講師、定價）。右側為即時預覽區，顯示課程落地頁的實際效果，包含導航標籤（要求、描述、目標、證書、內容、講師）、課程描述內容、學習目標區塊，以及右側浮動資訊卡顯示「本課程目前不接受新學生」。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>模組化頁面構建</li>
+        <li>即時預覽編輯效果</li>
+        <li>多區塊內容管理</li>
+        <li>課程狀態控制</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/08-course-landingpage.png" alt="落地頁編輯器">
+      <div class="caption">圖 2-11：課程落地頁編輯器 — 頁面構建器與即時預覽</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 3: LMS ==================== -->
+<div class="section-header">
+  <h2>三、學生學習管理系統（LMS）</h2>
+  <p>學生端的學習介面，提供課程探索、學習追蹤、練習提交等功能</p>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.1 學習儀表板</h3>
+    <span class="route">/lms</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      學生登入後的首頁。頂部顯示「早上好 teacher!」問候語與「訪問網站」按鈕。中央橫幅提供學習激勵文字「今天是讓您更接近學習目標的又一天」。左下方「正在學習」區域顯示兩門課程卡片：「繁體中文測試課程」與「Vibe coding」，每張卡片都有封面圖與「繼續」按鈕。右側「您的進度」卡片顯示 0/1 課時已完成，整體進度 0%。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>學習進度總覽</li>
+        <li>正在學習課程卡片</li>
+        <li>進度百分比顯示</li>
+        <li>快速繼續學習</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/09-lms-dashboard.png" alt="學習儀表板">
+      <div class="caption">圖 3-1：學習儀表板 — 顯示問候語、激勵橫幅與課程進度</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.2 課程探索</h3>
+    <span class="route">/lms/explore</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      瀏覽組織內所有可報名課程的頁面。目前處於空狀態，顯示「暫無課程」與「目前沒有已發佈的課程」提示。頁面提供課程搜尋欄（「查找課程」）與排序下拉選單（「創建日期」），當有已發佈課程時會以卡片形式展示。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>課程列表瀏覽</li>
+        <li>課程搜尋</li>
+        <li>創建日期排序</li>
+        <li>空狀態提示</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/10-lms-explore.png" alt="課程探索">
+      <div class="caption">圖 3-2：課程探索頁面 — 目前無已發佈課程的空狀態</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.3 我的學習</h3>
+    <span class="route">/lms/mylearning</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      顯示學生已報名課程的頁面。頂部有「進行中 (1)」與「已完成 (1)」兩個標籤。進行中標籤下顯示「Vibe coding」課程卡片，標註為「自主學習」類型，包含 1 個課時，目前進度 0%，提供「繼續課程」按鈕。頁面上方還有課程搜尋功能。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>進行中 / 已完成課程分類</li>
+        <li>課程進度追蹤</li>
+        <li>課程類型標籤</li>
+        <li>快速進入課程學習</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/11-lms-mylearning.png" alt="我的學習">
+      <div class="caption">圖 3-3：我的學習頁面 — 顯示 1 門進行中的 Vibe coding 課程</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.4 練習與作業</h3>
+    <span class="route">/lms/exercises</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      學生端練習與作業管理頁面。採用看板視圖分為四個狀態欄位：未提交（0 件，紅色標籤）、已提交（0 件，橙色標籤）、評分中（0 件，黃色標籤）、已評分（0 件）。學生可在此集中查看所有課程的作業狀態，並從「未提交」欄位直接進入作答。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>四階段作業狀態看板</li>
+        <li>未提交 / 已提交 / 評分中 / 已評分</li>
+        <li>狀態數量標示</li>
+        <li>快速進入作答</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/12-lms-exercises.png" alt="練習與作業">
+      <div class="caption">圖 3-4：練習與作業頁面 — 學生端四欄位作業狀態看板</div>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/student-exercises.png" alt="練習狀態追蹤">
+      <div class="caption">圖 3-4a：練習狀態看板 — 未提交 / 已提交 / 評分中 / 已評分</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.5 個人設定</h3>
+    <span class="route">/lms/settings</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      學生個人設定頁面，目前顯示「個人資料」標籤。提供頭像上傳功能（支援 jpeg, jpg, png, webp 格式，最大 2MB），以及個人資訊欄位：全名「teacher」、用戶名「teacher1777108643013」、郵箱「teacher@admin.com」、首選語言選擇。另有「集成」標籤可切換。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>頭像上傳</li>
+        <li>個人資料檢視</li>
+        <li>語言偏好設定</li>
+        <li>集成設定</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/13-lms-settings.png" alt="個人設定">
+      <div class="caption">圖 3-5：個人設定頁面 — 顯示頭像上傳與個人資料欄位</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.6 社群討論</h3>
+    <span class="route">/lms/community</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      學生端社群討論區頁面。目前處於空狀態，顯示「未提問」提示與筆記型電腦插圖。頁面上方提供「提問社區」按鈕、問題搜尋欄（「查找問題」）與分類篩選下拉選單（「全部」）。學生可在此發佈問題、搜尋現有討論，並與其他學生互動交流。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>社群問題搜尋</li>
+        <li>分類篩選</li>
+        <li>發佈新問題</li>
+        <li>空狀態引導</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/14-lms-community.png" alt="社群討論">
+      <div class="caption">圖 3-6：社群討論區 — 目前尚無問題的空狀態</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>3.7 社群提問</h3>
+    <span class="route">/org/[slug]/community/ask</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      社群提問表單頁面。頂部顯示「向社區提問」標題與「發佈」按鈕。表單包含標題輸入欄、「選擇課程」下拉選單，以及 TinyMCE 富文本編輯器（支援 File、Edit、View、Insert、Format、Tools 等選單與格式工具列）。編輯器內顯示提示文字「向社區提出您的任何問題」。此功能讓學生針對特定課程發佈詳細問題。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>問題標題輸入</li>
+        <li>所屬課程選擇</li>
+        <li>TinyMCE 富文本編輯</li>
+        <li>文字格式化工具</li>
+        <li>發佈問題</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/community-ask.png" alt="社群提問">
+      <div class="caption">圖 3-7：社群提問頁面 — 使用 TinyMCE 編輯器撰寫問題</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 4: ORG ADMIN ==================== -->
+<div class="section-header">
+  <h2>四、組織管理後台</h2>
+  <p>組織管理員使用的後台管理功能，涵蓋課程管理、成員管理、系統設定等</p>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.1 管理儀表板</h3>
+    <span class="route">/org/[slug]</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織管理員的主控台。頂部顯示「早上好 teacher!」問候語，以及「創建課程」與「查看站點」按鈕。三個統計卡片顯示：收入 $0、課程數量 2 門、學生總數 2 人。「熱門課程」區塊列出「Vibe coding」（2 名學生，0% 完成率）與「繁體中文測試課程」（0 名學生，0% 完成率）。「最近註冊」顯示 Elon Gates（17 小時前）與 student（4 天前）的註冊記錄。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>收入/課程/學生統計</li>
+        <li>熱門課程追蹤</li>
+        <li>最近註冊記錄</li>
+        <li>快速創建課程</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/15-org-dashboard.png" alt="管理儀表板">
+      <div class="caption">圖 4-1：管理儀表板 — 顯示收入 $0、2 門課程、2 名學生</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.2 課程列表</h3>
+    <span class="route">/org/[slug]/courses</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織內所有課程的列表頁面。目前顯示兩門課程卡片：「繁體中文測試課程」（0 課時，0% 進度）與「Vibe coding」（1 課時，0% 進度）。每張卡片都標註「自主學習」類型、顯示封面圖片、課程描述與「繼續課程」按鈕。頁面右上角提供「創建課程」按鈕，上方有搜尋與排序功能。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>課程卡片瀏覽</li>
+        <li>課程搜尋與排序</li>
+        <li>創建新課程</li>
+        <li>課程進度顯示</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/16-org-courses.png" alt="課程列表">
+      <div class="caption">圖 4-2：課程列表頁面 — 顯示繁體中文測試課程與 Vibe coding</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.3 社群管理</h3>
+    <span class="route">/org/[slug]/community</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織層級的社群管理頁面。目前處於空狀態，顯示「未提問」提示。頁面上方有「提問社區」按鈕、問題搜尋欄（「查找問題」）與分類篩選（「全部」）。管理員可在此監控所有課程的社群討論狀況，並協助回答學生問題。
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/17-org-community.png" alt="社群管理">
+      <div class="caption">圖 4-3：社群管理頁面 — 目前尚無社群問題</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.4 測驗管理</h3>
+    <span class="route">/org/[slug]/quiz</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織的互動測驗管理頁面。目前處於空狀態，顯示「未創建測驗」與提示文字「為您的學生創建帶有計分板的互動測驗。」頁面右上角有「創建測驗」按鈕，點擊後可開始建立新測驗。測驗支援多種題型，可用於評估學生學習成效。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>創建新測驗</li>
+        <li>互動測驗與計分板</li>
+        <li>多種題型支援</li>
+        <li>空狀態引導</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/18-org-quiz.png" alt="測驗管理">
+      <div class="caption">圖 4-4：測驗管理頁面 — 目前尚無測驗的空狀態</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.5 創建測驗</h3>
+    <span class="route">/org/[slug]/quiz</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      點擊「創建測驗」後彈出的測驗建立對話框。標題為「創建 測驗」，包含必填欄位「測驗標題 *」與輸入框（placeholder 顯示為技術字串「components.quiz.placehoolder」）。填寫標題後點擊「繼續」按鈕即可進入題目編輯器，開始添加選擇題、填空題、簡答題等題型。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>輸入測驗標題</li>
+        <li>必填欄位驗證</li>
+        <li>進入題目編輯器</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/quiz-create-modal.png" alt="創建測驗">
+      <div class="caption">圖 4-5：創建測驗彈窗 — 輸入測驗標題以建立新測驗</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.6 受眾與郵件列表</h3>
+    <span class="route">/org/[slug]/audience</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織受眾管理頁面。目前顯示「沒有可管理的受眾!」空狀態，提示文字「在此管理所有學生並保持聯繫。」右上角顯示計數器（0 / 20），表示目前 0 位受眾，上限 20 位。提供「導出」按鈕可下載受眾資料。支援手動新增聯絡人與 CSV 批量匯入功能。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>受眾資料管理</li>
+        <li>CSV 匯出</li>
+        <li>受眾數量上限提示</li>
+        <li>空狀態引導</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/19-org-audience.png" alt="受眾管理">
+      <div class="caption">圖 4-6：受眾與郵件列表 — 目前 0/20 位受眾</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.7 組織設定</h3>
+    <span class="route">/org/[slug]/settings</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織管理員的個人設定頁面。目前顯示「個人資料」標籤，提供頭像上傳（支援 jpeg, jpg, png, webp，最大 2MB）與個人資訊欄位：全名「teacher」、用戶名「teacher1777108643013」、郵箱「teacher@admin.com」、首選語言選擇。頁面上方另有「組織」、「著陸頁」、「賬單」、「集成」等設定標籤可切換。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>個人資料編輯</li>
+        <li>頭像上傳</li>
+        <li>語言偏好設定</li>
+        <li>多標籤設定導航</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/20-org-settings.png" alt="組織設定">
+      <div class="caption">圖 4-7：組織設定頁面 — 顯示個人資料與頭像上傳</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.8 自訂 LMS 外觀</h3>
+    <span class="route">/org/[slug]/settings/customize-lms</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      自訂學生端 LMS 外觀與功能的設定頁面。分為三個區塊：控制台（社區：已啟用、練習：已啟用、橫幅圖片更新、橫幅文字輸入）、課程（動態：已啟用、評分：已啟用）、應用（投票）。所有功能開關均以 Toggle 形式呈現，底部有「保存更改」按鈕。管理員可自由控制學生端顯示的功能模組。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>功能模組開關控制</li>
+        <li>橫幅圖片上傳</li>
+        <li>橫幅文字自訂</li>
+        <li>保存更改</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/21-org-settings-customize.png" alt="自訂 LMS">
+      <div class="caption">圖 4-8：自訂 LMS 外觀 — 顯示功能開關與橫幅設定</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.9 自訂網域</h3>
+    <span class="route">/org/[slug]/settings/domains</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織網域設定頁面。第一區塊為子網域設定，目前設定為「5g-numultimedia」，預覽 URL 為 https://5g-numultimedia.classroomio.com，提供「更新域名」與「查看站點」按鈕。第二區塊為自訂域名，可輸入自有域名（如 courses.yourwebsite.com）。第三區塊為自訂圖標，目前標示「即將推出」。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>子網域設定</li>
+        <li>自訂域名綁定</li>
+        <li>URL 預覽</li>
+        <li>自訂圖標（即將推出）</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/22-org-settings-domains.png" alt="自訂網域">
+      <div class="caption">圖 4-9：自訂網域設定 — 顯示子網域 5g-numultimedia 與自訂域名輸入</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>4.10 團隊管理</h3>
+    <span class="route">/org/[slug]/settings/teams</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織團隊成員管理頁面。上方為「添加」區塊，提供邀請郵件輸入框（可輸入多個以逗號分隔）與角色選擇下拉選單（目前顯示「導師」），以及「發送邀請」按鈕。下方為「成員」區塊，用於顯示現有團隊成員列表。管理員可在此邀請新成員並分配權限角色。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>邀請團隊成員</li>
+        <li>角色權限分配</li>
+        <li>成員列表檢視</li>
+        <li>批量郵件邀請</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/23-org-settings-teams.png" alt="團隊管理">
+      <div class="caption">圖 4-10：團隊管理頁面 — 顯示成員邀請表單與角色選擇</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 5: PUBLIC ==================== -->
+<div class="section-header">
+  <h2>五、公開頁面</h2>
+  <p>無需登入即可訪問的公開頁面，包含組織首頁、課程宣傳頁、認證頁面等</p>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>5.1 組織首頁</h3>
+    <span class="route">/home</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      組織公開首頁。頂部導航列包含 About Us、Courses、FAQ、Contact Us 以及語言切換（繁中）與「前往學習管理系統」連結。中央主視覺區域顯示「5G NUMULTIMEDIA LIMITED」與大標題「Web Development Courses for Everyone」，副標題說明「Practical project-based courses that are easy to understand and straight to the point」。下方有宣傳影片播放器與「Start learning Today」行動按鈕。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>品牌形象展示</li>
+        <li>宣傳影片播放</li>
+        <li>導航連結</li>
+        <li>LMS 入口</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/24-home-landing.png" alt="組織首頁">
+      <div class="caption">圖 5-1：組織首頁 — 顯示 Web Development Courses 宣傳與影片</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>5.2 課程公開頁面</h3>
+    <span class="route">/course/[slug]</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      「Vibe coding」課程的公開宣傳頁面。頂部導航列包含 5G NUMULTIMEDIA LIMITED 品牌 Logo、語言切換（繁中）、登入與註冊按鈕。Hero 區域顯示課程標題「Vibe coding」、副標題「Vibe Coding Course」、課程封面圖片（兩位女性在廚房場景）與「開始課程」按鈕。主內容區提供六個標籤導航：要求、描述、目標、證書、內容、講師。右側浮動資訊卡顯示課程價格「$0.00 (免費)」與「立即註冊」按鈕，方便訪客直接報名。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>課程標題與封面展示</li>
+        <li>六標籤內容導航（要求/描述/目標/證書/內容/講師）</li>
+        <li>課程價格與免費標示</li>
+        <li>立即註冊入口</li>
+        <li>登入 / 註冊導航</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/25-public-course.png" alt="課程公開頁面">
+      <div class="caption">圖 5-2：Vibe coding 課程公開頁面 — 顯示免費課程資訊與六標籤內容導航</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>5.3 登入 / 註冊 / 忘記密碼</h3>
+    <span class="route">/login, /signup, /forgot</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      使用者登入頁面。中央顯示「5G NUMULTIMEDIA LIMITED」品牌標誌與「歡迎回來」問候語。表單包含「您的郵箱」輸入欄（placeholder: you@domain.com）與「您的密碼」輸入欄（含顯示/隱藏密碼的眼睛圖示）。提供「忘記密碼？」連結與「登錄」按鈕。底部有「尚未註冊？ 註冊」連結導向註冊頁面。整體採用簡潔的淺藍漸層背景設計。
+    </div>
+    <div class="features">
+      <h4>主要功能</h4>
+      <ul>
+        <li>電子郵件密碼登入</li>
+        <li>密碼顯示/隱藏切換</li>
+        <li>密碼重設連結</li>
+        <li>新帳號註冊入口</li>
+      </ul>
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/27-login.png" alt="登入頁面">
+      <div class="caption">圖 5-3：登入頁面 — 顯示歡迎回來與郵箱密碼登入表單</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-card">
+  <div class="page-card-header">
+    <h3>5.4 404 頁面</h3>
+    <span class="route">/404</span>
+  </div>
+  <div class="page-card-body">
+    <div class="description">
+      頁面未找到的錯誤提示頁面。中央顯示「5GNU」品牌標誌與「頁面未找到」大標題。說明文字「您要找的頁面不存在或已被移動。請返回首頁。」提供友善的錯誤說明。底部有「返回首頁」按鈕，引導使用者回到網站首頁。頁面設計簡潔，僅保留品牌識別與返回導航。
+    </div>
+    <div class="screenshot">
+      <img src="screenshots/26-404-page.png" alt="404 頁面">
+      <div class="caption">圖 5-4：404 頁面 — 顯示頁面未找到提示與返回首頁按鈕</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer">
+  <p><strong>5G NUMULTIMEDIA LIMITED</strong> — ClassroomIO 學習管理系統專案交付文件</p>
+  <p>版本 v1.0 ｜ 2026 年 4 月 29 日 ｜ 共 32 個功能頁面</p>
+</div>
+
+</body>
+</html>

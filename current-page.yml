@@ -1,0 +1,63 @@
+- generic [active] [ref=e1]:
+  - alert
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - navigation [ref=e4]:
+        - list [ref=e5]:
+          - generic [ref=e6]:
+            - listitem [ref=e7]:
+              - button [ref=e8] [cursor=pointer]:
+                - img [ref=e9]
+            - listitem [ref=e11]:
+              - button [ref=e12] [cursor=pointer]:
+                - img [ref=e13]
+            - link "Vibe coding" [ref=e15] [cursor=pointer]:
+              - /url: /org/5g-numultimedia/courses
+          - listitem [ref=e16]:
+            - button "繁中" [ref=e18] [cursor=pointer]:
+              - generic [ref=e19]: 繁中
+              - img [ref=e20]
+          - listitem [ref=e22]:
+            - img [ref=e23]
+          - listitem [ref=e25]:
+            - button [ref=e26] [cursor=pointer]:
+              - img [ref=e27]
+          - listitem
+      - generic [ref=e30]:
+        - complementary [ref=e31]:
+          - list [ref=e33]:
+            - button "動態" [ref=e35] [cursor=pointer]:
+              - img [ref=e36]
+              - generic [ref=e38]: 動態
+            - generic [ref=e39]:
+              - button "內容 (1)" [ref=e40] [cursor=pointer]:
+                - img [ref=e41]
+                - generic [ref=e44]: 內容
+                - generic [ref=e45]: (1)
+              - generic [ref=e53]:
+                - button "Claude Code" [ref=e54] [cursor=pointer]:
+                  - img [ref=e55]
+                  - generic [ref=e57]: Claude Code
+                - link "lesson 1" [ref=e65] [cursor=pointer]:
+                  - /url: /courses/0baf93d6-8b52-4804-a17f-a81e2b3f7eef/lessons/e5aa40c1-9e2d-411b-84d8-e8bf5e5d6d4f
+                  - generic [ref=e67]: lesson 1
+            - button "證書" [ref=e80] [cursor=pointer]:
+              - img [ref=e81]
+              - generic [ref=e84]: 證書
+        - generic [ref=e102]:
+          - generic "內容" [ref=e105]:
+            - heading "內容" [level=4] [ref=e106]
+          - list [ref=e108]:
+            - listitem [ref=e109]:
+              - paragraph [ref=e111]: Claude Code
+              - list [ref=e112]:
+                - listitem [ref=e113]:
+                  - generic [ref=e114]:
+                    - paragraph [ref=e115]: "01"
+                    - generic [ref=e116]:
+                      - link "lesson 1" [disabled] [ref=e117] [cursor=pointer]:
+                        - /url: /courses/0baf93d6-8b52-4804-a17f-a81e2b3f7eef/lessons/e5aa40c1-9e2d-411b-84d8-e8bf5e5d6d4f
+                      - generic [ref=e118]:
+                        - img [ref=e119]
+                        - paragraph [ref=e122]: 0 練習
+    - generic [ref=e123]: Vibe coding

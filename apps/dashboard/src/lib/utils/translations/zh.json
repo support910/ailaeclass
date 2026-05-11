@@ -1,0 +1,1652 @@
+{
+  "verify_email_modal": {
+    "heading": "验证您的邮箱",
+    "sent_verification": "我们已向以下邮箱发送了验证邮件：",
+    "to_confirm": "以确认所提供邮箱的有效性。",
+    "loading": "加载中...",
+    "resend": "重新发送验证码",
+    "resend_in": "重新发送验证码倒计时：",
+    "seconds": "秒",
+    "snackbar_error": "发送验证码时出错"
+  },
+  "email_verification": {
+    "errors": {
+      "invalid_token": {
+        "title": "验证链接无效",
+        "message": "此验证链接无效或格式错误。请检查您的邮箱中的正确链接，或请求新的验证邮件。"
+      },
+      "token_used": {
+        "title": "链接已被使用",
+        "message": "此验证链接已被使用。如果您需要再次验证邮箱，请请求新的验证链接。"
+      },
+      "token_expired": {
+        "title": "验证链接已过期",
+        "message": "此验证链接已出于安全原因过期。请请求新的验证邮件以继续。"
+      },
+      "email_mismatch": {
+        "title": "邮箱地址已更改",
+        "message": "您的邮箱地址自生成此验证链接以来已发生更改。请为当前邮箱地址请求新的验证链接。"
+      },
+      "legacy_blocked": {
+        "title": "不支持的验证方式",
+        "message": "此验证方式出于安全原因已不再支持。请使用我们的安全验证系统请求新的验证邮件。"
+      },
+      "database": {
+        "title": "系统错误",
+        "message": "我们正在经历技术困难。请稍后再试，如果问题持续存在，请联系我们的支持团队。"
+      },
+      "unknown": {
+        "title": "验证失败",
+        "message": "邮箱验证过程中发生了意外错误。请重试或联系我们的支持团队获取帮助。"
+      }
+    },
+    "security_notice": {
+      "title": "安全增强",
+      "message": "我们已升级邮箱验证系统以提供更好的安全性。旧的验证链接不再有效，以保护您的账户安全。"
+    },
+    "actions": {
+      "request_new": "请求新的验证邮件",
+      "contact_support": "联系支持",
+      "back_to_dashboard": "返回控制台"
+    },
+    "security_footer": "您的账户安全是我们的首要任务。所有验证尝试都会被记录以进行安全监控。"
+  },
+  "delete_modal": {
+    "label": "删除",
+    "content": "您确定吗？",
+    "no": "否",
+    "yes": "是"
+  },
+  "onboarding": {
+    "sell": "在线销售课程",
+    "teach": "在线教授现有学生",
+    "expanding": "在其他平台，扩展到这里",
+    "employees": "培训我的员工",
+    "customers": "为客户创建课程",
+    "explore": "只是来看看",
+    "articles": "文章",
+    "search": "搜索引擎",
+    "social": "社交媒体",
+    "friends": "朋友和家人",
+    "fullname": "全名",
+    "name": "组织名称",
+    "organisation_sitename": "组织站点名称",
+    "what_brings": "是什么让您来到",
+    "how": "您是如何了解到我们的？",
+    "back": "返回",
+    "continue": "继续"
+  },
+  "welcome_modal": {
+    "we_at": "我们在",
+    "small_team": "是一个拥有伟大使命的小团队，致力于为教育工作者提供优秀的软件，帮助他们对人们的生活产生影响。教育是您可以给予任何人的最强大的礼物，为您提供所有所需工具，将这份礼物传递给更多人，意义非凡。",
+    "thank_you": "感谢您选择我们",
+    "deeply_appreciate": "我们深表感激，并随时为您服务。"
+  },
+  "login": {
+    "welcome": "欢迎回来",
+    "email": "您的邮箱",
+    "password": "您的密码",
+    "forgot": "忘记密码？",
+    "login": "登录",
+    "login_with": "或使用以下方式登录",
+    "signup_with": "或使用以下方式注册",
+    "already_have_account": "已有账号？",
+    "not_registered_yet": "尚未注册？",
+    "signup": "注册",
+    "signup_with_google": "使用 Google 注册",
+    "login_with_google": "使用 Google 登录",
+    "create_to_join": "创建免费账号以加入",
+    "create_account": "创建账号",
+    "login_to_join": "登录以加入",
+    "fields": {
+      "email": "您的邮箱",
+      "full_name": "全名",
+      "password": "您的密码",
+      "confirm_password": "确认密码",
+      "password_helper_message": "密码必须超过 6 个字符",
+      "create_account": "创建账号"
+    },
+    "validation": {
+      "unable_to_create_profile": "无法创建个人资料",
+      "user_cannot_be_created": "无法创建用户"
+    }
+  },
+  "profileMenu": {
+    "profile": "个人资料",
+    "current_org": "当前组织",
+    "free_tools": "免费工具",
+    "progress": "进度报告",
+    "timer": "活动计时器",
+    "tic_tac": "井字棋",
+    "see_more": "查看更多",
+    "whats_new": "更新内容",
+    "launch_week": "发布周"
+  },
+  "settings": {
+    "heading": "设置",
+    "subheadings": {
+      "view_site": "查看站点"
+    },
+    "tabs": {
+      "profile_tab": "个人资料",
+      "organization_tab": "组织",
+      "landing_page_tab": "着陆页",
+      "billing_tab": "账单",
+      "integrations_tab": "集成",
+      "language_tab": "语言"
+    },
+    "profile": {
+      "profile_picture": {
+        "heading": "头像",
+        "upload_image": "上传图片",
+        "file_size": "最大文件大小：",
+        "accepted": "接受格式：",
+        "validation_error": "文件大小超过最大限制："
+      },
+      "personal_information": {
+        "heading": "个人信息",
+        "full_name": "全名",
+        "username": "用户名",
+        "email": "邮箱"
+      },
+      "update_profile": "更新个人资料",
+      "logout": "退出登录"
+    },
+    "organization": {
+      "organization_profile": {
+        "heading": "组织资料",
+        "organization_name": "组织名称",
+        "upload_image": "上传图片",
+        "update_organization": "更新组织",
+        "theme": {
+          "heading": "主题",
+          "sub_heading": "设置您的品牌颜色",
+          "custom_theme": "自定义主题",
+          "add_theme": "添加主题"
+        },
+        "customize_lms": {
+          "heading": "自定义学习管理系统",
+          "sub_heading": "个性化您的组织学习管理系统",
+          "body": "控制学生的学习体验。您可以根据组织需求启用或禁用标签页和页面，更新学习管理系统横幅和应用内评论",
+          "button": "自定义学习管理系统"
+        },
+        "custom_domain": {
+          "heading": "自定义域名",
+          "sub_heading": "自定义您的域名",
+          "body": "创建自定义 URL，让您的受众可以轻松访问您的组织",
+          "button": "编辑域名"
+        },
+        "team": {
+          "heading": "团队",
+          "sub_heading": "设置您的团队",
+          "body": "将团队成员添加到您的组织，以便在项目上协作。",
+          "button": "管理团队"
+        }
+      }
+    },
+    "landing_page": {
+      "heading": "着陆页",
+      "show_section": "显示板块",
+      "hide_section": "隐藏板块",
+      "title": "标题",
+      "title_highlight": "标题高亮",
+      "subtitle": "副标题",
+      "background": {
+        "title": "背景图片",
+        "show_background": "显示背景",
+        "hide_background": "隐藏背景"
+      },
+      "actions": {
+        "heading": "操作",
+        "label": "标签",
+        "link": "链接",
+        "no_redirect": "不重定向",
+        "redirect": "重定向",
+        "banner_type": {
+          "heading": "横幅类型",
+          "video": "视频",
+          "image": "图片"
+        },
+        "show_banner": "显示横幅",
+        "hide_banner": "隐藏横幅"
+      },
+      "about": {
+        "heading": "关于我们",
+        "title": "标题",
+        "content": "内容",
+        "upload_an_image": "上传图片",
+        "select_image": "选择图片"
+      },
+      "courses": {
+        "heading": "课程",
+        "show_section": "显示板块",
+        "hide_section": "隐藏板块",
+        "title": "标题",
+        "title_highlight": "标题高亮",
+        "subtitle": "副标题"
+      },
+      "faq": {
+        "heading": "常见问题",
+        "show_section": "显示板块",
+        "hide_section": "隐藏板块",
+        "title": "标题",
+        "question": "问题",
+        "answer": "答案",
+        "button": "添加新问题",
+        "save": "保存",
+        "cancel": "取消"
+      },
+      "contact_us": {
+        "heading": "联系我们",
+        "show_section": "显示板块",
+        "hide_section": "隐藏板块",
+        "title": "标题",
+        "title_highlight": "标题高亮",
+        "subtitle": "副标题",
+        "phone_number": "电话号码",
+        "email": "邮箱",
+        "address": "地址"
+      },
+      "mailing_list": {
+        "heading": "邮件列表",
+        "show_section": "显示板块",
+        "hide_section": "隐藏板块",
+        "title": "标题",
+        "subtitle": "副标题",
+        "button_label": "按钮标签"
+      },
+      "footer": {
+        "heading": "页脚",
+        "show_section": "显示板块",
+        "hide_section": "隐藏板块",
+        "facebook": "Facebook",
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn"
+      },
+      "custom_links": {
+        "heading": "自定义链接",
+        "hide_links": "隐藏链接",
+        "show_links": "显示链接",
+        "description": "添加将出现在顶部导航栏中的自定义导航链接。",
+        "label": "标签",
+        "url": "URL",
+        "label_placeholder": "例如：关于我们",
+        "url_placeholder": "例如：#about-us 或 https://example.com",
+        "new_tab": "在新标签页中打开",
+        "save": "保存",
+        "cancel": "取消",
+        "add": "添加新链接"
+      },
+      "save_changes": "保存更改"
+    },
+    "integrations": {
+      "heading": "Telegram",
+      "sub_heading": "将您的账号连接到 Telegram，以便在应用内发生任何更改时收到通知。",
+      "step_authenticate": "第一步：通过机器人验证您的账号。",
+      "open_bot_button": "打开机器人",
+      "step_chatId": "第二步：输入机器人给您的聊天 ID。",
+      "connect_button": "连接",
+      "success_message": "集成成功",
+      "disconnect": "断开连接"
+    },
+    "billing": {
+      "sub_title": "账单详情",
+      "manage": "管理您的账单",
+      "active": "您没有活跃的账单",
+      "provider": "我们使用 Polar 来帮助管理您的账单",
+      "open_billing": "打开账单",
+      "error": "打开账单时发生错误"
+    }
+  },
+  "org_navigation": {
+    "dashboard": "控制台",
+    "courses": "课程",
+    "community": "社区",
+    "audience": "受众",
+    "setup": "设置",
+    "help": "帮助",
+    "settings": "设置",
+    "early_adopter": "成为早期用户",
+    "unlock": "解锁无限功能并投资我们的未来",
+    "upgrade": "立即升级"
+  },
+  "pricing": {
+    "plan_names": {
+      "free": "免费",
+      "early": "早期用户",
+      "enterprise": "企业版"
+    },
+    "modal": {
+      "heading": "升级方案",
+      "thanks": "感谢您的支持",
+      "plan": "您的方案包含很酷的福利和好处，包括访问我们未来发布的所有功能。",
+      "save": "节省 2 个月",
+      "close": "关闭",
+      "learn": "了解更多",
+      "month": "月",
+      "monthly": "月付",
+      "annually": "年付"
+    }
+  },
+  "setup": {
+    "get_started": "开始使用",
+    "personal_profile": {
+      "title": "上传头像并更新用户名",
+      "desc": "个性化并添加人情味，使互动更加个人化和难忘",
+      "button_label": "更新个人资料"
+    },
+    "organization_profile": {
+      "title": "更新组织头像",
+      "desc": "为您的组织建立专业且可识别的身份",
+      "button_label": "更新组织资料"
+    },
+    "course": {
+      "title": "创建课程",
+      "desc": "创建您将与学生分享的课程",
+      "button_label": "创建课程"
+    },
+    "lesson": {
+      "title": "创建课时",
+      "desc": "将课程分解为学生易于理解的课时",
+      "button_label": "创建课时"
+    },
+    "exercise": {
+      "title": "创建练习",
+      "desc": "测试学生，让他们展示对主题的理解",
+      "button_label": "创建作业"
+    },
+    "publish_course": {
+      "title": "发布课程",
+      "desc": "使您的课程公开并可购买",
+      "button_label": "发布课程"
+    }
+  },
+  "add_org": {
+    "create_org": "创建组织",
+    "name": "组织名称",
+    "org_sitename": "组织站点名称",
+    "create": "创建",
+    "sitename": "站点名称已存在",
+    "error_organization": "创建此组织时出现问题。请重新加载并重试"
+  },
+  "navigation": {
+    "goto": "前往",
+    "courses": "课程",
+    "home": "首页",
+    "classroomio_home": "首页",
+    "dashboard": "控制台",
+    "discussion": "讨论",
+    "people": "人员",
+    "goto_lms": "前往学习管理系统",
+    "goto_home": "前往首页",
+    "login": "登录",
+    "signup": "注册",
+    "redirecting": "正在重定向",
+    "loading_state": "正在为您跳转到下一页，请稍候。",
+    "org_loading_state": "正在前往您的组织...",
+    "add_organization": "+ 添加组织",
+    "language_switcher": "Switch language",
+    "language": "Language"
+  },
+  "markdown_editor": {
+    "write": "编写",
+    "preview": "预览"
+  },
+  "components": {
+    "quiz": {
+      "title": "测验",
+      "second": "秒",
+      "answer": "答案",
+      "question_delete": "删除问题",
+      "add_more": "+ 添加更多答案",
+      "remove_last": "- 删除最后一个答案",
+      "quiz_delete": "删除测验",
+      "delete_question": "您确定要删除此问题吗？",
+      "delete_quiz": "您确定要删除此测验吗？",
+      "lose_content": "您将丢失内容，此操作无法撤消。",
+      "delete": "删除",
+      "update": "更新",
+      "create": "创建",
+      "a_quiz": "测验",
+      "quiz_title": "测验标题",
+      "placeholder": "您的测验标题",
+      "save": "保存更改",
+      "continue": "继续",
+      "rename": "重命名",
+      "updated": "已更新",
+      "start": "开始测验",
+      "start_typing": "开始输入您的问题",
+      "required_field": "此字段为必填项",
+      "type_answer": "输入答案",
+      "label": "请输入标签",
+      "no_quizz": "未创建测验",
+      "interactive": "为您的学生创建带有计分板的互动测验。",
+      "interactive_quizzes": "互动测验",
+      "create_quiz": "创建测验"
+    },
+    "settings": {
+      "domains": {
+        "title": "自定义域名",
+        "add": "添加",
+        "url": "URL",
+        "update": "更新域名",
+        "custom": "自定义域名",
+        "domain": "添加您自己的域名",
+        "save": "保存",
+        "your_domain": "您的域名",
+        "custom_domain_error": "您不能添加顶级域名作为自定义域名。请使用子域名，如 'courses.[您的网站].com' 或 'www.[您的网站].com'。",
+        "custom_domain_not_classroomio": "域名不能包含 'classroomio'",
+        "custom_domain_success": "自定义域名添加成功",
+        "dns_description": "在您的 DNS 提供商中设置以下记录以继续：",
+        "dns_type": "类型",
+        "dns_value": "值",
+        "dns_name": "名称",
+        "refresh": "刷新",
+        "remove": "移除",
+        "custom_favicon": "自定义图标",
+        "custom_code": "自定义代码"
+      },
+      "customize_lms": {
+        "title": "自定义学习管理系统",
+        "disabled": "已禁用",
+        "enabled": "已启用",
+        "save": "保存更改",
+        "dashboard": {
+          "title": "控制台",
+          "community": "社区",
+          "exercises": "练习",
+          "banner_image": "横幅图片",
+          "banner_image_btn": "更新横幅图片",
+          "banner_text": "横幅文字",
+          "banner_text_label": "更新横幅文字",
+          "banner_text_placeholder": "在此处输入文字"
+        },
+        "course": {
+          "title": "课程",
+          "newsfeed": "动态",
+          "grading": "评分"
+        },
+        "apps": {
+          "title": "应用",
+          "poll": "投票",
+          "live_comment": "实时评论"
+        }
+      }
+    }
+  },
+  "schedule": {
+    "title": "您的日程",
+    "essence": "设计协作的精髓",
+    "figma": "Figma 入门",
+    "join": "加入通话",
+    "no": "今天没有课程"
+  },
+  "dashboard": {
+    "morning_heading": "早上好",
+    "afternoon_heading": "下午好",
+    "evening_heading": "晚上好",
+    "create_course": "创建课程",
+    "view_site": "查看站点",
+    "visit_site": "访问网站",
+    "current_lesson": "正在学习",
+    "your_progress": "您的进度",
+    "continue": "继续",
+    "no_courses": "暂无进行中的课程",
+    "start_course": "当您开始课程后，您的进度将在此处显示",
+    "lms_dashboard_hero": "今天是让您更接近学习目标的又一天。不要放弃，学得越多，进步越大。",
+    "dont": "不要放弃",
+    "lessons_completed": "已完成课时",
+    "no_courses_started": "尚未开始课程",
+    "revenue": "收入",
+    "revenue_description": "课程销售所得的近似收入",
+    "no_of_courses": "课程数量",
+    "no_courses_description": "在此组织中创建的课程",
+    "total_students": "学生总数",
+    "total_students_description": "基于学生注册数",
+    "top_courses": "热门课程",
+    "students": "学生",
+    "student": "学生",
+    "completion": "完成率",
+    "create_first_course": "创建您的第一门课程",
+    "create_first_course_description": "开始创建课程以跟踪课程进度",
+    "recent_enrollments": "最近注册",
+    "publish_first_course": "发布您的第一门课程",
+    "publish_first_course_description": "要跟踪注册情况，请发布课程并邀请学生",
+    "publish_course": "发布课程"
+  },
+  "ai": {
+    "help_me": "帮我写",
+    "placeholder": "帮我写一段简短的描述",
+    "text": "开始输入...",
+    "reset": "重置",
+    "rephrase": "改写",
+    "insert": "插入",
+    "can_you": "您能帮我改写一下吗"
+  },
+  "courses": {
+    "heading": "课程",
+    "heading_button": "创建课程",
+    "search_placeholder": "查找课程",
+    "course_filter": {
+      "date_created": "创建日期",
+      "published": "已发布",
+      "lessons": "课时"
+    },
+    "course_card": {
+      "empty_title": "未创建课程",
+      "empty_description": "通过为学生创建引人入胜的课程来分享您的知识。",
+      "context_menu": {
+        "clone": "克隆",
+        "share": "分享",
+        "invite": "邀请",
+        "delete": "删除"
+      },
+      "error_message": "发生错误。",
+      "lessons_number": "课时",
+      "students": "学生",
+      "published": "已发布",
+      "unpublished": "未发布",
+      "continue_course": "继续课程",
+      "learn_more": "了解更多",
+      "list_view": {
+        "title": "标题",
+        "description": "描述",
+        "lessons": "课时",
+        "students": "学生",
+        "published": "已发布",
+        "type": "类型"
+      }
+    },
+    "new_course_modal": {
+      "heading": "创建课程",
+      "course_name": "课程名称",
+      "type": "课程类型",
+      "course_name_placeholder": "您的课程名称",
+      "short_description": "简短描述",
+      "short_description_placeholder": "关于此课程的简短描述",
+      "type_selector_title": "您想创建什么类型的课程？",
+      "button": "完成",
+      "back": "返回",
+      "next": "下一步"
+    },
+    "copy_course": {
+      "title": "创建课程",
+      "course_name_label": "课程名称",
+      "course_name_placeholder": "您的课程名称",
+      "course_description_label": "课程描述",
+      "course_description_placeholder": "输入课程描述",
+      "create_button": "创建",
+      "error": {
+        "failed_to_clone": "克隆课程失败"
+      }
+    }
+  },
+  "course": {
+    "navItems": {
+      "nav_news_feed": "动态",
+      "nav_content": "内容",
+      "nav_attendance": "考勤",
+      "nav_submissions": "提交",
+      "nav_marks": "成绩",
+      "nav_people": "人员",
+      "nav_analytics": "分析",
+      "nav_certificates": "证书",
+      "nav_landing_page": "着陆页",
+      "nav_settings": "设置"
+    },
+    "navItem": {
+      "news_feed": {
+        "heading": "动态",
+        "heading_button": {
+          "title": "添加",
+          "edit_post": "编辑帖子",
+          "make_a_post": "发帖",
+          "placeholder": "与学生分享更新",
+          "cancel": "取消",
+          "post": "发布"
+        },
+        "body_header": "暂无帖子",
+        "body_content": "向您的班级发帖。点击添加按钮开始。",
+        "pinned": "已置顶",
+        "snackbar": {
+          "comment_deleted": "评论已删除",
+          "reaction_error": "对动态进行反应时发生错误",
+          "comment_creation_error": "创建评论时发生错误",
+          "add_comment_success": "评论已添加",
+          "toggle_pin_error": "切换置顶动态失败",
+          "unpinned": "已取消置顶",
+          "successfully": "成功",
+          "feed_delete_success": "动态删除成功",
+          "fetch_feed_fail": "获取动态失败",
+          "fetching_error": "获取动态时发生错误"
+        }
+      },
+      "lessons": {
+        "heading": "课时",
+        "heading_v2": "内容",
+        "drag": "拖动卡片以重新排序",
+        "no_lesson": "暂无课时",
+        "share_your_knowledge": "通过创建引人入胜的课时来分享您的知识。点击添加按钮开始。",
+        "section_prompt": {
+          "cta": "启用章节",
+          "header": "启用章节",
+          "title": "我们推出了课程章节",
+          "description": "您现在可以将课时分组到章节中，以组织内容并使学生的学习更顺畅。",
+          "activate": "激活",
+          "cancel": "取消"
+        },
+        "add_lesson": {
+          "button_title": "添加",
+          "start_reorder": "重新排序",
+          "end_reorder": "结束排序",
+          "modal_heading": "添加新课时",
+          "modal_heading_section": "添加新章节",
+          "lesson_title": "课时标题",
+          "lesson_section_title": "章节标题",
+          "click_to": "点击以",
+          "lock": "锁定",
+          "unlock": "解锁",
+          "fullname": "全名",
+          "save": "保存",
+          "edit": "编辑",
+          "delete": "删除",
+          "cancel": "取消"
+        },
+        "join_lesson": "加入课时",
+        "no_link": "无链接",
+        "no_tutor": "未添加导师",
+        "body_header": "暂无课时",
+        "body_content": "通过创建引人入胜的课时来分享您的知识。点击添加按钮开始。",
+        "lesson_nav": {
+          "materials": "资料",
+          "exercises": "练习"
+        },
+        "download_pdf": "下载 PDF",
+        "autosaving": "自动保存中...",
+        "done": "完成",
+        "edit": "编辑",
+        "mark_as": "标记为",
+        "incomplete": "未完成",
+        "complete": "已完成",
+        "next": "下一个",
+        "prev": "上一个",
+        "materials": {
+          "body_heading": "此课时尚未添加笔记、视频或幻灯片",
+          "body_content": "通过创建引人入胜的内容与学生分享您的知识。点击",
+          "get_started": "开始使用",
+          "no_translation": "所选语言没有翻译",
+          "button": "按钮",
+          "tabs": {
+            "note": {
+              "title": "笔记",
+              "placeholder": "在此处编写课时笔记",
+              "ai": {
+                "outline": "生成课时大纲",
+                "note": "生成课时笔记",
+                "activities": "生成课时活动"
+              }
+            },
+            "slide": {
+              "title": "幻灯片",
+              "slide_link": "幻灯片链接",
+              "helper_message": "您可以嵌入 Google 幻灯片或 Canva 演示文稿"
+            },
+            "video": {
+              "title": "视频",
+              "embed_link": "嵌入链接",
+              "upload": "上传",
+              "button": "添加/编辑视频",
+              "add_video": {
+                "title": "添加视频",
+                "add_by": "添加方式",
+                "youtube_link": "Youtube 链接",
+                "videos_added": "已添加视频",
+                "add_video": "添加视频",
+                "upload_video": "上传视频",
+                "select_file": "选择文件（Mp4、MOV、AVI）上传到您的课时。",
+                "size": "（最大 500 MB）",
+                "oops": "糟糕 `😬，无法上传视频",
+                "big_file": "抱歉，视频未上传。文件大小太大，",
+                "maximum_size": "最大大小为 30 MB。请重试！",
+                "button": "尝试其他文件",
+                "try_again": "请重试",
+                "unsupported_format": "抱歉，视频未上传，文件格式不支持或服务器出现问题。",
+                "format": "上传 MP4、MOV 和 AVI 文件。",
+                "upgrade": "升级您的方案以上传视频",
+                "uploading": "上传中...",
+                "invalid_youtube": "无效的 YouTube 链接",
+                "invalid_link": "无效的链接",
+                "cancel_upload": "取消上传",
+                "upload_cancelled": "用户取消了上传"
+              }
+            },
+            "document": {
+              "title": "文档",
+              "add_document": "添加文档",
+              "no_document": "尚未上传文档",
+              "view_document": "查看文档",
+              "download": "下载",
+              "upload_document": "上传文档",
+              "upload_title": "上传文档",
+              "upload_description": "上传 PDF、DOCX 或 DOC 文件。最大大小：5MB",
+              "drag_drop": "将文档拖放到此处",
+              "or": "或",
+              "choose_file": "选择文件",
+              "cancel": "取消",
+              "uploading": "上传中...",
+              "upload_success": "文档上传成功！",
+              "upload_error": "文档上传失败",
+              "file_type_error": "不支持的文件类型。请上传 PDF、DOCX 或 DOC 文件。",
+              "file_size_error": "文件大小过大。最大大小为 {size}。",
+              "type": "类型",
+              "size": "大小",
+              "upload_error_title": "上传错误",
+              "upload_error_message": "不支持的文件格式或上传失败",
+              "upload_error_try_again": "请使用有效的文档文件重试",
+              "try_again": "重试",
+              "upgrade": "升级您的方案以上传文档",
+              "cancel_upload": "取消上传",
+              "upload_cancelled": "用户取消了上传",
+              "downloading": "下载中...",
+              "view_pdf": "查看 PDF",
+              "delete": "删除",
+              "page_of": "第 {page} 页，共 {total} 页",
+              "loading_pdf": "正在加载 PDF...",
+              "failed_to_load_pdf": "加载 PDF 文档失败",
+              "failed_to_render_pdf": "渲染 PDF 页面失败",
+              "use_arrow_keys": "使用方向键导航，+/- 缩放，或点击上方控件。右键已禁用。"
+            }
+          },
+          "button_done": "完成"
+        },
+        "exercises": {
+          "heading": "所有练习",
+          "add_button": "添加",
+          "no_exercises": "此课时未添加练习",
+          "no_assigned_exercises": "您的导师尚未为此课时分配练习。目前，您可以",
+          "chill": "放松一下",
+          "add_exercise": "通过创建引人入胜的练习来分享您的知识。立即添加练习。",
+          "new_exercise_modal": {
+            "heading": "新练习",
+            "options": {
+              "from_scratch": "从零开始",
+              "from_scratch_subtitle": "如果您已准备好问题，请从零开始创建练习",
+              "use_template": "使用模板",
+              "use_template_subtitle": "从 100 多个预定义练习模板中选择，帮助您开始",
+              "use_ai": "使用 AI",
+              "use_ai_subtitle": "您可以使用 AI 从笔记生成练习"
+            },
+            "how": "您想如何创建练习？",
+            "coming_soon": "即将推出",
+            "next": "下一步",
+            "title": "为练习命名",
+            "title_placeholder": "练习名称",
+            "finish": "完成",
+            "select_template": "选择模板",
+            "questions": "问题",
+            "points": "分数",
+            "back": "返回",
+            "create_exercises": "使用 AI 从笔记创建练习",
+            "choose_questions": "选择您想要的问题和选项数量，AI 将帮助您从笔记创建练习。开始吧。",
+            "how_many_questions": "您想创建多少个问题？",
+            "how_many_options": "每个问题需要多少个选项？",
+            "add_note": "请添加笔记以使用此功能",
+            "generate": "生成",
+            "completion": "AI 生成完成",
+            "click_generate": "点击「生成」开始神奇之旅"
+          },
+          "all_exercises": {
+            "heading": "所有练习",
+            "questions": "问题",
+            "submissions": "提交",
+            "save": "保存",
+            "preview": "预览",
+            "reorder": "重新排序问题",
+            "delete_exercise": "删除练习",
+            "order_questions": "排列问题",
+            "write_your_answer": "写下您的答案",
+            "write_your_answer_here": "在此处写下您的答案",
+            "no_answer": "未提供答案",
+            "write_your_question_here": "在此处写下您的问题",
+            "write_your_title": "在此处写下标题",
+            "write_your_subtitle": "在此处写下副标题",
+            "highlight": "在此处写下标题高亮",
+            "content": "在此处编写内容",
+            "video": "在此处编写视频链接",
+            "link": "在此处编写链接",
+            "label": "在此处编写标签",
+            "email": "在此处编写邮箱",
+            "facebook": "在此处编写 Facebook 链接",
+            "twitter": "在此处编写 Twitter 链接",
+            "linkedin": "在此处编写 LinkedIn 链接",
+            "number": "在此处编写电话号码",
+            "previous": "上一个",
+            "finish": "完成",
+            "next": "下一个",
+            "check": "检查",
+            "description": {
+              "title": "标题",
+              "heading": "描述",
+              "describe": "向学生描述练习",
+              "no": "无描述"
+            },
+            "delete_confirmation": {
+              "title": "删除问题",
+              "sure": "您确定要删除此问题吗？",
+              "no": "不，请保留",
+              "yes": "是，删除"
+            },
+            "edit_mode": {
+              "delete_modal": "删除练习",
+              "sure": "您确定要删除此练习吗？",
+              "no": "不，取消",
+              "yes": "是，删除",
+              "deleting": "删除中...",
+              "error": "您有一些错误",
+              "question": "问题",
+              "write": "编写代码",
+              "option": "添加选项",
+              "question_types": {
+                "single": "单选",
+                "multiple": "多选",
+                "paragraph": "段落"
+              }
+            },
+            "view_mode": {
+              "no_question": "此练习未添加问题",
+              "edit": "编辑",
+              "button": "按钮以添加",
+              "questions": "问题",
+              "points": "分数",
+              "all": "全部必填",
+              "due": "截止日期",
+              "no_description": "无描述",
+              "start": "开始",
+              "graded": "已评分",
+              "pending": "待处理",
+              "submitted": "已提交",
+              "status_pending": "状态：待审核",
+              "status_graded": "状态：审核完成",
+              "status_submitted": "状态：已提交"
+            },
+            "analytics": {
+              "summary": {
+                "heading": "摘要",
+                "question_chart": "问题图表"
+              },
+              "individual": {
+                "heading": "个人",
+                "answers": "个人答案",
+                "no": "未提供答案"
+              },
+              "submissions": "提交"
+            }
+          }
+        },
+        "disabled": "功能已禁用",
+        "comments": {
+          "title": "评论",
+          "you": "您",
+          "text_area_title": "发表评论",
+          "placeholder": "您对此课时有什么看法？",
+          "comment_btn": "评论",
+          "cancel_btn": "取消",
+          "load_more_btn": "加载更多",
+          "comment_error": "评论发布失败。请重试。"
+        },
+        "polls": {
+          "title": "投票",
+          "active_polls": "进行中的投票",
+          "expired_polls": "已过期的投票",
+          "loading": "加载中...",
+          "no_polls": "没有可显示的投票"
+        },
+        "poll": {
+          "voted": "已投票",
+          "created_by": "创建者",
+          "status": "状态",
+          "draft": "草稿",
+          "publish": "发布",
+          "expiration": "过期时间",
+          "total_voted": "总票数",
+          "responses": "回复",
+          "expires": "过期",
+          "today": "今天",
+          "back": "返回",
+          "result": "结果",
+          "delete": "删除",
+          "create_poll": "创建投票",
+          "question": "问题",
+          "options": "选项",
+          "option_label": "选项标签",
+          "cancel": "取消",
+          "poll_question": "投票问题"
+        },
+        "version_history": {
+          "title": "版本历史",
+          "fetch_more_versions": "获取更多版本",
+          "current_version": "当前版本",
+          "restore_version": "恢复此版本"
+        }
+      },
+      "attendance": {
+        "title": "考勤",
+        "present": "出勤",
+        "absent": "缺勤",
+        "search_students": "搜索学生",
+        "student": "学生",
+        "lesson": "课时",
+        "no_student": "未添加学生"
+      },
+      "submissions": {
+        "title": "已提交的练习",
+        "submission_status": {
+          "submitted": "已提交",
+          "in_progress": "进行中",
+          "graded": "已评分"
+        },
+        "grading_modal": {
+          "details": "详情",
+          "early": "提前",
+          "late": "迟到",
+          "total_grade": "总成绩",
+          "student": "学生",
+          "status": "状态",
+          "add_comment": "添加评论",
+          "add_comment_placeholder": "发表评论",
+          "grade_with_ai": "使用 AI 评分",
+          "submit_grades": "提交成绩",
+          "accept_grade": "接受",
+          "reject_grade": "拒绝",
+          "allocated": "分配此分数是因为",
+          "total_try": "总尝试次数：",
+          "options_correct": "选择了正确选项",
+          "out_of": "共",
+          "options_wrong": "错误选择的数量为",
+          "questions_tried": "分配此分数是因为总尝试次数：",
+          "delete_prompt": "删除",
+          "delete_error": "删除提交失败",
+          "delete_success": "提交删除成功"
+        }
+      },
+      "marks": {
+        "title": "成绩",
+        "student": "学生",
+        "total": "总计",
+        "export": {
+          "csv": "导出为 CSV",
+          "pdf": "导出为 PDF"
+        },
+        "no_student": "未添加学生"
+      },
+      "people": {
+        "title": "人员",
+        "add": "添加",
+        "search": "搜索人员",
+        "you": "您",
+        "pending": "待处理",
+        "name": "姓名",
+        "role": "角色",
+        "action": "操作",
+        "feedback": "邮箱已复制到剪贴板",
+        "view": "查看",
+        "delete_profile": "删除个人资料",
+        "invite_modal": {
+          "title": "邀请人员",
+          "invite": "邀请导师",
+          "select": "选择组织中的导师...",
+          "to_add": "要将导师添加到您的组织，",
+          "go_to": "请前往组织设置",
+          "invite_students": "邀请学生",
+          "via_link": "您可以通过邀请链接邀请学生",
+          "via_qr": "您可以通过二维码邀请学生",
+          "download_qr": "下载二维码",
+          "qr_downloading_snackbar": "二维码生成成功，请等待下载",
+          "copy_link": "复制链接",
+          "success": "复制成功",
+          "finish": "完成"
+        },
+        "delete_confirmation": {
+          "title": "删除",
+          "sure": "您确定要删除吗",
+          "no": "否",
+          "yes": "是"
+        },
+        "roles": {
+          "admin": "管理员",
+          "tutor": "导师",
+          "student": "学生",
+          "filter": "筛选"
+        },
+        "teams": {
+          "add": "添加",
+          "add_team": "将您的团队成员或协作者添加到您的组织。开始协作吧",
+          "invite": "邀请",
+          "placeholder": "邮箱，逗号分隔",
+          "role": "角色",
+          "send_invite": "发送邀请",
+          "members": "成员",
+          "invite_sent": "邀请已发送",
+          "you": "您",
+          "remove": "移除"
+        }
+      },
+      "certificates": {
+        "title": "证书",
+        "certificate_settings": "证书设置",
+        "theme": "选择主题",
+        "logo": "品牌标志",
+        "to_update": "要更新您的品牌图片，请前往",
+        "settings": "设置 > 组织设置",
+        "and_upload": "并上传您的品牌标志",
+        "goto_settings": "前往设置",
+        "description": "课程描述",
+        "placeholder": "关于课程的简短描述",
+        "allow": "允许学生下载证书",
+        "locked": "已锁定",
+        "unlocked": "已解锁",
+        "save": "保存更改",
+        "unlocked_certificate": "恭喜！🎉 您的证书已准备就绪",
+        "unlocked_certificate_subtitle": "您已完成本课程，您的努力有目共睹。下载证书并与您的社交网络分享，证明您新获得的技能",
+        "locked_certificate": "证书不可用",
+        "instructor_unlock": "您的讲师需要解锁您的证书。",
+        "contact_instructor": "如果您需要证书，请联系您的讲师。",
+        "download_certificate": "下载证书",
+        "complete_to_download_title": "课程未完成 😔",
+        "complete_to_download_subtitle": "当您完成本课程的所有课时和练习后，您的证书将可用",
+        "description_error": "描述不能超过 200 个字符",
+        "characters": "字符",
+        "unexpected_error": "发生意外错误"
+      },
+      "landing_page": {
+        "editor": {
+          "title": {
+            "header": "页眉",
+            "requirement": "要求",
+            "description": "描述",
+            "goals": "目标",
+            "reviews": "评价",
+            "instructor": "讲师",
+            "pricing": "定价",
+            "certificate": "证书"
+          },
+          "save": "保存",
+          "page_builder": "页面构建器",
+          "section": "板块",
+          "display_section": "显示板块",
+          "header_form": {
+            "title": "标题",
+            "description": "描述",
+            "short_video": "短视频",
+            "replace_cover": "替换封面图片",
+            "replace": "替换",
+            "helper": "输入 YouTube 视频链接"
+          },
+          "reviews_form": {
+            "add_reviews": "添加评价",
+            "fullname": "全名",
+            "description": "描述",
+            "rating": "评分",
+            "hide": "隐藏评价",
+            "validations": {
+              "name": {
+                "min_char": "名称太短，最少 5 个字符"
+              },
+              "avatar_url": {
+                "message": "请上传图片"
+              },
+              "rating": {
+                "message": "评分必须为 1-5"
+              },
+              "description": {
+                "min_char": "描述太短，最少 5 个字符"
+              }
+            }
+          },
+          "certificate_form": {
+            "upload_template": "证书模板"
+          },
+          "instructor_form": {
+            "upload": "讲师标志",
+            "name": "讲师姓名",
+            "name_placeholder": "您的公司名称",
+            "role": "讲师角色",
+            "about": "关于讲师",
+            "about_placeholder": "讲师的简短背景介绍",
+            "total": "课程总数"
+          },
+          "pricing_form": {
+            "currency": "货币",
+            "cost": "费用",
+            "payment": "支付链接",
+            "discount": "折扣",
+            "no": "否",
+            "yes": "是",
+            "percent": "折扣百分比",
+            "gift": "关于礼物"
+          }
+        },
+        "upload_widget": {
+          "title": "横幅小部件",
+          "width": "宽度超过 1500 像素的图片效果最佳。",
+          "size": "每个文件的最大大小为 500kb。",
+          "submit": "提交",
+          "no_images": "没有可用的图片。"
+        },
+        "pricing_section": {
+          "free": "免费",
+          "not_accepting": "本课程目前不接受新学生。",
+          "discount": "折扣",
+          "enroll": "立即注册",
+          "buy": "立即购买",
+          "bird": "早鸟优惠。尽快购买"
+        },
+        "course_content": "课程内容",
+        "modules": "模块",
+        "lessons": "课时",
+        "exercises": "练习",
+        "start_course": "开始课程",
+        "requirement": "要求",
+        "description": "课程描述",
+        "learn": "您将学到什么",
+        "certificate": "证书",
+        "certificate_text": "当您完成项目中的所有课程后，您将获得一张证书，可与您的专业网络分享。",
+        "content": "课程内容",
+        "slide": "1 张幻灯片",
+        "note": "笔记",
+        "video": "视频",
+        "reviews": "评价",
+        "see_all": "查看全部",
+        "header_video": "页眉视频",
+        "no_course_published": "未发布课程",
+        "coming_your_way": "我们有很棒的课程即将推出，敬请期待！！！",
+        "view_less": "收起",
+        "view_all": "查看全部",
+        "thank_you": "感谢您的留言，我们将尽快回复您",
+        "name": "您的姓名",
+        "email": "您的邮箱",
+        "phone": "您的电话",
+        "message": "您的留言",
+        "your_message": "在此输入留言",
+        "submit": "提交",
+        "successful_sub": "您已成功添加。感谢订阅。",
+        "enter": "输入您的邮箱...",
+        "powered_by": "技术支持",
+        "landing_page": "着陆页",
+        "explore": "探索课程",
+        "find": "从全球最优秀的教师那里找到您喜欢的课程",
+        "find_course": "查找课程...",
+        "reviews_modal": {
+          "title": "评价",
+          "rating": "评分",
+          "ratings": "评分"
+        },
+        "instructor": "讲师",
+        "courses": "课程"
+      },
+      "analytics": {
+        "title": "分析"
+      },
+      "settings": {
+        "heading": "设置",
+        "cover_image": "封面图片",
+        "optional_image": "此可选图片将显示在您的欢迎页面上。如果包含，尺寸应至少为 280 x 200",
+        "replace": "替换",
+        "del": "删除",
+        "course_details": "课程详情",
+        "course_title": "课程标题",
+        "course_description": "课程描述",
+        "placeholder": "在此处编写课程描述",
+        "link": "课程链接",
+        "grading": "评分",
+        "reports": "为课时提供评分报告",
+        "disabled": "已禁用",
+        "enabled": "已启用",
+        "order": "课时标签排序",
+        "drag": "拖放标签以重新排列资料标签",
+        "lesson_download": "课时下载",
+        "available": "使课时可供注册学生以 PDF 格式下载",
+        "course_download": "课程下载",
+        "course_avail": "使课程可供注册学生下载",
+        "download": "下载",
+        "allow": "允许新学生",
+        "access": "允许新学生访问此课程",
+        "publish": "发布课程",
+        "determines": "这决定了您的课程是否显示在着陆页上",
+        "published": "已发布",
+        "unpublished": "未发布",
+        "type": "课程类型",
+        "course_type_desc": "更新课程类型以获得更个性化的体验",
+        "live_class": "直播课程",
+        "self_paced": "自主学习",
+        "delete": "删除课程",
+        "delete_text": "删除此课程，此操作无法撤消",
+        "save": "保存更改"
+      }
+    },
+    "not_permitted": {
+      "header": "无权限",
+      "body": "很遗憾，您没有访问此课程的权限。",
+      "button": "返回首页"
+    }
+  },
+  "community": {
+    "title": "社区",
+    "ask_button": "提问社区",
+    "ask": {
+      "go_back": "返回",
+      "ask_the": "向社区提问",
+      "publish": "发布",
+      "title": "标题",
+      "select_course": "选择课程",
+      "ask_community": "向社区提出您的任何问题",
+      "question": "问题",
+      "save": "保存",
+      "edit": "编辑",
+      "cancel": "取消",
+      "give": "给出答案",
+      "comment": "评论"
+    },
+    "find_question": "查找问题",
+    "asked": "已提问",
+    "answers": "答案",
+    "no_question": "未提问",
+    "ask_a_question": "向社区提问",
+    "delete": {
+      "title": "删除",
+      "question": "问题",
+      "comment": "评论",
+      "sure": "您确定要删除此",
+      "no": "否，保留",
+      "yes": "是，删除"
+    },
+    "all": "全部"
+  },
+  "audience": {
+    "title": "受众",
+    "export": "导出",
+    "no_audience": "没有可管理的受众",
+    "manage": "在此管理所有学生并保持联系",
+    "name": "姓名",
+    "email": "邮箱",
+    "date_joined": "加入日期",
+    "upgrade": "升级您的方案以邀请更多学生"
+  },
+  "analytics": {
+    "courses": "课程",
+    "progress": "进度",
+    "progress_description": "{total, number} 个中已完成 {value, number} 个",
+    "incomplete": "未完成",
+    "completed": "已完成",
+    "complete": "完成",
+    "last_seen": "最后访问",
+    "a_while_ago": "一段时间前",
+    "exercises": "练习",
+    "graded": "已评分",
+    "not_graded": "未评分",
+    "enrolled_courses": "已注册课程",
+    "enrolled_courses_description": "所有已注册课程",
+    "overall_course_progress": "整体课程进度",
+    "overall_course_progress_description": "已完成课时的百分比",
+    "total_average_grade": "总平均成绩",
+    "total_average_grade_description": "基于所有课程的练习成绩",
+    "overall_course_progress_user_description": "基于课时完成情况",
+    "assignment_completion": "作业完成率",
+    "assignment_completion_description": "已完成作业的百分比",
+    "average_grade_description": "所有已完成作业的平均成绩",
+    "students": "学生",
+    "lessons": "课时",
+    "tutors": "导师",
+    "avg_grade": "平均成绩",
+    "completion_rate": "完成率",
+    "student_progress_overview": "学生进度概览",
+    "student_name": "学生姓名",
+    "lessons_completed": "已完成课时",
+    "exercises_submitted": "已提交练习",
+    "average_grade": "平均成绩",
+    "actions": "操作",
+    "view_details": "查看详情",
+    "no_students_found": "未找到学生",
+    "no_students_description": "目前没有学生注册此课程。学生加入后将在此处显示。",
+    "showing_students": "显示第 {start} 到 {end} 名学生，共 {total} 名",
+    "no_analytics_data": "无分析数据",
+    "no_analytics_description": "无法加载此课程的分析数据。请稍后重试，如果问题持续存在，请联系支持。"
+  },
+  "upgrade": {
+    "certificate": "升级您的方案以生成证书",
+    "team": "升级您的方案以添加团队成员",
+    "domain": "升级您的方案以添加自定义域名",
+    "team_members": "团队成员",
+    "back": "返回设置",
+    "download_lessons": "升级以下载课时",
+    "download_course": "升级以下载课程",
+    "required": "需要升级"
+  },
+  "lms_navigation": {
+    "home": "首页",
+    "my_learning": "我的学习",
+    "exercise": "练习",
+    "community": "社区",
+    "explore": "探索",
+    "help": "帮助",
+    "settings": "设置"
+  },
+  "my_learning": {
+    "heading": "我的学习",
+    "progress": "进行中",
+    "complete": "已完成",
+    "search": "搜索课程",
+    "not_in_progress": "没有进行中的课程",
+    "any_progress": "您开始的任何课程都将显示在此处",
+    "not_completed": "没有已完成的课程",
+    "any_course": "您完成的任何课程都将显示在此处"
+  },
+  "exercises": {
+    "heading": "练习",
+    "not_submitted": "未提交",
+    "submitted": "已提交",
+    "in_progress": "评分中",
+    "graded": "已评分",
+    "lesson": "课时"
+  },
+  "explore": {
+    "heading": "探索我们的课程",
+    "empty_heading": "暂无课程",
+    "empty_description": "目前没有已发布的课程"
+  },
+  "snackbar": {
+    "success": "成功",
+    "success_update": "更新成功",
+    "success_delete": "删除成功",
+    "something": "出现问题 - 请稍后重试",
+    "update": "更新",
+    "poll": {
+      "error": {
+        "creating_poll": "创建投票时发生错误",
+        "updating_poll": "更新投票状态时发生错误",
+        "submitting_poll": "提交投票时发生错误"
+      },
+      "info": {
+        "not_published": "投票尚未发布",
+        "vote_once": "您只能投票一次"
+      }
+    },
+    "exercise": {
+      "success": "保存成功",
+      "submission_updated": "提交已更新为",
+      "error_fetching": "获取练习失败，请重新加载页面"
+    },
+    "materials": {
+      "apology": "很抱歉，保存课时内容时出错。",
+      "update_translations": "更新翻译失败",
+      "creating_new": "创建新翻译失败"
+    },
+    "newsfeed": {
+      "success": {
+        "edit": "动态编辑成功",
+        "add": "新动态添加成功"
+      },
+      "error": {
+        "error": "发生错误，",
+        "editing": "编辑动态时",
+        "creating": "创建动态时"
+      }
+    },
+    "people": {
+      "error": {
+        "missing_data": "组织数据缺失，请重新加载页面",
+        "no": "当前没有组织域名"
+      },
+      "success": {
+        "copied": "已复制到剪贴板"
+      }
+    },
+    "course_settings": {
+      "success": {
+        "download": "下载完成",
+        "saved": "保存成功",
+        "successful_integration": "集成成功",
+        "successful_deletion": "集成已删除",
+        "update_successful": "更新成功"
+      },
+      "error": {
+        "not_right": "出现问题 - 请稍后重试",
+        "went_wrong": "出现问题 - 请稍后重试",
+        "title": "标题不能为空",
+        "description": "描述不能为空",
+        "failed_integration": "集成失败，请稍后重试",
+        "failed_deletion": "删除失败，请稍后重试"
+      }
+    },
+    "lms": {
+      "error": {
+        "username_exists": "用户名已存在",
+        "update": "更新失败：",
+        "try_again": "请重试"
+      }
+    },
+    "team_members": {
+      "invite_sent": "邀请已发送！",
+      "user_exists": "用户已存在",
+      "invite_fail": "发送邀请失败，请重试",
+      "remove_fail": "移除用户失败，请重试"
+    },
+    "landing_page_settings": {
+      "error": {
+        "file_size": "文件大小不能超过 500kb",
+        "try_again": "重试",
+        "label": "上传图片",
+        "fetch_error": "从 Unsplash 获取图片时出错"
+      },
+      "success": {
+        "complete": "完成 :)"
+      }
+    },
+    "course": {
+      "success": {
+        "comment_deleted": "评论已删除",
+        "comment_added": "评论已添加",
+        "pinned": "已置顶",
+        "unpinned": "已取消置顶",
+        "successfully": "成功",
+        "feed_delete_success": "动态删除成功"
+      },
+      "error": {
+        "reaction_error": "对动态进行反应时发生错误",
+        "commenting_error": "创建评论时发生错误",
+        "toggle_error": "切换置顶动态失败",
+        "news_feed_fail": "获取动态失败",
+        "feed_fetch_error": "获取动态时发生错误"
+      }
+    },
+    "attendance": {
+      "error": {
+        "reload": "出现问题。请重新加载并重新考勤"
+      }
+    },
+    "lessons": {
+      "success": {
+        "complete_marked": "已标记为完成",
+        "complete_download": "下载完成",
+        "version_restored": "版本恢复成功"
+      },
+      "error": {
+        "try_later": "出现问题 - 请稍后重试",
+        "exercise_not_complete": "完成所有练习以标记为完成"
+      }
+    },
+    "marks": {
+      "error": "获取成绩时出错"
+    },
+    "submissions": {
+      "success": {
+        "grading": "成绩已保存并已通知学生"
+      }
+    },
+    "invite": {
+      "failed_join": "加入失败，请联系管理员"
+    },
+    "community": {
+      "error": {
+        "try_again": "错误 - 请稍后重试",
+        "deleting_comments": "删除评论时出错",
+        "deleting_question": "删除问题时出错"
+      },
+      "success": {
+        "comment_submitted": "评论已提交！",
+        "success_delete": "删除成功",
+        "question_submitted": "问题已提交！"
+      }
+    },
+    "signup": {
+      "disposable": "您提供的邮箱是一次性邮箱"
+    },
+    "upgrade": {
+      "generate_fail": "生成成功失败",
+      "failed": "失败，请稍后重试"
+    },
+    "setup": {
+      "info_lesson": "您需要创建课时",
+      "info_course": "您需要创建课程"
+    },
+    "generic": {
+      "success_delete": "删除成功",
+      "try_again": "错误 - 请稍后重试"
+    }
+  },
+  "specialization": {
+    "course_tag": "专项课程"
+  },
+  "content": {
+    "heading": "SvelteKit 国际化",
+    "toggle_label": "选择首选语言"
+  },
+  "generic": {
+    "locked": "已锁定",
+    "unlocked": "已解锁",
+    "loading": "加载中"
+  },
+  "validations": {
+    "user_profile": {
+      "email": "邮箱地址无效",
+      "username": "用户名不能为空",
+      "fullname": "姓名至少需要 5 个字符"
+    },
+    "organization_name": {
+      "min_char": "组织名称必须包含 5 个或更多字符",
+      "hyphen_rule": "组织名称不能以连字符开头或结尾"
+    },
+    "site_name": {
+      "min_char": "站点名称必须包含 5 个或更多字符",
+      "hyphen_rule": "站点名称不能以连字符开头或结尾"
+    },
+    "news_feed": {
+      "min_char": "字段必须包含 5 个或更多字符"
+    },
+    "lesson_schema": {
+      "empty_title": "标题不能为空"
+    },
+    "create_quiz": {
+      "min_char": "必须为 6 个或更多字符"
+    },
+    "ask_community": {
+      "title": {
+        "min_char": "必须为 6 个或更多字符"
+      },
+      "body": {
+        "min_char": "必须为 10 个或更多字符"
+      },
+      "course_id": {
+        "select_course": "选择课程"
+      }
+    },
+    "comment_in_community": {
+      "min_char": "必须为 6 个或更多字符"
+    },
+    "org_landing_page": {
+      "name": {
+        "min_char": "必须为 6 个或更多字符"
+      },
+      "email": {
+        "invalid_email": "邮箱地址无效"
+      },
+      "phone": {
+        "min_char": "必须为 6 个或更多字符"
+      },
+      "message": {
+        "min_char": "必须为 10 个或更多字符"
+      }
+    },
+    "forgot": {
+      "invalid_email": "邮箱地址无效"
+    },
+    "auth": {
+      "email": {
+        "invalid_email": "邮箱地址无效"
+      },
+      "password": {
+        "min_char": "必须为 6 个或更多字符"
+      }
+    },
+    "reset": {
+      "password": {
+        "min_char": "必须为 6 个或更多字符"
+      }
+    },
+    "onboarding": {
+      "step_one": {
+        "full_name": {
+          "min_char": "全名必须包含 5 个或更多字符"
+        }
+      },
+      "step_two": {
+        "goal": {
+          "required": "请选择一个选项"
+        },
+        "source": {
+          "required": "请选择一个选项"
+        }
+      }
+    },
+    "confirm_password": {
+      "not_match": "与密码不匹配"
+    },
+    "course_payment": {
+      "full_name": {
+        "min_char": "必须为 6 个或更多字符"
+      },
+      "email": {
+        "invalid_email": "邮箱地址无效"
+      }
+    },
+    "email": {
+      "not_valid": "邮箱无效"
+    }
+  },
+  "forgot_password": {
+    "title": "重置密码",
+    "heading": "忘记密码",
+    "description": "我们将向您的邮箱发送重置链接",
+    "email_sent": "邮件已发送！",
+    "email_sent_description": "我们已向 {email} 发送了一封确认邮件。请检查您的收件箱或垃圾邮件以重置密码。",
+    "okay": "好的",
+    "reset_button": "重置密码",
+    "cancel": "取消"
+  },
+  "reset_password": {
+    "heading": "新密码",
+    "description": "输入您的新密码详情",
+    "reset_button": "重置密码"
+  },
+  "not_found": {
+    "title": "页面未找到",
+    "org_not_exist": "组织不存在！",
+    "description": "您要找的页面不存在或已被移动。请返回首页。",
+    "go_home": "返回首页"
+  },
+  "common": {
+    "unsaved_changes": {
+      "message": "您有未保存的更改。确定要离开吗？"
+    }
+  }
+}
