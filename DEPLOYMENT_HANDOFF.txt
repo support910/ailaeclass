@@ -23,6 +23,7 @@ Completed:
   - Supabase automatic push workflows disabled.
   - Manual Supabase deploy workflow added/updated to use GitHub Actions Secrets.
   - User confirmed Deploy Supabase Manually completed successfully on 2026-05-12.
+  - User confirmed Vercel dashboard deployment succeeded on 2026-05-12.
 
 Important commits:
 
@@ -39,7 +40,7 @@ Supabase GitHub Actions Secrets used:
 
 Next step:
 
-  Deploy apps/dashboard to Vercel.
+  Configure Supabase Auth URL settings and test the Vercel deployment.
 
 Vercel environment variables needed:
 
@@ -50,6 +51,58 @@ Vercel environment variables needed:
   PRIVATE_APP_HOST=5gnumultimedia.com
   PRIVATE_APP_SUBDOMAINS=app
   PUBLIC_SERVER_URL=
+
+Confirmed Vercel env handling:
+
+  - PUBLIC_SINGLE_ORG_SITE_NAME must exist. Empty or placeholder value is acceptable for multi-tenant mode.
+  - PUBLIC_IS_SELFHOSTED must be false for Vercel.
+  - PUBLIC_SUPABASE_URL must be the full Supabase Project URL.
+  - PUBLIC_SERVER_URL can temporarily be https://placeholder.example.com until apps/api is deployed.
+
+Known Supabase Project URL:
+
+  https://hqgygleangptqthjehtb.supabase.co
+
+Next browser steps:
+
+  1. Copy the Vercel deployment URL.
+  2. In Supabase, set Authentication -> URL Configuration:
+       Site URL = Vercel deployment URL
+       Redirect URLs include Vercel deployment URL and Vercel deployment URL/**
+  3. Test signup/login on the Vercel deployment.
+  4. Add custom domain app.5gnumultimedia.com in Vercel.
+  5. Add matching DNS CNAME in the domain DNS manager.
+  6. Add WordPress menu link to https://app.5gnumultimedia.com.
+
+2026-05-12 Vercel 404 note:
+
+  Symptom:
+
+    Vercel deployment shows Ready, but visiting the assigned domain returns 404: NOT_FOUND.
+
+  Likely cause:
+
+    The project is a monorepo and the deployable SvelteKit app is apps/dashboard.
+    If Vercel project Root Directory is the repository root, it can run the turbo build but fail to publish the adapter-vercel output from apps/dashboard as the site root.
+
+  Recommended fix in Vercel settings:
+
+    Root Directory: apps/dashboard
+    Framework Preset: SvelteKit
+    Install Command: cd ../.. && pnpm install --frozen-lockfile
+    Build Command: cd ../.. && pnpm build --filter @cio/dashboard
+    Output Directory: leave empty
+
+  After changing settings:
+
+    Redeploy without build cache if possible.
+
+  Current status:
+
+    User chose recommended approach A.
+    User is at the step of finding Vercel Deployments/Redeploy after changing settings.
+    If the Deployments tab cannot be found, make a small commit and push to main to trigger Vercel automatically.
+    Root Directory changes do not affect the already-built deployment until a new deployment runs.
 
 Security:
 
@@ -65,4 +118,3 @@ Vercel setup notes:
   - Install command:
       pnpm install --frozen-lockfile
   - Output handled by SvelteKit adapter-vercel when PUBLIC_IS_SELFHOSTED=false
-
