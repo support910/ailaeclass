@@ -118,6 +118,10 @@ export const load = async ({ url, cookies, request }): Promise<LoadOutput> => {
       return response;
     }
 
+    if (!subdomain) {
+      return response;
+    }
+
     console.log('subdomain', subdomain);
 
     response.isOrgSite = debugMode || !!subdomain;
