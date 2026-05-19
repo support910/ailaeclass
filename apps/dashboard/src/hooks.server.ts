@@ -7,7 +7,8 @@ const PUBLIC_API_ROUTES = [
   'teacher_student_buycourse',
   '/api/polar',
   '/api/lmz',
-  '/api/verify'
+  '/api/verify',
+  '/api/chat'
 ];
 
 function isPublicRoute(pathname: string) {
@@ -27,22 +28,34 @@ export const handle: Handle = async ({ event, resolve }) => {
     return resolve(event);
   }
 
-  const accessToken = event.request.headers.get('Authorization')!;
+  const authorization = event.request.headers.get('Authorization') || '';
+  // Support both "Bearer <token>" and raw "<token>" formats
+  const tokenMatch = authorization.match(/^Bearer\s+(.+)$/i);
+  const accessToken = tokenMatch?.[1] || authorization;
+
+  if (!accessToken) {
+    console.warn(`[hooks] Missing or malformed Authorization header for ${pathname}`);
+    return new Response(
+      JSON.stringify({
+        code: 'unauthenticated',
+        message: 'Missing or invalid authentication token. Please log in again.'
+      }),
+      { status: 401 }
+    );
+  }
 
   try {
     const user = await validateUser(accessToken);
     event.request.headers.set('user_id', `${user.id}`);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthenticated user') {
-        return new Response(
-          JSON.stringify({ code: 'unauthenticated', message: 'Unauthenticated user' }),
-          {
-            status: 401
-          }
-        );
-      }
+    console.error(`[hooks] validateUser failed for ${pathname}:`, error);
+    if (error instanceof Error && error.message === 'Unauthenticated user') {
+      return new Response(
+        JSON.stringify({ code: 'unauthenticated', message: 'Unauthenticated user' }),
+        { status: 401 }
+      );
     }
   }
+
   return resolve(event);
 };

@@ -60,6 +60,15 @@
           >
         {/if}
       </div>
+      <div class="w-full border-t border-gray-100 p-4 text-center dark:border-neutral-800">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          若遇到问题，请联系
+          <a href="mailto:support@5numultimedia.com" class="text-cyan-600 hover:underline">
+            support@5numultimedia.com
+          </a>
+          ，我们将会为您解答。
+        </p>
+      </div>
     {/if}
   </div>
 </div>

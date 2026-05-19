@@ -1,194 +1,287 @@
-<a href="https://classroomio.com/">
-  <img alt="ClassroomIO is a no-code tool that allows you build and scale your online bootcamp with ease." src="https://raw.githubusercontent.com/classroomio/classroomio/main/apps/classroomio-com/static/classroomio-opengraph-image.png" />
-  <h1 align="center">ClassroomIO.com</h1>
-  <p align="center">
-    The Open Source Learning Management System for Companies
-    <br />
-    <a href="https://classroomio.com">Website</a>  |  <a href="https://dub.sh/ciodiscord">Join Discord community</a>
-  </p>
-</a>
+# ailaeclass — 5G nuMultiMedia Learning Platform
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/629e2bb8994345729513c4d69ccbe3d5)](https://app.codacy.com/gh/classroomio/classroomio?utm_source=github.com&utm_medium=referral&utm_content=classroomio/classroomio&utm_campaign=Badge_Grade)
+> A customized LMS powered by ClassroomIO, rebranded and enhanced for **5G nuMultiMedia Limited (5GNU)**.
+> Deployed at: `http://localhost:3082` (Docker local)
 
-## ✨ About ClassroomIO.com
+---
 
-<img alt="ClassroomIO Courses page" src="https://raw.githubusercontent.com/classroomio/classroomio/main/apps/classroomio-com/static/classroomio-courses.png" />
+## Table of Contents
 
-Streamline training for everyone with ClassroomIO.com. Our all-in-one platform empowers bootcamps, educators, and businesses to manage training programs easily. With our platform, anyone can run multiple classes and cohorts all from one UI. The application is mobile-first, which means that students can access your lesson materials from any device.
+1. [Project Overview](#project-overview)
+2. [Architecture](#architecture)
+3. [Environment Variables](#environment-variables)
+4. [Docker Build & Run](#docker-build--run)
+5. [Chatbot Configuration](#chatbot-configuration)
+6. [Dashboard Redesign](#dashboard-redesign)
+7. [Rebrand Summary](#rebrand-summary)
+8. [Key File Changes](#key-file-changes)
+9. [Troubleshooting](#troubleshooting)
 
-### Mission: Provide Students with the Best Learning Experience
+---
 
-At ClassroomIO, our mission is to provide students with the best possible learning experience. We believe in empowering educators with the tools they need to deliver high-quality education that is accessible, engaging, and effective.
+## Project Overview
 
-### Key Features
+**ailaeclass** is an intelligent learning management platform tailored for 5G nuMultiMedia Limited. It integrates:
 
-1. **📚 Advanced Course Management:** You can create unlimited courses, create lessons, invite students, add assignments, grade their assignments, and even generate certificates.
-2. **👨‍👩‍👦 Multi-Teacher Management:** You can invite other teachers into your organization and assign them individual courses.
-3. **🤖 AI Integration:** We've got OpenAI integration for quick course creation where you can generate course content, lesson outlines, and even generate assignments right from your lesson notes.
-4. **💬 Forum:** Students can ask questions in your dedicated community and get answers from either you or other students.
-5. **💻 Dedicated Student Dashboard:** Once you create an account, you get a dedicated dashboard where your students can access all their courses, assignments, and more.
-6. **🔒 Fully open source:** You can self-host the entire stack on your servers.
+- **5G-A Drone Live Streaming & Low-Altitude Economy** branding
+- **DeepSeek-powered AI Chatbot** (strictly limited to 5GNU / ailaeclass topics)
+- **Supabase Storage** for document uploads (up to 50MB)
+- **Hong Kong-themed tech dashboard** with interactive map
 
-### Roadmap Features
+---
 
-1. **Forms:** Instead of using Google Forms to collect vital information from your students, you will be able to create forms directly within the dashboard.
-2. **Course Templates:** You can clone a full course or share templates with other people.
-3. **Analytics:** You can track data about your students across multiple courses.
-4. **Run Courses on Messengers:** Students can just join a channel on slack/discord/telegram and a bot automatically sends daily lesson content to your students without you doing anything.
+## Architecture
 
-Please reach out to me on [twitter](https://x.com/rotimi_best) if you have any feature request.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Docker Container                        │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │            ailaeclass Dashboard (SvelteKit)         │   │
+│  │  ┌─────────────┐    ┌─────────────┐   ┌──────────┐  │   │
+│  │  │  Frontend   │◄──►│  /api/chat  │   │ Supabase │  │   │
+│  │  │  (Svelte)   │    │  (DeepSeek) │   │ Storage  │  │   │
+│  │  └─────────────┘    └─────────────┘   └──────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                         Port 3082                           │
+└─────────────────────────────────────────────────────────────┘
+```
 
-## Built With
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Frontend | SvelteKit + TypeScript | TailwindCSS + Carbon Components |
+| Backend API | SvelteKit server routes | `/api/chat` proxies DeepSeek |
+| Database/Auth | Supabase | PostgreSQL + Auth + Realtime |
+| Storage | Supabase Storage | Signed upload URLs, 50MB limit |
+| AI Service | DeepSeek API (`deepseek-chat`) | Server-side proxy, key hidden |
+| Build Tool | pnpm + Turborepo | Monorepo workspace |
+| Runtime | Node 20 Alpine (Docker) | `ws` polyfill for Supabase realtime |
 
-- [SvelteKit](https://kit.svelte.dev/?ref=classroomio.com)
-- [Supabase](https://supabase.com/?ref=classroomio.com)
-- [TailwindCSS](https://tailwindcss.com/?ref=classroomio.com)
+---
 
-## Get a Demo
+## Environment Variables
 
-You can book a quick 15 min demo to see if ClassroomIO is a good fit for you
+### Required for Build (in `docker/Dockerfile.dashboard`)
 
-<a href="https://cal.com/classroomio/demo">
-  <img src="https://cal.com/book-with-cal-dark.svg" alt="Book a Call with ClassroomIO.com">
-</a>
+These are baked into the image at build time because SvelteKit reads `$env/static/public` during `vite build`.
 
-<!-- GETTING STARTED -->
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `PUBLIC_SINGLE_ORG_SITE_NAME` | `""` | Disables single-org mode |
+| `PUBLIC_SUPABASE_URL` | `https://hqgygleangptqthjehtb.supabase.co` | Supabase project URL |
+| `PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_XqQpQyaKGz_...` | Public Supabase anon key |
+| `PRIVATE_SUPABASE_SERVICE_ROLE` | `sb_secret_Pv-dgkEkHtHm...` | Server-side Supabase role |
+| `PRIVATE_DEEPSEEK_API_KEY` | `your_deepseek_key_here` | DeepSeek API key for chatbot |
 
-## Getting Started
+### Required at Runtime (when running container)
 
-To get a local copy up and running, please follow these simple steps.
+| Variable | Example | Purpose |
+|----------|---------|---------|
+| `PUBLIC_IS_SELFHOSTED` | `true` | Enables self-hosted features |
+| `PRIVATE_APP_HOST` | `5gnu.com` | Domain for org subdomains |
+| `PRIVATE_APP_SUBDOMAINS` | `app` | Subdomain prefix for dashboard |
 
-### Prerequisites
+### Local Development (in `apps/dashboard/.env`)
 
-Here is what you need to be able to run ClassroomIO.com
+Same variables as above, plus optional ones:
 
-- [Node.js](https://nodejs.org/) (Version: >=22.x)
-- [Supabase CLI](https://github.com/supabase/cli)
-- [Docker](https://docs.docker.com/engine/install/)
-- [NPM](https://www.npmjs.com/)
+```bash
+# AI / Integrations
+OPENAI_API_KEY=                # Optional, for OpenAI features
+PRIVATE_DEEPSEEK_API_KEY=your_deepseek_key_here
 
-### Project Structure
+# Domain
+PRIVATE_APP_HOST=5gnu.com
+PRIVATE_APP_SUBDOMAINS=app
 
-This repo is a mono repo that consists of 3 projects:
+# Cloudflare (optional, for video uploads)
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_ACCESS_KEY=
+CLOUDFLARE_SECRET_ACCESS_KEY=
+CLOUDFLARE_BUCKET_DOMAIN=
 
-1. `classroomio-com`: The landing page of ClassroomIO hosted [here](https://classroomio.com)
-2. `api`: The api service that handles PDF, video processing, Emailing and Notifications.
-3. `dashboard`: The web application that runs the learning management system hosted [here](https://app.classroomio.com).
-4. `docs`: Official documentation of ClassroomIO hosted [here](https://classroomio.com/docs)
+# SMTP (optional, for emails)
+SMTP_HOST=
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_PORT=
+SMTP_SENDER=
+```
 
-## Development
+---
 
-### Gitpod Setup
+## Docker Build & Run
 
-1. Click the button below to open this project in Gitpod.
+### 1. Build the Image
 
-2. This will open a fully configured workspace in your browser with all the necessary dependencies already installed.
+From the **repository root** (`classroomio-main/`):
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/classroomio/classroomio)
+```bash
+docker build -f docker/Dockerfile.dashboard -t classroomio/dashboard:local .
+```
 
-### Local Setup
+Build-time fixes applied:
+- `python3 make g++` installed for native modules
+- `pnpm@8.15.9` installed globally (avoids corepack Node 20 crash)
+- `pnpm install --ignore-scripts` skips `@sentry/profiling-node` compilation
+- `ws` dependency injected for Supabase realtime on Node 20
 
-1. Fork the repo, then clone it using the following command (remember to replace the url with the url from your forked repo)
+### 2. Run the Container
 
-   ```bash
-   git clone https://github.com/classroomio/classroomio.git
-   ```
+```bash
+docker run -d \
+  --name ailaeclass-dashboard \
+  -p 3082:3082 \
+  -e PUBLIC_IS_SELFHOSTED=true \
+  -e PUBLIC_SUPABASE_URL=https://hqgygleangptqthjehtb.supabase.co \
+  -e PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here \
+  -e PRIVATE_SUPABASE_SERVICE_ROLE=your_service_role_here \
+  -e PRIVATE_DEEPSEEK_API_KEY=your_deepseek_key_here \
+  -e PRIVATE_APP_HOST=5gnu.com \
+  -e PRIVATE_APP_SUBDOMAINS=app \
+  classroomio/dashboard:local
+```
 
-2. Go to project folder
+### 3. Access the App
 
-   ```bash
-   cd classroomio
-   ```
+Open your browser to: **http://localhost:3082**
 
-3. Set up Node if your Node version does not meet the project's requirements, as instructed by the documentation., "nvm" (Node Version Manager) allows using Node at the version required by the project:
+### 4. Stop / Restart
 
-   ```bash
-   nvm use
-   ```
+```bash
+docker stop ailaeclass-dashboard
+docker rm ailaeclass-dashboard
+# Then re-run the `docker run` command above
+```
 
-   You first might need to install the specific version and then use it:
+---
 
-   ```bash
-   nvm install && nvm use
-   ```
+## Chatbot Configuration
 
-   You can install nvm from [here](https://github.com/nvm-sh/nvm).
+### Behavior
 
-   You also need to have pnpm installed, you can find the installation guide [here](https://pnpm.io/installation#using-npm)
+The chatbot is a **floating widget** on the bottom-right of every page. It is strictly scoped to 5G nuMultiMedia and ailaeclass topics only.
 
-4. Set up your `.env` file
+- **Model**: `deepseek-chat` (DeepSeek V3)
+- **Max tokens**: 512
+- **Temperature**: 0.7
+- **System prompt**: Hard-coded in `apps/dashboard/src/routes/api/chat/+server.ts`
+- **Topics allowed**:
+  1. 5G nuMultiMedia Limited company info
+  2. ailaeclass platform features
+  3. Low-altitude economy (drones, 5G-A live streaming, STEM/STEAM)
+  4. Hong Kong Cyberport / Science Park
+  5. AOPA drone certification
 
-   - Go to `apps/dashboard` and `apps/api`.
-   - Duplicate the `.env.example` file and rename it to `.env`
-   - Populate your .env files with the neccessary variables
+If a user asks anything outside these topics, the bot replies:
+> "Sorry, I can only answer questions related to 5G nuMultiMedia, ailaeclass, and our low-altitude economy services."
 
-To get the environmental variables for supabase continue to step(5)
+### UI Features
 
-1. Install all dependencies
+- Expand / collapse toggle
+- Maximize / minimize chat window
+- Loading dots animation while waiting
+- Gradient header matching brand colors (`#0E7372` → `#00D4FF`)
+- Disclaimer footer: "AI responses are limited to 5G nuMultiMedia & ailaeclass topics only"
 
-   ```bash
-   pnpm i
-   ```
+### Files
 
-2. Setup Supabase.
+| File | Purpose |
+|------|---------|
+| `src/lib/components/Chatbot/ChatbotWidget.svelte` | Floating UI component |
+| `src/routes/api/chat/+server.ts` | Server-side proxy to DeepSeek |
+| `src/routes/+layout.svelte` | Renders `<ChatbotWidget />` globally |
 
-   - Install and Start [docker](https://docs.docker.com/engine/install/)
-   - Install [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) on your computer
-   - Go to the project directory in your terminal and start Supabase
+### Changing the API Key
 
-     ```bash
-       supabase start
-     ```
+Update the `PRIVATE_DEEPSEEK_API_KEY` value in:
+1. `apps/dashboard/.env`
+2. `docker/Dockerfile.dashboard`
+3. `docker/docker-compose.yaml`
+Then rebuild and restart the container.
 
-   - You should get a result like this
+---
 
-     ```bash
-       supabase local development setup is running.
+## Dashboard Redesign
 
-         API URL: http://127.0.0.1:54321
-     GraphQL URL: http://127.0.0.1:54321/graphql/v1
-           DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-       Studio URL: http://127.0.0.1:54323
-     Inbucket URL: http://127.0.0.1:54324
-       JWT secret: super-secret-jwt-token-with-at-least-32-characters-long
-         anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-     service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-     ```
+The post-login dashboard (`/org/[slug]`) now features a **tech-themed hero section** above the original analytics cards.
 
-   - Add Supabase environment variables into `app/dashboard` folder, which should be taken from the result of `supabase start`
+### Hero Section Elements
 
-     ```env
-       PUBLIC_SUPABASE_URL=<API URL>
-       PUBLIC_SUPABASE_ANON_KEY=<anon key>
-       PRIVATE_SUPABASE_SERVICE_ROLE=<service_role key>
-     ```
+1. **Gradient Background**
+   - `from-slate-900 via-slate-800 to-slate-900`
+   - Animated cyan/teal glow blurs (`bg-cyan-400/10 blur-3xl`)
 
-   - To view the Supabase studio, open the Studio URL from the result of `supabase start`
+2. **Company Badges**
+   - "Low-Altitude Economy Pioneer" (with Rocket icon)
+   - "5G-A Drone Tech" (with Drone icon)
 
-3. Run all projects (in development mode)
+3. **Company Intro**
+   - Welcome title with gradient text (`ailaeclass`)
+   - Description of 5GNU's mission
+   - Location chip: Cyberport 3, Hong Kong
+   - Certification chip: AOPA Exclusive Exam Centre
 
-   ```bash
-   pnpm dev
-   ```
+4. **Hong Kong Map SVG**
+   - Simplified HK outline with **cyan/teal gradient stroke**
+   - Inner fill at 6% opacity
+   - **Science Park marker** (top-right, ping animation)
+   - **Cyberport marker** (bottom-left, ping animation)
+   - Decorative circuit dash-lines
 
-4. All projects should start running
+5. **Stats Bar**
+   - 5G-A Drone Broadcast
+   - 8K Live Streaming
+   - AOPA Certified Centre
+   - Founded HK 2020
 
-   - `classroomio-com`: [http://localhost:5174](http://localhost:5174)
-   - `api`: [http://localhost:3002](http://localhost:3002)
-   - `dashboard`: [http://localhost:5173](http://localhost:5173)
-   - `docs`: [http://localhost:3000](http://localhost:3000)
+### File
 
-5. Running a specific project
+- `apps/dashboard/src/routes/org/[slug]/+page.svelte`
 
-   - **classroomio-com**: `pnpm dev --filter=@cio/classroomio-com`
-   - **api**: `pnpm dev --filter=@cio/api`
-   - **dashboard**: `pnpm dev --filter=@cio/dashboard`
-   - **docs**: `pnpm dev --filter=@cio/docs`
+---
 
-6.  Login into `dashboard`
+## Rebrand Summary
 
-    - Visit [http://localhost:5173/login](http://localhost:5173/login)
-    - Enter email: `admin@test.com`
-    - Enter password: `123456`
-     
-    To learn more about how to login with a dummy account, [go here.](https://classroomio.com/docs/contributor-guides/demo-accounts)
+| Original | Rebranded To |
+|----------|-------------|
+| ClassroomIO | **ailaeclass** |
+| Theme color | `#0E7372` (teal) + `#00D4FF` (cyan accent) |
+| Logo / favicon | Retained original asset paths (recommend replacing `/logo-192.png`) |
+| Course image template | `/images/ailaeclass-course-img-template.jpg` |
+| Site domain helper | `*.ailaeclass.com` |
+| Meta tags / titles | "Dashboard — ailaeclass" |
+
+---
+
+## Key File Changes
+
+| File | Change |
+|------|--------|
+| `apps/dashboard/src/lib/utils/config/brand.ts` | Rebrand constants |
+| `apps/dashboard/src/routes/org/[slug]/+page.svelte` | Tech hero + HK map |
+| `apps/dashboard/src/lib/components/Chatbot/ChatbotWidget.svelte` | New AI widget |
+| `apps/dashboard/src/routes/api/chat/+server.ts` | DeepSeek proxy endpoint |
+| `apps/dashboard/src/routes/+layout.svelte` | Mount chatbot globally; force `zh-TW` locale |
+| `apps/dashboard/src/lib/utils/functions/supabase.ts` | Inject `ws` transport for Node 20 |
+| `apps/dashboard/src/lib/utils/functions/supabase.server.ts` | Inject `ws` transport for Node 20 |
+| `docker/Dockerfile.dashboard` | Multi-stage build; pnpm 8.15.9; ignore-scripts |
+| `docker/docker-compose.yaml` | Add `PRIVATE_DEEPSEEK_API_KEY` |
+| `package.json` | Add `"packageManager": "pnpm@8.15.9"` |
+| `apps/dashboard/.env` | Add `PRIVATE_DEEPSEEK_API_KEY` |
+
+---
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| `Lockfile not compatible with current pnpm` | Uses `pnpm install --ignore-scripts` in Dockerfile (lockfile ignored) |
+| `Node.js 20 detected without native WebSocket support` | `ws` package installed; injected into Supabase client options |
+| `@sentry/profiling-node` build failure | `--ignore-scripts` skips native compilation |
+| `Missing Supabase server config` | Ensure `PRIVATE_SUPABASE_SERVICE_ROLE` is set at build time |
+| `Could not resolve workspaces` | Root `package.json` must contain `"packageManager": "pnpm@8.15.9"` |
+| Port 3082 already in use | `docker stop <container> && docker rm <container>` then re-run |
+
+---
+
+*Built on 2026-05-18 for 5G nuMultiMedia Limited.*

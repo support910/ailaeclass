@@ -112,8 +112,8 @@ export async function getProfile({
         username: regexUsernameMatch[1] + `${new Date().getTime()}`,
         fullname: regexUsernameMatch[1],
         email: authUser.email,
-        is_email_verified: isGoogleAuth || isSingleOrgMode(),
-        verified_at: isGoogleAuth || isSingleOrgMode() ? new Date().toDateString() : undefined
+        is_email_verified: true,
+        verified_at: new Date().toDateString()
       })
       .select();
 

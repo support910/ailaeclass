@@ -115,7 +115,7 @@ export async function getOrganizations(userId: string, isOrgSite?: boolean, orgS
     } else {
       // Check if org was last visited in localhost
       if (localStorage) {
-        const lastOrgSiteName = localStorage.getItem('classroomio_org_sitename');
+        const lastOrgSiteName = localStorage.getItem('ailaeclass_org_sitename');
 
         const lastOrg = orgsArray.find((org) => org.siteName === lastOrgSiteName);
 

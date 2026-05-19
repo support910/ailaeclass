@@ -326,7 +326,7 @@
               <Card
                 id={courseData.id}
                 slug={courseData.slug}
-                bannerImage={courseData.logo || '/images/classroomio-course-img-template.jpg'}
+                bannerImage={courseData.logo || '/images/ailaeclass-course-img-template.jpg'}
                 title={courseData.title}
                 type={courseData.type}
                 description={courseData.description}

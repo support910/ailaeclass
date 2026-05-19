@@ -44,6 +44,7 @@ services:
       - PRIVATE_APP_SUBDOMAINS=${PRIVATE_APP_SUBDOMAINS} # app (if you are using app.yourdomain.com for the dashboard)
       - UNSPLASH_API_KEY=${UNSPLASH_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PRIVATE_DEEPSEEK_API_KEY=${PRIVATE_DEEPSEEK_API_KEY}
       - PUBLIC_SERVER_URL=${PUBLIC_SERVER_URL} # this is the url to the api service
       - PUBLIC_IP_REGISTRY_KEY=${PUBLIC_IP_REGISTRY_KEY}
     depends_on:

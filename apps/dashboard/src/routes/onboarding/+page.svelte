@@ -281,7 +281,7 @@
             <!-- Org Site Name -->
             <TextField
               label={$t('onboarding.organisation_sitename')}
-              helperMessage={`https://${fields.siteName || ''}.classroomio.com`}
+              helperMessage={`https://${fields.siteName || ''}.ailaeclass.com`}
               bind:value={fields.siteName}
               name="sitename"
               type="text"

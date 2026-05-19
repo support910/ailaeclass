@@ -3,6 +3,14 @@ import { dev } from '$app/environment';
 import { config } from '$lib/config';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+let wsTransport: any;
+try {
+  const wsModule = await import('ws');
+  wsTransport = wsModule.default;
+} catch {
+  // ws not available, skip
+}
+
 export let supabase: SupabaseClient;
 
 /**
@@ -23,16 +31,21 @@ export const getServerSupabase = () => {
     throw new Error('Invalid production Supabase config: PRIVATE_SUPABASE_SERVICE_ROLE is still using the placeholder value.');
   }
 
+  const options: any = {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  };
+  if (wsTransport) {
+    options.realtime = { transport: wsTransport };
+  }
+
   supabase = createClient(
     config.supabaseConfig.url,
     serviceRoleKey,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
-    }
+    options
   );
 
   return supabase;

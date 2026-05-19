@@ -58,7 +58,12 @@
 
       if (error) throw error;
     } catch (error) {
-      let message = error instanceof Error ? error.message : `${error}`;
+      let message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+            ? String(error.message)
+            : `${error}`;
       if (message.includes('profile_username_key')) {
         message = $t('username already exists');
       }

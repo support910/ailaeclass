@@ -41,9 +41,9 @@
   function filterCourses(searchValue: string, _selectedId: string, courses: Course[]) {
     if (browser) {
       if (!selectedId) {
-        selectedId = localStorage.getItem('classroomio_filter_course_key') || '0';
+        selectedId = localStorage.getItem('ailaeclass_filter_course_key') || '0';
       } else {
-        localStorage.setItem('classroomio_filter_course_key', _selectedId);
+        localStorage.setItem('ailaeclass_filter_course_key', _selectedId);
       }
     }
 

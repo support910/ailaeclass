@@ -73,7 +73,12 @@
       hasUnsavedChanges = false;
       if (error) throw error;
     } catch (error) {
-      let message = error instanceof Error ? error.message : `${error}`;
+      let message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+            ? String((error as any).message)
+            : `${error}`;
       if (message.includes('profile_username_key')) {
         message = $t('snackbar.lms.error.username_exists');
       }

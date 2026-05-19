@@ -33,6 +33,7 @@ export const PUBLIC_ROUTES = [
 ];
 
 export const ROUTES_TO_HIDE_NAV = [
+  `^/$`,
   `^${ROUTE.LOGIN}$`,
   `^${ROUTE.SIGN_UP}$`,
   ROUTE.LMS_HOME,

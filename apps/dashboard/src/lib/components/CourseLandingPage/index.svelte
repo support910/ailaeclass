@@ -165,7 +165,7 @@
           <img
             style="min-width:280px; min-height:200px"
             alt="About us"
-            src={bannerImage ? bannerImage : '/images/classroomio-course-img-template.jpg'}
+            src={bannerImage ? bannerImage : '/images/ailaeclass-course-img-template.jpg'}
             class="relative mt-2 h-full max-h-[400px] w-full max-w-[500px] rounded-md md:mt-0"
           />
         </div>

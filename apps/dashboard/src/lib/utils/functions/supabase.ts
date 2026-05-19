@@ -1,12 +1,28 @@
+import { browser } from '$app/environment';
 import { config } from '$lib/config';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+
+let wsTransport: any;
+if (!browser) {
+  try {
+    const wsModule = await import('ws');
+    wsTransport = wsModule.default;
+  } catch {
+    // ws not available, skip
+  }
+}
 
 export let supabase: SupabaseClient;
 
 export const getSupabase = () => {
   if (supabase) return supabase;
 
-  supabase = createClient(config.supabaseConfig.url, config.supabaseConfig.anonKey);
+  const options: any = {};
+  if (!browser && wsTransport) {
+    options.realtime = { transport: wsTransport };
+  }
+
+  supabase = createClient(config.supabaseConfig.url, config.supabaseConfig.anonKey, options);
 
   return supabase;
 };

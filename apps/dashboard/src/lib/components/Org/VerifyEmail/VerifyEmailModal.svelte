@@ -266,7 +266,8 @@
     }
   });
 
-  $: open = Boolean(!$profile.is_email_verified && !!$profile.id && !!$currentOrg.id);
+  // Email verification is disabled - users can log in without verifying
+  $: open = false;
   $: open && sendVerificationCode();
   $: if (browser) updateBodyClass();
 

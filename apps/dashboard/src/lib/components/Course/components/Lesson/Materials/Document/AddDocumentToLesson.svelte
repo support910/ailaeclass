@@ -11,6 +11,11 @@
   import { onDestroy } from 'svelte';
   import { isFreePlan } from '$lib/utils/store/org';
   import { lesson } from '../../store/lessons';
+  import {
+    ALLOWED_DOCUMENT_TYPES,
+    MAX_DOCUMENT_SIZE
+  } from '$lib/utils/constants/documentUpload';
+  import { getAccessToken } from '$lib/utils/functions/supabase';
 
   export const lessonId = '';
 
@@ -20,21 +25,16 @@
   let errorTimeout: NodeJS.Timeout | null = null;
   let isDisabled = false;
 
-  const ALLOWED_TYPES = [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/msword'
-  ];
-
-  const MAX_DOCUMENT_SIZE = 5 * 1024 * 1024; // 5MB
-
   const documentUploader = new DocumentUploader();
 
-  function getFileType(file: File): 'pdf' | 'docx' | 'doc' {
+  function getFileType(file: File): 'pdf' | 'docx' | 'doc' | 'pptx' | 'ppt' {
     if (file.type === 'application/pdf') return 'pdf';
     if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
       return 'docx';
     if (file.type === 'application/msword') return 'doc';
+    if (file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+      return 'pptx';
+    if (file.type === 'application/vnd.ms-powerpoint') return 'ppt';
     return 'pdf'; // fallback
   }
 
@@ -47,7 +47,7 @@
   }
 
   function validateFile(file: File): string | null {
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!(ALLOWED_DOCUMENT_TYPES as readonly string[]).includes(file.type)) {
       return $t('course.navItem.lessons.materials.tabs.document.file_type_error');
     }
 
@@ -106,14 +106,22 @@
 
   async function uploadDocument() {
     if (!selectedFile) return;
-    
+
+    // Check authentication token before upload
+    const token = await getAccessToken();
+    if (!token) {
+      $lessonDocUpload.error = 'Session expired. Please log in again.';
+      snackbar.error($lessonDocUpload.error);
+      return;
+    }
+
     // Prevent free plan users from bypassing UI restrictions
     if ($isFreePlan) {
       $lessonDocUpload.error = $t('upgrade.required');
       snackbar.error($lessonDocUpload.error);
       return;
     }
-    
+
     $lessonDocUpload.isUploading = true;
 
     try {
@@ -254,7 +262,7 @@
         bind:this={fileInput}
         disabled={isDisabled}
         type="file"
-        accept=".pdf,.docx,.doc"
+        accept=".pdf,.docx,.doc,.pptx,.ppt"
         on:change={handleFileSelect}
         class="hidden"
       />

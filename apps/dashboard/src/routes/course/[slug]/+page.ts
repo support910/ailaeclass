@@ -27,8 +27,8 @@ export const load = async ({ params = { slug: '' } }) => {
       ]
     },
     twitter: {
-      handle: '@classroomio',
-      site: '@classroomio',
+      handle: '@ailaeclass',
+      site: '@ailaeclass',
       cardType: 'summary_large_image' as const,
       title: data?.title,
       description: data?.description,

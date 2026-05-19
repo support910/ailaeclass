@@ -32,10 +32,10 @@
   import { hasSession } from '$lib/utils/functions/supabase';
   import { goto } from '$app/navigation';
   import { BRAND } from '$lib/utils/config/brand';
-  import { handleLocaleChange, selectedLocale } from '$lib/utils/functions/translations';
   import { isSingleOrgMode } from '$lib/utils/config/singleOrg';
 
   import '../app.postcss';
+  import ChatbotWidget from '$lib/components/Chatbot/ChatbotWidget.svelte';
 
   export let data;
 
@@ -79,9 +79,6 @@
   }
 
   onMount(() => {
-    // Ensure Traditional Chinese is set as default locale
-    handleLocaleChange('zh-TW');
-
     pageSetup();
 
     if (!hasSession() && !isPublicRoute($page.url?.pathname)) {
@@ -165,6 +162,9 @@
     </div>
   </main>
 {/if}
+
+<!-- Global AI Chatbot -->
+<ChatbotWidget />
 
 <style>
   main {

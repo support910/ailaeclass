@@ -6,13 +6,15 @@ import {
 
 import axios from 'axios';
 import { classroomio } from '$lib/utils/services/api';
+import { getAccessToken, getSupabase } from '$lib/utils/functions/supabase';
+import { DOCUMENT_UPLOAD_BUCKET } from '$lib/utils/constants/documentUpload';
 
 export type UploadType = 'document' | 'video' | 'generic';
 
 export class GenericUploader {
   public abortController: AbortController | null = null;
   private uploadType: UploadType;
-  private uploadStore: Writable<any>;
+  protected uploadStore: Writable<any>;
 
   constructor(uploadType: UploadType) {
     this.uploadType = uploadType;
@@ -43,12 +45,14 @@ export class GenericUploader {
 
     try {
       if (videoKeys.length) {
-        const videoResponse = await this.getDownloadPresignedUrl(videoKeys, 'video');
+        const videoUploader = new VideoUploader();
+        const videoResponse = await videoUploader.getDownloadPresignedUrl(videoKeys);
         urls.videos = videoResponse?.urls || {};
       }
 
       if (docKeys.length) {
-        const docResponse = await this.getDownloadPresignedUrl(docKeys, 'document');
+        const documentUploader = new DocumentUploader();
+        const docResponse = await documentUploader.getDownloadPresignedUrl(docKeys);
         urls.documents = docResponse?.urls || {};
       }
     } catch (error) {
@@ -122,13 +126,128 @@ export class GenericUploader {
 }
 
 export class DocumentUploader extends GenericUploader {
+  private signedUpload: { path: string; token: string } | null = null;
+
   constructor() {
     super('document');
+  }
+
+  async getDownloadPresignedUrl(keys: string[]) {
+    const token = await getAccessToken();
+    const response = await fetch('/api/documents/presign/download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ keys })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Unable to prepare document download');
+    }
+
+    return response.json();
+  }
+
+  async getPresignedUrl(file: File) {
+    const token = await getAccessToken();
+    const response = await fetch('/api/documents/presign/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        fileName: file?.name,
+        fileType: file?.type,
+        fileSize: file?.size
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Unable to prepare document upload');
+    }
+
+    const data = await response.json();
+    this.signedUpload = { path: data.path, token: data.token };
+    return data;
+  }
+
+  async uploadFile(params: { url: string; file: File }) {
+    if (!this.signedUpload) {
+      throw new Error('Missing signed upload token');
+    }
+
+    this.uploadStore.update((state) => ({
+      ...state,
+      uploadProgress: 10
+    }));
+
+    const { error } = await getSupabase()
+      .storage
+      .from(DOCUMENT_UPLOAD_BUCKET)
+      .uploadToSignedUrl(this.signedUpload.path, this.signedUpload.token, params.file, {
+        contentType: params.file.type
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    this.uploadStore.update((state) => ({
+      ...state,
+      uploadProgress: 100
+    }));
   }
 }
 
 export class VideoUploader extends GenericUploader {
   constructor() {
     super('video');
+  }
+
+  async getPresignedUrl(file: File) {
+    const token = await getAccessToken();
+    const response = await fetch('/api/videos/presign/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        fileName: file?.name,
+        fileType: file?.type,
+        fileSize: file?.size
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Unable to prepare video upload');
+    }
+
+    return response.json();
+  }
+
+  async getDownloadPresignedUrl(keys: string[]) {
+    const token = await getAccessToken();
+    const response = await fetch('/api/videos/presign/download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ keys })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Unable to prepare video download');
+    }
+
+    return response.json();
   }
 }

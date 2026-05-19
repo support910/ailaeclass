@@ -237,7 +237,7 @@
         <img
           style="min-width:280px; min-height:200px"
           alt="About us"
-          src={$settings.logo ? $settings.logo : '/images/classroomio-course-img-template.jpg'}
+          src={$settings.logo ? $settings.logo : '/images/ailaeclass-course-img-template.jpg'}
           class="relative mt-2 h-[200px] w-[280px] rounded-md md:mt-0"
         />
       </div>

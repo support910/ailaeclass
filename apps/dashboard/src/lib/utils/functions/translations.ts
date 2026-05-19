@@ -5,7 +5,6 @@ import { writable } from 'svelte/store';
 
 export const config = {
   parser: parser(),
-  initLocale: 'zh-TW',
   loaders: [
     {
       locale: 'en',
@@ -86,7 +85,7 @@ loading.subscribe(async ($loading) => {
   }
 });
 
-export async function handleLocaleChange(newLocale: string): Promise<void> {
+export function handleLocaleChange(newLocale: string): void {
   if (!newLocale) {
     return;
   }
@@ -96,12 +95,6 @@ export async function handleLocaleChange(newLocale: string): Promise<void> {
 
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
-  }
-
-  try {
-    await loadTranslations(newLocale);
-  } catch (e) {
-    console.error('Failed to load translations for locale:', newLocale, e);
   }
 }
 

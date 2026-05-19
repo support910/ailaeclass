@@ -60,21 +60,25 @@ export const load = async ({ url, cookies, request }): Promise<LoadOutput> => {
 
   // Selfhosted usecase would be here
   if (PUBLIC_IS_SELFHOSTED === 'true') {
-    const subdomain = getSubdomain(url);
-    console.log('subdomain', subdomain);
+    try {
+      const subdomain = getSubdomain(url);
+      console.log('subdomain', subdomain);
 
-    // Student dashboard
-    if (subdomain) {
-      const org = (await getCurrentOrg(subdomain, true)) || null;
+      // Student dashboard
+      if (subdomain) {
+        const org = (await getCurrentOrg(subdomain, true)) || null;
 
-      // Organization by subdomain not found
-      if (!org) {
-        return response;
+        // Organization by subdomain not found
+        if (!org) {
+          return response;
+        }
+
+        response.org = org;
+        response.isOrgSite = true;
+        response.orgSiteName = subdomain;
       }
-
-      response.org = org;
-      response.isOrgSite = true;
-      response.orgSiteName = subdomain;
+    } catch (err) {
+      console.error('Error in selfhosted load:', err);
     }
 
     // Never go beyond this for selfhosted instances
@@ -150,7 +154,7 @@ function isURLCustomDomain(url: URL) {
     return false;
   }
 
-  const notCustomDomainHosts = [env.PRIVATE_APP_HOST || '', 'classroomio.com', 'vercel.app'].filter(
+  const notCustomDomainHosts = [env.PRIVATE_APP_HOST || '', 'ailaeclass.com', 'vercel.app'].filter(
     Boolean
   );
 

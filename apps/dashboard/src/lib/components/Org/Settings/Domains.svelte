@@ -94,8 +94,8 @@
       return;
     }
 
-    if (sanitizedDomain.includes('classroomio.com')) {
-      errors.customDomain = $t('components.settings.domains.custom_domain_not_classroomio');
+    if (sanitizedDomain.includes('ailaeclass.com')) {
+      errors.customDomain = $t('components.settings.domains.custom_domain_not_ailaeclass');
       return;
     }
 
@@ -229,7 +229,7 @@
         <!-- Org Site Name -->
         <TextField
           label="URL"
-          helperMessage={`https://${siteName || ''}.classroomio.com`}
+          helperMessage={`https://${siteName || ''}.ailaeclass.com`}
           bind:value={siteName}
           type="text"
           placeholder="e.g traversymedia"

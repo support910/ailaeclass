@@ -27,8 +27,6 @@
   import { isMobile } from '$lib/utils/store/useMobile';
   import { Grid, Link, SkeletonPlaceholder } from 'carbon-components-svelte';
 
-  // export let data;
-
   let dashAnalytics: OrganisationAnalytics;
 
   function createCourse() {
@@ -89,12 +87,12 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard</title>
+  <title>Dashboard — ailaeclass</title>
 </svelte:head>
 
 <WelcomeModal />
 
-<div class="w-full max-w-5xl px-5 py-10 md:mx-auto">
+<div class="w-full max-w-6xl px-4 py-8 md:mx-auto">
   <div class="mb-5 flex items-center justify-between">
     <h1 class="mb-3 text-2xl font-bold dark:text-white md:text-3xl">
       {$t(getGreeting())}

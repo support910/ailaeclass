@@ -771,7 +771,7 @@
               "download": "Tải xuống",
               "upload_document": "Tải lên tài liệu",
               "upload_title": "Tải lên tài liệu",
-              "upload_description": "Tải lên các tệp PDF, DOCX hoặc DOC. Kích thước tối đa: 5MB",
+              "upload_description": "Tải lên các tệp PDF, DOCX, DOC, PPTX hoặc PPT. Kích thước tối đa: 50MB",
               "drag_drop": "Kéo và thả tài liệu của bạn tại đây",
               "or": "hoặc",
               "choose_file": "Chọn Tệp",
@@ -779,7 +779,7 @@
               "uploading": "Tải lên ...",
               "upload_success": "Tài liệu được tải lên thành công!",
               "upload_error": "Không tải lên tài liệu",
-              "file_type_error": "Loại tệp không được hỗ trợ. Vui lòng tải lên các tệp PDF, DOCX hoặc DOC.",
+              "file_type_error": "Loại tệp không được hỗ trợ. Vui lòng tải lên các tệp PDF, DOCX, DOC, PPTX hoặc PPT.",
               "file_size_error": "Kích thước tập tin quá lớn. Kích thước tối đa là {kích thước}.",
               "type": "Kiểu",
               "size": "Kích cỡ",
@@ -1024,7 +1024,7 @@
         "remove": "Di dời",
         "custom_favicon": "Biểu tượng yêu thích tùy chỉnh",
         "custom_code": "Mã tùy chỉnh",
-        "custom_domain_not_classroomio": "Tên miền không thể chứa 'classroomio'"
+        "custom_domain_not_ailaeclass": "Tên miền không thể chứa 'ailaeclass'"
       },
       "customize-lms": {
         "title": "Tùy chỉnh LMS",
@@ -1119,7 +1119,7 @@
     "goto": "Đi đến",
     "courses": "Khóa học",
     "home": "Trang chủ",
-    "classroomio_home": "Lớp họcIO Trang chủ",
+    "ailaeclass_home": "Lớp họcIO Trang chủ",
     "dashboard": "bảng điều khiển",
     "discussion": "Cuộc thảo luận",
     "people": "Mọi người",
@@ -1218,7 +1218,7 @@
     "integrations": {
       "heading": "điện tín",
       "sub_heading": "Kết nối tài khoản của bạn với điện tín để nhận thông báo về bất kỳ thay đổi nào trong ứng dụng.",
-      "step_authenticate": "Bước 1: Xác thực tài khoản của bạn thông qua bot ClassroomIO.",
+      "step_authenticate": "Bước 1: Xác thực tài khoản của bạn thông qua bot ailaeclass.",
       "open_bot_button": "Mở Bot",
       "step_chatId": "Bước 2: Nhập ID trò chuyện được bot cung cấp cho bạn.",
       "connect_button": "Kết nối",

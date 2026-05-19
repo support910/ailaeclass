@@ -54,7 +54,7 @@ const config = {
         'connect-src': [
           'self',
           'https://*.supabase.co',
-          'https://*.classroomio.com',
+          'https://*.ailaeclass.com',
           'https://assets.cdn.clsrio.com',
           'https://cdn.plyr.io',
           'https://*.i.posthog.com',
@@ -62,7 +62,7 @@ const config = {
           'https://*.r2.cloudflarestorage.com',
           'http://localhost:54321',
           'ws://localhost:54321',
-          'wss://*.classroomio.com',
+          'wss://*.ailaeclass.com',
           'wss://*.supabase.co',
           'https://*.senja.io'
         ],
@@ -105,8 +105,8 @@ const config = {
         'connect-src': [
           'self',
           'https://*.supabase.co',
-          'https://pgrest.classroomio.com',
-          'https://api.classroomio.com',
+          'https://pgrest.ailaeclass.com',
+          'https://api.ailaeclass.com',
           'https://assets.cdn.clsrio.com',
           'https://cdn.plyr.io',
           'https://*.i.posthog.com',
@@ -114,7 +114,7 @@ const config = {
           'https://*.r2.cloudflarestorage.com',
           'http://localhost:54321',
           'ws://localhost:54321',
-          'wss://*.classroomio.com',
+          'wss://*.ailaeclass.com',
           'wss://*.supabase.co',
           'https://*.senja.io'
         ],
