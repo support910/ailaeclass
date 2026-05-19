@@ -27,11 +27,18 @@ RUN pnpm install --ignore-scripts
 RUN ls -la
 
 # Set required public env vars for the build (SvelteKit $env/static/public)
-# NOTE: Do NOT hardcode secrets here. Use --build-arg or runtime env vars.
-ENV PUBLIC_SINGLE_ORG_SITE_NAME=""
-ENV PUBLIC_SUPABASE_URL=https://hqgygleangptqthjehtb.supabase.co
-ENV PRIVATE_APP_HOST=5gnu.com
-ENV PRIVATE_APP_SUBDOMAINS=app
+# Railway passes Variables as Docker build-args automatically.
+ARG PUBLIC_SINGLE_ORG_SITE_NAME
+ARG PUBLIC_SUPABASE_URL
+ARG PUBLIC_SUPABASE_ANON_KEY
+ARG PRIVATE_APP_HOST
+ARG PRIVATE_APP_SUBDOMAINS
+
+ENV PUBLIC_SINGLE_ORG_SITE_NAME=${PUBLIC_SINGLE_ORG_SITE_NAME:-""}
+ENV PUBLIC_SUPABASE_URL=${PUBLIC_SUPABASE_URL}
+ENV PUBLIC_SUPABASE_ANON_KEY=${PUBLIC_SUPABASE_ANON_KEY}
+ENV PRIVATE_APP_HOST=${PRIVATE_APP_HOST:-5gnumultimedia.com}
+ENV PRIVATE_APP_SUBDOMAINS=${PRIVATE_APP_SUBDOMAINS:-app}
 
 # Build API first (dashboard depends on @cio/api/rpc-types)
 RUN NODE_OPTIONS="--max-old-space-size=3072" pnpm build --filter @cio/api
