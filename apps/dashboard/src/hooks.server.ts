@@ -8,7 +8,8 @@ const PUBLIC_API_ROUTES = [
   '/api/polar',
   '/api/lmz',
   '/api/verify',
-  '/api/chat'
+  '/api/chat',
+  '/api/courses/search'
 ];
 
 function isPublicRoute(pathname: string) {

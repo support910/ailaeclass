@@ -1,4 +1,4 @@
-# ClassroomIO
+# ailaeclass
 # Project: Self-hosted API and Dashboard
 # Description: This docker-compose file sets up the api and dashboard services for self-hosting.
 # Author: rotimi-best
@@ -8,7 +8,7 @@ version: "3.8"
 
 services:
   api:
-    image: classroomio/api:latest
+    image: ailaeclass/api:latest
     ports:
       - "3081:3081"
     environment:
@@ -31,7 +31,7 @@ services:
       - REDIS_URL=${REDIS_URL}
 
   dashboard:
-    image: classroomio/dashboard:latest
+    image: ailaeclass/dashboard:latest
     ports:
       - "3082:3082"
     environment:

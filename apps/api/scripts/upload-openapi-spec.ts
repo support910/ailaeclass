@@ -51,17 +51,17 @@ class OpenAPISpecGenerator {
       const spec = await generateSpecs(app, {
         documentation: {
           info: {
-            title: 'ClassroomIO API',
+            title: 'ailaeclass API',
             version: '1.0.0',
-            description: 'Manage your organization on classroomio via the API',
+            description: 'Manage your organization on ailaeclass via the API',
             contact: {
-              name: 'ClassroomIO',
-              url: 'https://classroomio.com'
+              name: 'ailaeclass',
+              url: 'https://ailaeclass.com'
             }
           },
           servers: [
             {
-              url: 'https://api.classroomio.com',
+              url: 'https://api.ailaeclass.com',
               description: 'Production environment'
             },
             {

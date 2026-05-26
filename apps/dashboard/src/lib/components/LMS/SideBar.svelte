@@ -14,6 +14,7 @@
   import { currentOrg } from '$lib/utils/store/org';
   import { ChevronRight } from 'carbon-icons-svelte';
   import ProfileMenu from '$lib/components/Org/ProfileMenu/index.svelte';
+  import Modal from '$lib/components/Modal/index.svelte';
   interface SideLinks {
     name: string;
     icon: any;
@@ -33,6 +34,7 @@
   }
 
   let sideLinks: SideLinks[] = [];
+  let showHelpModal = false;
 
   $: sideLinks = [
     {
@@ -121,12 +123,12 @@
       </div>
       <span class="flex-grow" />
       <ul class="my-5 pb-5 px-4">
-        <a href="/lms" class="text-black" on:click={toggleSidebar}>
-          <li class="flex items-center py-3 px-4 mb-2 rounded">
+        <button class="w-full text-left" on:click={() => (showHelpModal = true)}>
+          <li class="flex items-center py-3 px-4 mb-2 rounded cursor-pointer">
             <HelpIcon size={20} class="carbon-icon dark:text-white" />
             <p class="dark:text-white ml-2">{$t('lms_navigation.help')}</p>
           </li>
-        </a>
+        </button>
         <button
           class="w-full"
           on:click={() => {
@@ -158,4 +160,16 @@
   </aside>
 
   <ProfileMenu />
+
+  <Modal open={showHelpModal} width="w-96" modalHeading={$t('support.help_title')} onClose={() => (showHelpModal = false)}>
+    <div class="text-center py-2">
+      <p class="dark:text-white mb-4">{$t('support.help_text')}</p>
+      <a
+        href="mailto:support@5gnumultimedia.com"
+        class="text-primary-700 hover:underline font-medium"
+      >
+        support@5gnumultimedia.com
+      </a>
+    </div>
+  </Modal>
 </div>

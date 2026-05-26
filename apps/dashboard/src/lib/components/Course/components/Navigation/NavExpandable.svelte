@@ -1,12 +1,11 @@
 <script lang="ts">
   import { slide } from 'svelte/transition';
-  import { ChevronDown, ChevronUp, Add, FlashFilled } from 'carbon-icons-svelte';
+  import { ChevronDown, ChevronUp, Add } from 'carbon-icons-svelte';
   import { SkeletonText } from 'carbon-components-svelte';
   import IconButton from '$lib/components/IconButton/index.svelte';
   import { NavClasses } from '$lib/utils/constants/reusableClass';
   import { handleAddLessonWidget } from '../Lesson/store';
   import NavIcons from './NavIcons.svelte';
-  import { isFreePlan } from '$lib/utils/store/org';
   import { goto } from '$app/navigation';
   import { course } from '$lib/components/Course/store';
   import { COURSE_VERSION } from '$lib/utils/types';
@@ -22,7 +21,6 @@
   export let isLesson = false;
   export let isSection = false;
   export let isStudent = true;
-  export let isPaidFeature = false;
   export let className = '';
   export let btnPadding = 'py-3 px-4';
 
@@ -75,9 +73,6 @@
     {/if}
     <span class="grow" />
 
-    {#if isPaidFeature && $isFreePlan}
-      <FlashFilled size={20} class="text-blue-700" />
-    {/if}
     {#if (isLesson || isSection) && !isLoading && !isStudent}
       <IconButton stopPropagation={true} onClick={addLesson} size="small">
         <Add />

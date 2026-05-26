@@ -110,18 +110,20 @@ export async function getFeedForNotification(params: {
   authorId: string;
   supabase: typeof supabase;
 }) {
+  // Fetch feed, author, course, group without nested profile
+  // because PostgREST schema cache may miss the groupmember->profile FK
   const { data, error } = await params.supabase
     .from('course_newsfeed')
     .select(
       `
     content,
-    author:groupmember(profile(fullname, email)),
+    author_id,
     course(
       id,
       title,
       group(
         organization(siteName, name),
-        members:groupmember(id, profile(email, fullname))
+        members:groupmember(id, profile_id)
       )
     )
   `
@@ -131,12 +133,7 @@ export async function getFeedForNotification(params: {
     .returns<
       {
         content: string;
-        author: {
-          profile: {
-            email: string;
-            fullname: string;
-          };
-        };
+        author_id: string;
         course: {
           id: string;
           title: string;
@@ -147,10 +144,7 @@ export async function getFeedForNotification(params: {
             };
             members: {
               id: string;
-              profile: {
-                email: string;
-                fullname: string;
-              };
+              profile_id: string;
             }[];
           };
         };
@@ -168,18 +162,66 @@ export async function getFeedForNotification(params: {
 
   if (!feed) return;
 
+  // Collect profile_ids to query separately
+  const profileIds: string[] = [];
+  if (feed.author_id) {
+    profileIds.push(feed.author_id); // Actually author_id is groupmember id, we need to resolve it
+  }
+  (feed.course?.group?.members || []).forEach((m) => {
+    if (m.profile_id) profileIds.push(m.profile_id);
+  });
+
+  // Wait, author_id is groupmember id not profile_id. We need groupmember table lookup.
+  // Let's query groupmember for author_id and collect profile_ids
+  let allProfileIds = [...new Set(profileIds)];
+  if (feed.author_id) {
+    const { data: authorGm } = await params.supabase
+      .from('groupmember')
+      .select('profile_id')
+      .eq('id', feed.author_id)
+      .single();
+    if (authorGm?.profile_id && !allProfileIds.includes(authorGm.profile_id)) {
+      allProfileIds.push(authorGm.profile_id);
+    }
+  }
+
+  let profileMap: Record<string, { fullname: string; email: string }> = {};
+  if (allProfileIds.length > 0) {
+    const { data: profiles } = await params.supabase
+      .from('profile')
+      .select('id, fullname, email')
+      .in('id', allProfileIds);
+
+    (profiles || []).forEach((p: any) => {
+      profileMap[p.id] = p;
+    });
+  }
+
+  // Resolve author profile
+  let authorProfile: { fullname?: string; email?: string } | null = null;
+  if (feed.author_id) {
+    const { data: authorGm } = await params.supabase
+      .from('groupmember')
+      .select('profile_id')
+      .eq('id', feed.author_id)
+      .single();
+    if (authorGm?.profile_id) {
+      authorProfile = profileMap[authorGm.profile_id] || null;
+    }
+  }
+
   return {
     id: params.feedId,
     courseId: feed.course.id,
     courseTitle: feed.course.title,
-    teacherName: feed.author?.profile?.fullname,
-    teacherEmail: feed.author?.profile?.email,
+    teacherName: authorProfile?.fullname,
+    teacherEmail: authorProfile?.email,
     content: feed.content,
     org: feed.course.group?.organization,
     courseMembers: feed.course?.group?.members
       ?.filter((member) => member.id !== params.authorId)
       ?.map((member) => {
-        return member.profile;
+        return profileMap[member.profile_id] || { fullname: '', email: '' };
       })
   };
 }

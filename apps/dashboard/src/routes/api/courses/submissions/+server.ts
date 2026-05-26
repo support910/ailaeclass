@@ -18,9 +18,19 @@ export const GET: RequestHandler = async ({ request, url }) => {
   try {
     const supabase = getServerSupabase();
 
-    const hasPermission = await checkUserCoursePermissions(supabase, userId, courseId);
+    const { data: courseRow } = await supabase
+      .from('course')
+      .select('group_id')
+      .eq('id', courseId)
+      .single();
 
-    if (!hasPermission) {
+    if (!courseRow?.group_id) {
+      return json({ success: false, message: 'Course not found' }, { status: 404 });
+    }
+
+    const { hasAccess } = await checkUserCoursePermissions(supabase, userId, courseRow.group_id);
+
+    if (!hasAccess) {
       return json(
         {
           success: false,
@@ -30,8 +40,8 @@ export const GET: RequestHandler = async ({ request, url }) => {
       );
     }
 
-    // Fetch submissions
-    const { data, error } = await supabase
+    // Fetch submissions without nested groupmember->profile
+    const { data: submissions, error } = await supabase
       .from('submission')
       .select(
         `
@@ -50,9 +60,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
         status_id,
         feedback,
         course:course_id(*),
-        groupmember:submitted_by(
-          profile(*)
-        )
+        submitted_by
       `
       )
       .match({
@@ -60,14 +68,57 @@ export const GET: RequestHandler = async ({ request, url }) => {
       });
 
     if (error) {
+      console.error('fetchSubmissions error:', error);
       throw new Error('Error fetching submissions');
     }
 
+    // Enrich with profile data separately
+    const submittedByIds = (submissions || [])
+      .map((s: any) => s.submitted_by)
+      .filter(Boolean);
+    const uniqueGroupMemberIds = Array.from(new Set(submittedByIds));
+
+    let profileMap: Record<string, any> = {};
+    if (uniqueGroupMemberIds.length > 0) {
+      const { data: groupMembers } = await supabase
+        .from('groupmember')
+        .select('id, profile_id')
+        .in('id', uniqueGroupMemberIds);
+
+      const profileIds = (groupMembers || [])
+        .map((gm: any) => gm.profile_id)
+        .filter(Boolean);
+      const uniqueProfileIds = Array.from(new Set(profileIds));
+
+      if (uniqueProfileIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profile')
+          .select('id, fullname, avatar_url, email')
+          .in('id', uniqueProfileIds);
+
+        (profiles || []).forEach((p: any) => {
+          profileMap[p.id] = p;
+        });
+      }
+
+      (groupMembers || []).forEach((gm: any) => {
+        profileMap[gm.id] = profileMap[gm.profile_id] || null;
+      });
+    }
+
+    const enriched = (submissions || []).map((s: any) => ({
+      ...s,
+      groupmember: {
+        profile: profileMap[s.submitted_by] || null
+      }
+    }));
+
     return json({
       success: true,
-      data: data || []
+      data: enriched
     });
   } catch (error) {
+    console.error('GET /api/courses/submissions exception:', error);
     const message = error instanceof Error ? error.message : 'Internal server error';
     return json(
       {

@@ -16,7 +16,8 @@ export const ROUTE = {
   ASK: '/ask',
   FORGOT: '/forgot',
   RESET: '/reset',
-  VERIFY_EMAIL_ERROR: '/verify-email-error'
+  VERIFY_EMAIL_ERROR: '/verify-email-error',
+  TEACHER_PENDING: '/teacher-pending'
 };
 
 export const PUBLIC_ROUTES = [
@@ -29,6 +30,7 @@ export const PUBLIC_ROUTES = [
   `^${ROUTE.PAGES}/.*`,
   `^${ROUTE.COURSE}/.*`,
   `^${ROUTE.VERIFY_EMAIL_ERROR}$`,
+  `^${ROUTE.TEACHER_PENDING}$`,
   '/404'
 ];
 
@@ -42,5 +44,6 @@ export const ROUTES_TO_HIDE_NAV = [
   `^${ROUTE.FORGOT}$`,
   `^${ROUTE.RESET}$`,
   `^${ROUTE.ONBOARDING}$`,
-  `^${ROUTE.VERIFY_EMAIL_ERROR}$`
+  `^${ROUTE.VERIFY_EMAIL_ERROR}$`,
+  `^${ROUTE.TEACHER_PENDING}$`
 ];

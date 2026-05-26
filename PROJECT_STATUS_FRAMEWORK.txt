@@ -1,0 +1,346 @@
+============================================================
+ailaeclass 项目状态框架
+生成日期: 2026-05-21
+============================================================
+
+【项目概况】
+项目名称: ailaeclass (基于 ailaeclass 二次开发)
+客户: 5G nuMultiMedia Limited (5GNU)
+用途: 定制化学习管理系统 (LMS)
+仓库: https://github.com/s1161858/ailaeclass.git
+当前分支: main
+最近提交: 0a6bdae (fix: add PRIVATE_SUPABASE_SERVICE_ROLE and PRIVATE_DEEPSEEK_API_KEY as build args)
+
+
+============================================================
+一、技术栈
+============================================================
+
+前端框架: SvelteKit 1.x + TypeScript
+样式: TailwindCSS + Carbon Components
+构建工具: pnpm 8.15.9 + Turborepo
+后端 API: Hono 4.x (apps/api) — 当前上传功能已脱离，未使用
+数据库: Supabase (PostgreSQL + Auth + Storage + Realtime)
+AI 服务: DeepSeek API (deepseek-chat)
+容器化: Docker (Node 20 Alpine)
+部署平台: Railway (Docker builder)
+
+
+============================================================
+二、部署状态
+============================================================
+
+【Railway 部署】
+状态: ✅ 已成功部署
+默认域名: ailaeclass-production.up.railway.app
+目标自定义域名: camp.5gnumultimedia.com (CNAME 已添加，验证中)
+构建方式: Docker (docker/Dockerfile.dashboard)
+暴露端口: 3082
+
+【域名 DNS 状态】
+5gnumultimedia.com (根域名): A2 Hosting WordPress — 禁止修改
+camp.5gnumultimedia.com: CNAME → yvo0bfaz.up.railway.app (待验证生效)
+edu.5gnumultimedia.com: 先前尝试，因 A2 Subdomain 锁定未成功
+
+【本地 Docker】
+状态: 可构建，未在本地运行容器
+镜像名: ailaeclass/dashboard:local
+端口映射: 3082:3082
+
+
+============================================================
+三、代码仓库状态
+============================================================
+
+【Git 远程仓库】
+origin: https://support910@github.com/support910/ailaeclass.git
+ailaeclass: https://github.com/support910/ailaeclass.git
+company: https://github.com/support910/platform.git
+
+【未提交修改 (git status)】
+已删除: DEPLOYMENT_HANDOFF.txt
+已修改: HANDOFF.md (已重写为完整 handoff 文档)
+已删除: WORK_HANDOFF.txt
+未跟踪: app-domain-backup.txt (camp 域名配置备份)
+未跟踪: supabase/init-schema.sql (合并的 38 个迁移文件，4242 行)
+
+【已推送到远程的提交 (最近 5 条)】
+0a6bdae fix: add PRIVATE_SUPABASE_SERVICE_ROLE and PRIVATE_DEEPSEEK_API_KEY as build args
+ad85dbe chore: update default Supabase URL to new project
+c509102 fix: use ARG for build-time env vars to avoid hardcoding secrets
+275677f feat: rebrand to ailaeclass, add chatbot, fix video upload
+397831e Update deployment handoff status
+
+
+============================================================
+四、已完成的功能 (已验证)
+============================================================
+
+[✅] 文档上传 (PDF/DOCX/DOC/PPT/PPTX) — 50MB
+[✅] 视频上传 (MP4/MOV/AVI/MKV) — 500MB
+[✅] 上传系统迁移到本地 SvelteKit API 路由 (脱离 apps/api)
+[✅] 中文文件名处理 (sanitizeFileName 去除非 ASCII)
+[✅] 认证修复 (hooks.server.ts 兼容 Bearer 和 raw token)
+[✅] 品牌重命名 (ailaeclass → ailaeclass)
+[✅] Dashboard 首页重设计 (HK 地图 + 统计 + 渐变背景)
+[✅] AI 聊天机器人 (DeepSeek 代理，5GNU 话题限定)
+[✅] 禁用邮箱验证 (强制 is_email_verified=true)
+[✅] 12 语言翻译更新
+[✅] Dockerfile 多阶段构建修复 (Node 20 + pnpm 8.15.9)
+[✅] Docker 本地构建成功
+[✅] Railway 云端部署成功
+
+
+============================================================
+五、待办事项 (高优先级)
+============================================================
+
+[⚠️] Supabase 新库表结构初始化
+    文件: supabase/init-schema.sql (4242 行)
+    状态: 未执行成功
+    上次错误: apps_poll_option_id_seq already exists
+    方案: 需在全新 Supabase 项目执行，或修复 cleanup block
+
+[⚠️] Supabase Storage 存储桶创建
+    需创建: documents (50MB) / videos (500MB)
+    状态: 未手动创建 (API 端点有 auto-create 逻辑)
+
+[⚠️] 自定义域名生效
+    域名: camp.5gnumultimedia.com
+    状态: CNAME + TXT 已添加，Railway 验证中
+    风险: A2 Hosting Subdomain 条目可能残留导致 A 记录优先
+
+[⚠️] WordPress 根域名保护确认
+    根域名: 5gnumultimedia.com
+    要求: 确保根域名 A 记录始终指向 A2 Hosting，不指向 Railway
+
+[⚠️] 全功能端到端测试
+    注册/登录 → 创建组织 → 创建课程 → 添加课时 → 上传文件 → 聊天机器人
+    依赖: 数据库结构初始化完成后才能进行
+
+
+============================================================
+六、关键文件索引
+============================================================
+
+【上传相关】
+apps/dashboard/src/lib/utils/constants/documentUpload.ts
+apps/dashboard/src/lib/utils/constants/videoUpload.ts
+apps/dashboard/src/routes/api/documents/presign/upload/+server.ts
+apps/dashboard/src/routes/api/documents/presign/download/+server.ts
+apps/dashboard/src/routes/api/videos/presign/upload/+server.ts
+apps/dashboard/src/routes/api/videos/presign/download/+server.ts
+apps/dashboard/src/lib/utils/services/courses/presign.ts
+
+【认证中间件】
+apps/dashboard/src/hooks.server.ts
+
+【UI / 品牌】
+apps/dashboard/src/lib/utils/config/brand.ts
+apps/dashboard/src/routes/org/[slug]/+page.svelte
+apps/dashboard/src/routes/+layout.svelte
+apps/dashboard/src/lib/components/Chatbot/ChatbotWidget.svelte
+apps/dashboard/src/routes/api/chat/+server.ts
+
+【上传组件】
+apps/dashboard/src/lib/components/Course/components/Lesson/Materials/Document/AddDocumentToLesson.svelte
+apps/dashboard/src/lib/components/Course/components/Lesson/Materials/Video/UploadVideo.svelte
+
+【基础设施】
+docker/Dockerfile.dashboard
+docker/docker-compose.yaml
+apps/dashboard/.env
+package.json
+supabase/init-schema.sql (未跟踪)
+
+【认证相关】
+apps/dashboard/src/lib/utils/functions/appSetup.ts
+apps/dashboard/src/lib/components/Org/VerifyEmail/VerifyEmailModal.svelte
+
+【翻译文件 (12 语言)】
+apps/dashboard/src/lib/utils/translations/*.json
+
+
+============================================================
+七、环境变量配置
+============================================================
+
+【本地开发: apps/dashboard/.env】
+PUBLIC_SUPABASE_URL=<Supabase 项目 URL>
+PUBLIC_SUPABASE_ANON_KEY=<公开密钥>
+PRIVATE_SUPABASE_SERVICE_ROLE=<服务角色密钥>
+PRIVATE_DEEPSEEK_API_KEY=<DeepSeek API 密钥>
+PRIVATE_APP_HOST=5gnu.com
+PRIVATE_APP_SUBDOMAINS=app
+PUBLIC_IS_SELFHOSTED=true
+PUBLIC_SINGLE_ORG_SITE_NAME=(空)
+PUBLIC_SERVER_URL=(空，上传功能不再依赖)
+
+【Dockerfile 构建参数 (ARG)】
+PUBLIC_SINGLE_ORG_SITE_NAME
+PUBLIC_SUPABASE_URL
+PUBLIC_SUPABASE_ANON_KEY
+PRIVATE_SUPABASE_SERVICE_ROLE
+PRIVATE_DEEPSEEK_API_KEY
+PRIVATE_APP_HOST
+PRIVATE_APP_SUBDOMAINS
+
+【Railway 生产环境】
+上述所有变量在 Railway Dashboard 中配置
+
+【注意】README.md 和 Dockerfile 中不再硬编码任何密钥
+
+
+============================================================
+八、数据库 / Supabase 状态
+============================================================
+
+【当前连接的项目】
+本地 .env 指向: https://hqgygleangptqthjehtb.supabase.co
+Dockerfile 默认: https://ijaetqisttjhbjfgdusp.supabase.co
+
+【迁移文件】
+原始迁移: supabase/migrations/ (38+ 个 .sql 文件)
+合并脚本: supabase/init-schema.sql (4242 行，未跟踪)
+
+【函数】
+合并脚本中需特别注意: get_courses 函数有 3 个重复定义，已手动移除
+
+【种子数据】
+supabase/seed.sql (48186 字节)
+
+
+============================================================
+九、Docker 构建信息
+============================================================
+
+【构建命令】
+docker build -f docker/Dockerfile.dashboard -t ailaeclass/dashboard:local .
+
+【关键修复】
+- apk add python3 make g++ (原生模块编译)
+- npm install -g pnpm@8.15.9 (避免 corepack 崩溃)
+- pnpm install --ignore-scripts (跳过 @sentry/profiling-node)
+- NODE_OPTIONS="--max-old-space-size=3072" (内存限制)
+- ws polyfill (Node 20 WebSocket 兼容)
+
+【多阶段构建】
+Stage 1 (builder): node:20.19.3-alpine — 编译应用
+Stage 2 (runner): node:20.19.3-alpine — 运行生产环境
+运行用户: cio-user (uid 1001, 非 root)
+暴露端口: 3082
+启动命令: pnpm dashboard:start
+
+
+============================================================
+十、已知问题与解决方案
+============================================================
+
+1. 503 错误 (A2 Hosting)
+   原因: ES Module 与 CommonJS 语法冲突
+   修复: A2 支持团队将 app.js 重命名为 app.cjs
+   结论: 不建议在 A2 共享主机跑 Node.js，继续用 Railway
+
+2. Unauthenticated user (上传时)
+   原因: hooks.server.ts 只接受 Bearer token，前端发的是 raw token
+   修复: 已修改为兼容两种格式
+   文件: apps/dashboard/src/hooks.server.ts
+
+3. Invalid key (中文文件名)
+   原因: Supabase Storage key 不支持非 ASCII
+   修复: sanitizeFileName 去除所有非 ASCII，保留 a-zA-Z0-9_.-
+   文件: upload/download server.ts
+
+4. Video upload 按钮禁用
+   原因: UploadVideo.svelte 依赖 PUBLIC_SERVER_URL
+   修复: 移除依赖，迁移到本地 API 路由
+   文件: UploadVideo.svelte, presign.ts
+
+5. Docker build 失败
+   原因: corepack pnpm 版本不匹配 / @sentry/profiling-node 原生编译失败
+   修复: pnpm@8.15.9 + --ignore-scripts + max-old-space-size
+   文件: docker/Dockerfile.dashboard
+
+6. Railway 域名 403
+   原因: A2 Hosting Subdomains 功能强制生成 A 记录，覆盖 CNAME
+   修复: 需从 cPanel Subdomains 列表删除子域名
+   状态: camp.5gnumultimedia.com 正在尝试
+
+
+============================================================
+十一、项目文件树 (精简版)
+============================================================
+
+ailaeclass-main/
+├── apps/
+│   ├── api/                    # Hono 后端 API (当前未用于上传)
+│   └── dashboard/              # SvelteKit 前端 (主要)
+│       ├── .env                # 本地环境变量
+│       ├── src/
+│       │   ├── hooks.server.ts           # 认证中间件
+│       │   ├── routes/
+│       │   │   ├── +layout.svelte        # 全局布局 (聊天机器人挂载)
+│       │   │   ├── api/
+│       │   │   │   ├── chat/+server.ts           # DeepSeek 代理
+│       │   │   │   ├── documents/presign/        # 文档上传签名
+│       │   │   │   └── videos/presign/           # 视频上传签名
+│       │   │   └── org/[slug]/+page.svelte       # Dashboard 首页
+│       │   └── lib/
+│       │       ├── components/
+│       │       │   └── Chatbot/ChatbotWidget.svelte
+│       │       └── utils/
+│       │           ├── config/brand.ts           # 品牌配置
+│       │           ├── constants/
+│       │           │   ├── documentUpload.ts
+│       │           │   └── videoUpload.ts
+│       │           ├── services/courses/presign.ts
+│       │           └── translations/             # 12 语言 JSON
+│       └── ...
+├── docker/
+│   ├── Dockerfile.dashboard    # 主构建文件
+│   ├── docker-compose.yaml
+│   └── ...
+├── supabase/
+│   ├── migrations/             # 原始迁移文件 (38+)
+│   ├── init-schema.sql         # 合并后的初始化脚本 (未跟踪)
+│   ├── seed.sql
+│   └── ...
+├── HANDOFF.md                  # 完整接手文档
+├── README.md                   # 项目说明
+├── package.json
+├── pnpm-workspace.yaml
+└── turbo.json
+
+
+============================================================
+十二、下一步操作建议
+============================================================
+
+选项 A: 继续域名配置 (camp.5gnumultimedia.com)
+  1. 确认 cPanel Subdomains 中已无 camp
+  2. 确认 Zone Editor 中只有 CNAME + TXT
+  3. 等待 Railway 验证通过 (Active)
+  4. 访问测试
+
+选项 B: 初始化 Supabase 数据库
+  1. 登录 Supabase Dashboard
+  2. 进入 SQL Editor
+  3. 执行 supabase/init-schema.sql
+  4. 如遇 sequence 错误，手动删除已存在序列后重试
+
+选项 C: 创建 Storage Buckets
+  1. Supabase Dashboard → Storage
+  2. 创建 documents (limit 52428800)
+  3. 创建 videos (limit 524288000)
+  4. 确认 buckets 为 private (RLS)
+
+选项 D: Git 提交当前变更
+  1. git add HANDOFF.md
+  2. git rm DEPLOYMENT_HANDOFF.txt WORK_HANDOFF.txt
+  3. git add supabase/init-schema.sql
+  4. git commit -m "docs: reorganize handoff, add init schema"
+  5. git push origin main
+
+============================================================
+*文档结束 — 等候下一步指令*
+============================================================

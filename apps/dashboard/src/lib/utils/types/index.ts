@@ -246,6 +246,7 @@ export interface Course {
   lesson_section?: LessonSection[];
   lessons?: Lesson[];
   polls: { status: string }[];
+  join_code?: string;
 }
 
 export interface Groupmember {
@@ -368,6 +369,18 @@ export interface Exercise {
   id: string /* primary key */;
   due_by?: string;
   lesson?: Lesson;
+  // Exam system fields
+  assessment_type?: string;
+  settings?: any;
+  published_at?: string | null;
+  available_from?: string | null;
+  available_until?: string | null;
+  duration_minutes?: number | null;
+  attempts_allowed?: number;
+  passing_score?: number | null;
+  show_result_policy?: string;
+  shuffle_questions?: boolean;
+  shuffle_options?: boolean;
 }
 
 export interface Question {

@@ -46,15 +46,26 @@ export async function getOrgTeam(orgId: string) {
 }
 
 export async function getOrganizations(userId: string, isOrgSite?: boolean, orgSiteName?: string) {
-  const { data, error } = await supabase
+  // Step 1: Fetch memberships (no nested org to avoid RLS filtering nested rows)
+  const { data: memberData, error: memberError } = await supabase
     .from('organizationmember')
-    .select(
-      `
-      id,
-      profile_id,
-      role_id,
-      created_at,
-      organization!organizationmember_organization_id_fkey (
+    .select('id, profile_id, role_id, verified, created_at, organization_id')
+    .eq('profile_id', userId)
+    .order('id', { ascending: false });
+
+  if (memberError) {
+    console.error('getOrganizations member error:', memberError);
+  }
+
+  // Step 2: Fetch organization details separately
+  const orgIds = (memberData || []).map((m) => m.organization_id).filter(Boolean);
+  let orgMap: Record<string, any> = {};
+
+  if (orgIds.length > 0) {
+    const { data: orgData, error: orgError } = await supabase
+      .from('organization')
+      .select(
+        `
         *,
         organization_plan(
           plan_name,
@@ -63,30 +74,30 @@ export async function getOrganizations(userId: string, isOrgSite?: boolean, orgS
           subscriptionId:payload->id,
           customerId:payload->customerId
         )
+      `
       )
-    `
-    )
-    .eq('profile_id', userId)
-    .order('id', { ascending: false })
-    .returns<
-      {
-        id: string;
-        profile_id: string;
-        role_id: string;
-        created_at: string;
-        organization: CurrentOrg;
-      }[]
-    >();
+      .in('id', orgIds);
+
+    if (orgError) {
+      console.error('getOrganizations org error:', orgError);
+    } else {
+      (orgData || []).forEach((o) => {
+        orgMap[o.id] = o;
+      });
+    }
+  }
 
   const orgsArray: CurrentOrg[] = [];
 
-  if (Array.isArray(data) && data.length) {
-    data.forEach((orgMember) => {
+  if (Array.isArray(memberData) && memberData.length) {
+    memberData.forEach((orgMember) => {
+      const org = orgMap[orgMember.organization_id];
       orgsArray.push({
-        ...(orgMember?.organization || {}),
+        ...(org || {}),
         memberId: orgMember?.id,
         role_id: parseInt(orgMember?.role_id),
-        shortName: orgMember?.organization?.name?.substring(0, 2)?.toUpperCase() || ''
+        verified: !!orgMember?.verified,
+        shortName: org?.name?.substring(0, 2)?.toUpperCase() || ''
       });
     });
 
@@ -135,7 +146,7 @@ export async function getOrganizations(userId: string, isOrgSite?: boolean, orgS
   return {
     orgs: orgsArray,
     currentOrg: get(currentOrg),
-    error
+    error: memberError
   };
 }
 

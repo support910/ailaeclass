@@ -9,15 +9,16 @@ export function toggleBodyByMode(isDark) {
 }
 
 export function isCoursesPage(path) {
-  return /courses\/[a-z 0-9 -]/.test(path);
+  // Support UUIDs with uppercase letters (A-F) and underscores
+  return /courses\/[a-zA-Z0-9 _-]/.test(path);
 }
 
 export function isCoursePage(path) {
-  return /course\/[a-z 0-9 -]/.test(path);
+  return /course\/[a-zA-Z0-9 _-]/.test(path);
 }
 
 export function isOrgPage(path) {
-  return /org\/[a-z 0-9 -]/.test(path);
+  return /org\/[a-zA-Z0-9 _-]/.test(path);
 }
 
 export function isQuizPage(path) {

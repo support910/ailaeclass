@@ -20,7 +20,6 @@
   import VisitOrgSiteButton from '$lib/components/Buttons/VisitOrgSite.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
-  import WelcomeModal from '$lib/components/WelcomeModal/WelcomeModal.svelte';
   import { getGreeting } from '$lib/utils/functions/date';
   import { t } from '$lib/utils/functions/translations';
   import { isOrgAdmin } from '$lib/utils/store/org';
@@ -89,8 +88,6 @@
 <svelte:head>
   <title>Dashboard — ailaeclass</title>
 </svelte:head>
-
-<WelcomeModal />
 
 <div class="w-full max-w-6xl px-4 py-8 md:mx-auto">
   <div class="mb-5 flex items-center justify-between">

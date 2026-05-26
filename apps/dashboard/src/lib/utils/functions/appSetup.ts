@@ -4,13 +4,11 @@ import { initSentry, setSentryUser } from '$lib/utils/services/sentry';
 import { profile, user } from '$lib/utils/store/user';
 
 import { ROLE } from '$lib/utils/constants/roles';
-import { ROUTE } from '$lib/utils/constants/routes';
 import { dev } from '$app/environment';
 import { get } from 'svelte/store';
 import { getOrganizations, getCurrentOrg } from '$lib/utils/services/org';
 import { goto } from '$app/navigation';
 import { handleLocaleChange } from '$lib/utils/functions/translations';
-import isEmpty from 'lodash/isEmpty';
 import isPublicRoute from '$lib/utils/functions/routes/isPublicRoute';
 import { page } from '$app/stores';
 import { setTheme } from '$lib/utils/functions/theme';
@@ -49,6 +47,81 @@ function setAnalyticsUser() {
   });
 }
 
+/**
+ * Auto-join an org using the role stored in auth user_metadata during signup.
+ * Returns the target route or null if no role metadata was found.
+ */
+async function autoJoinOrgFromMetadata(
+  authUser: any,
+  profileId: string
+): Promise<string | null> {
+  const signUpRole = authUser.user_metadata?.role;
+  if (!signUpRole || (signUpRole !== 'student' && signUpRole !== 'teacher')) {
+    return null;
+  }
+
+  const roleId = signUpRole === 'teacher' ? ROLE.TUTOR : ROLE.STUDENT;
+  const isVerified = signUpRole === 'teacher' ? false : true;
+
+  // Resolve org to join
+  let orgIdToJoin = get(currentOrg).id;
+  if (!orgIdToJoin && isSingleOrgMode()) {
+    const siteName = getSingleOrgSiteName();
+    if (siteName) {
+      const orgData = await getCurrentOrg(siteName, true);
+      orgIdToJoin = orgData?.id || '';
+    }
+  }
+
+  if (!orgIdToJoin) {
+    const { data: firstOrg, error: orgQueryError } = await supabase
+      .from('organization')
+      .select('id, siteName, name')
+      .limit(1)
+      .single();
+
+    if (orgQueryError || !firstOrg) {
+      console.error('Organization not configured');
+      return null;
+    }
+    orgIdToJoin = firstOrg.id;
+  }
+
+  const { data: memberData, error: memberError } = await supabase
+    .from('organizationmember')
+    .upsert(
+      {
+        organization_id: orgIdToJoin,
+        profile_id: profileId,
+        role_id: roleId,
+        verified: isVerified
+      },
+      { onConflict: 'organization_id,profile_id' }
+    )
+    .select();
+
+  if (memberError) {
+    console.error('autoJoinOrgFromMetadata error:', memberError);
+    return null;
+  }
+
+  // Update currentOrg with role info so sidebar/settings work immediately
+  const memberId = memberData?.[0]?.id || '';
+  const orgRes = await getOrganizations(profileId);
+  const joinedOrg = orgRes.orgs.find((o) => o.id === orgIdToJoin);
+
+  if (joinedOrg) {
+    currentOrg.set({
+      ...joinedOrg,
+      memberId,
+      role_id: roleId,
+      verified: isVerified
+    });
+  }
+
+  return signUpRole === 'student' ? '/lms' : '/teacher-pending';
+}
+
 export async function getProfile({
   path,
   queryParam,
@@ -83,8 +156,8 @@ export async function getProfile({
     return;
   }
 
-  // Skip refetching profile, if already in store
-  if (profileStore.id) {
+  // Skip refetching profile and org, if both already in store
+  if (profileStore.id && currentOrgStore.id) {
     await handleLocaleChange(profileStore.locale);
     return;
   }
@@ -102,8 +175,6 @@ export async function getProfile({
     console.log(`User wasn't found, create profile`);
 
     const [regexUsernameMatch] = [...(authUser.email?.matchAll(/(.*)@/g) || [])];
-
-    const isGoogleAuth = !!authUser.app_metadata?.providers?.includes('google');
 
     const { data: newProfileData, error } = await supabase
       .from('profile')
@@ -133,8 +204,10 @@ export async function getProfile({
       // Fetch language
       await handleLocaleChange(newProfileData[0].locale);
 
-      if (isOrgSite || isSingleOrgMode()) {
-        // In single-org mode, fetch org directly to avoid race condition with currentOrg store
+      const isFromStudentInvite = path.includes('invite/s') || params.get('redirect')?.includes('/invite/s/');
+
+      if (isFromStudentInvite && (isOrgSite || isSingleOrgMode())) {
+        // Student invite flow: auto-join as verified student
         let orgIdToJoin = currentOrgStore.id;
         if (isSingleOrgMode() && !orgIdToJoin) {
           const siteName = getSingleOrgSiteName()!;
@@ -148,7 +221,8 @@ export async function getProfile({
             .insert({
               organization_id: orgIdToJoin,
               profile_id: newProfileData[0].id,
-              role_id: 3
+              role_id: ROLE.STUDENT,
+              verified: true
             })
             .select();
           if (error) {
@@ -160,7 +234,8 @@ export async function getProfile({
             currentOrg.update((_currentOrg) => ({
               ..._currentOrg,
               id: orgIdToJoin,
-              memberId
+              memberId,
+              role_id: ROLE.STUDENT
             }));
           }
         }
@@ -173,9 +248,18 @@ export async function getProfile({
         return;
       }
 
-      // On invite page, don't go to onboarding
+      // Not a student invite: check if role was selected during signup
+      const targetRoute = await autoJoinOrgFromMetadata(authUser, newProfileData[0].id);
+      if (targetRoute) {
+        if (shouldRedirectOnAuth(path)) {
+          goto(targetRoute);
+        }
+        return;
+      }
+
+      // No role metadata: force explicit signup for role selection
       if (!path.includes('invite')) {
-        goto(ROUTE.ONBOARDING);
+        goto('/signup');
       }
     }
 
@@ -201,54 +285,52 @@ export async function getProfile({
 
     const orgRes = await getOrganizations(profileData.id, isOrgSite, orgSiteName);
 
-    const isStudentAccount = orgRes.currentOrg.role_id == ROLE.STUDENT;
+    const hasMembership = !!orgRes.currentOrg?.id;
+    const roleInOrg = orgRes.currentOrg?.role_id;
+    const isVerified = orgRes.currentOrg?.verified !== false;
+    const isStudentAccount = roleInOrg === ROLE.STUDENT;
+    const isTeacherPending = roleInOrg === ROLE.TUTOR && !isVerified;
 
-    // student redirect
-    if (isOrgSite || isSingleOrgMode()) {
-      // In single-org mode, ensure the signed-in user is attached to the configured org.
-      // Without this, currentOrg can remain empty when the user belongs to other orgs only,
-      // which leaves LMS pages stuck in a loading state.
-      if (isSingleOrgMode() && !orgRes.currentOrg?.id) {
-        const siteName = getSingleOrgSiteName()!;
-        const orgData = await getCurrentOrg(siteName, true);
-        if (orgData?.id) {
-          const { data, error } = await supabase
-            .from('organizationmember')
-            .insert({
-              organization_id: orgData.id,
-              profile_id: profileData.id,
-              role_id: 3
-            })
-            .select();
-          if (!error && data?.[0]) {
-            currentOrg.set({ ...orgData, memberId: data[0].id, role_id: 3 });
-            orgRes.currentOrg = { ...orgData, memberId: data[0].id, role_id: 3 };
-          }
-        }
-      }
-
+    if (hasMembership && (isOrgSite || isSingleOrgMode())) {
       if (params.has('redirect')) {
         goto(params.get('redirect') || '');
       } else if (shouldRedirectOnAuth(path)) {
-        goto('/lms');
+        if (isStudentAccount) {
+          goto('/lms');
+        } else if (isTeacherPending) {
+          goto('/teacher-pending');
+        } else {
+          goto(`/org/${orgRes.currentOrg.siteName}`);
+        }
       }
-    } else {
+    } else if (hasMembership) {
       if (isStudentAccount) {
-        // Check if the student logged into the dashboard.
         console.log('Student logged into dashboard');
-        if (dev) {
+        if (dev || !currentOrgDomainStore || currentOrgDomainStore.includes('localhost')) {
           goto('/lms');
         } else {
           window.location.replace(`${currentOrgDomainStore}/lms`);
         }
-      } else if (isEmpty(orgRes.orgs) && !path.includes('invite')) {
-        // Not on invite page or no org, go to onboarding
-        goto(ROUTE.ONBOARDING);
+      } else if (isTeacherPending) {
+        goto('/teacher-pending');
       } else if (params.has('redirect')) {
         goto(params.get('redirect') || '');
       } else if (shouldRedirectOnAuth(path)) {
-        // By default redirect to first organization
         goto(`/org/${orgRes.currentOrg.siteName}`);
+      }
+    } else {
+      // No membership found: try auto-join from signup metadata
+      const targetRoute = await autoJoinOrgFromMetadata(authUser, profileData.id);
+      if (targetRoute) {
+        if (shouldRedirectOnAuth(path)) {
+          goto(targetRoute);
+        }
+        return;
+      }
+
+      console.warn('User has no organization membership. Redirecting to signup.');
+      if (!path.includes('invite')) {
+        goto('/signup');
       }
     }
 

@@ -9,6 +9,7 @@
   import RoleBasedSecurity from '$lib/components/RoleBasedSecurity/index.svelte';
   import { formatDate } from '$lib/utils/functions/routes/dashboard';
   import { supabase } from '$lib/utils/functions/supabase';
+  import { snackbar } from '$lib/components/Snackbar/store';
   import { t } from '$lib/utils/functions/translations';
   import { createExercise, createExerciseFromTemplate } from '$lib/utils/services/courses';
   import { globalStore } from '$lib/utils/store/app';
@@ -73,12 +74,23 @@
   async function getExercises() {
     if (!lessonId) return;
     isFetching = true;
-    const exercisesData = await supabase
-      .from('exercise')
-      .select(`id, title, created_at`)
-      .match({ lesson_id: lessonId });
+    try {
+      const { data, error } = await supabase
+        .from('exercise')
+        .select(`id, title, created_at`)
+        .match({ lesson_id: lessonId });
 
-    $lesson.exercises = exercisesData.data;
+      if (error) {
+        console.error('getExercises error:', error);
+        snackbar.error('snackbar.exercise.error_fetching');
+        $lesson.exercises = [];
+      } else {
+        $lesson.exercises = data || [];
+      }
+    } catch (err) {
+      console.error('getExercises exception:', err);
+      $lesson.exercises = [];
+    }
     isFetching = false;
   }
 

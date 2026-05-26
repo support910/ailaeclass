@@ -6,9 +6,6 @@
 <div class="my-1">
   <hr />
   <div class="flex flex-col items-center w-full py-3 gap-1">
-    <span class="text-gray-700 text-sm">
-      Powered by {BRAND.fullName}
-    </span>
     <span class="text-gray-500 text-xs">
       {BRAND.address}
     </span>

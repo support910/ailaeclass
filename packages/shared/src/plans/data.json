@@ -13,7 +13,7 @@
       "Unlimited Q/A",
       "20 Students",
       "AI Course Builder (no video upload)",
-      "ClassroomIO branding"
+      "ailaeclass branding"
     ],
     "CTA": {
       "LABEL": "Signup Now",
@@ -68,9 +68,9 @@
     ],
     "CTA": {
       "LABEL": "Contact Us",
-      "LINK": "https://cal.com/classroomio/enterprise",
+      "LINK": "https://cal.com/ailaeclass/enterprise",
       "DASHBOARD_LABEL": "Contact Us",
-      "DASHBOARD_LINK": "https://cal.com/classroomio/enterprise",
+      "DASHBOARD_LINK": "https://cal.com/ailaeclass/enterprise",
       "IS_DISABLED": false
     }
   }

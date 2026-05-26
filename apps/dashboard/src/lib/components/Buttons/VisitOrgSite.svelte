@@ -6,11 +6,14 @@
   import { isMobile } from '$lib/utils/store/useMobile';
   import { t } from '$lib/utils/functions/translations';
   import { user } from '$lib/utils/store/user';
+  import { globalStore } from '$lib/utils/store/app';
 
   export let className = '';
   export let isLMS = false;
 
-  $: href = isLMS && $user.isLoggedIn ? `${$currentOrgDomain}/home` : $currentOrgDomain;
+  $: href = isLMS && $user.isLoggedIn
+    ? ($globalStore.isStudent !== false ? '/lms' : `${$currentOrgDomain}/home`)
+    : $currentOrgDomain;
 </script>
 
 <a {href} target="_blank" class="{className} ml-2 hover:no-underline">

@@ -53,24 +53,29 @@
       role_id: ROLE.STUDENT
     };
 
-    const teacherMembers = await supabase
+    // Fetch teacher groupmembers and their profiles separately
+    // because PostgREST schema cache may miss the groupmember->profile FK
+    const { data: teacherMembers } = await supabase
       .from('groupmember')
-      .select('id, profile(email)')
+      .select('id, profile_id')
       .eq('group_id', courseData.group_id)
-      .eq('role_id', ROLE.TUTOR)
-      .returns<
-        {
-          id: string;
-          profile: {
-            email: string;
-          };
-        }[]
-      >();
+      .eq('role_id', ROLE.TUTOR);
 
-    const teachers: Array<string> =
-      teacherMembers.data?.map((teacher) => {
-        return teacher.profile?.email || '';
-      }) || [];
+    const teacherProfileIds = (teacherMembers || [])
+      .map((gm: any) => gm.profile_id)
+      .filter(Boolean);
+
+    let teachers: Array<string> = [];
+    if (teacherProfileIds.length > 0) {
+      const { data: teacherProfiles } = await supabase
+        .from('profile')
+        .select('id, email')
+        .in('id', teacherProfileIds);
+
+      teachers = (teacherProfiles || [])
+        .map((p: any) => p.email)
+        .filter(Boolean);
+    }
 
     addGroupMember(member).then((addedMember) => {
       if (addedMember.error) {

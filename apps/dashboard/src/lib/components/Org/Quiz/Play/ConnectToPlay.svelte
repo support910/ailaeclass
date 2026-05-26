@@ -34,8 +34,7 @@
 
   <div slot="body" class="w-full rounded-md bg-white dark:bg-neutral-800 py-7 px-5">
     <div class="mb-3">
-      <p>1. Visit</p>
-      <h3>play.classroomio.com</h3>
+      <p>1. Visit the quiz play page</p>
     </div>
     <div class="">
       <p>2. Enter Pin</p>

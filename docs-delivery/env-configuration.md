@@ -14,7 +14,7 @@
 
 ## 概述
 
-ClassroomIO 採用 **pnpm monorepo** 結構，主要包含兩個需要配置環境變數的應用：
+ailaeclass 採用 **pnpm monorepo** 結構，主要包含兩個需要配置環境變數的應用：
 
 | 應用 | 路徑 | 說明 |
 |------|------|------|
@@ -57,7 +57,7 @@ cp apps/api/.env.example apps/api/.env
 | 變數名稱 | 說明 | 預設值 |
 |----------|------|--------|
 | `PUBLIC_IS_SELFHOSTED` | 是否為自託管模式 | `false` |
-| `PRIVATE_APP_HOST` | 應用主域名 | `classroomio.com` |
+| `PRIVATE_APP_HOST` | 應用主域名 | `ailaeclass.com` |
 | `PRIVATE_APP_SUBDOMAINS` | 子域名前綴 | `app` |
 | `PUBLIC_SINGLE_ORG_SITE_NAME` | 單組織模式的站點名稱（空值 = 多租戶模式） | 空 |
 
@@ -130,7 +130,7 @@ cp apps/api/.env.example apps/api/.env
 pnpm add -g supabase
 
 # 啟動本地 Supabase（需要 Docker）
-cd classroomio-main
+cd ailaeclass-main
 supabase start
 
 # 執行資料庫遷移
@@ -179,7 +179,7 @@ PRIVATE_SUPABASE_SERVICE_ROLE=<your-service-role-key>
 `supabase/config.toml` 包含本地開發配置：
 
 ```toml
-project_id = "classroomio"
+project_id = "ailaeclass"
 
 [api]
 port = 54321
@@ -257,7 +257,7 @@ SMTP_PORT=587
 
 ```bash
 git clone <repository-url>
-cd classroomio-main
+cd ailaeclass-main
 ```
 
 ### 2. 安裝依賴

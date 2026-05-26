@@ -50,3 +50,22 @@ export const getServerSupabase = () => {
 
   return supabase;
 };
+
+/**
+ * Extract user ID from the Authorization Bearer token using Supabase auth verification.
+ * This replaces the insecure `request.headers.get('user_id')` pattern.
+ */
+export async function getUserIdFromRequest(request: Request): Promise<string | null> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+
+  const token = authHeader.slice(7);
+  try {
+    const sb = getServerSupabase();
+    const { data, error } = await sb.auth.getUser(token);
+    if (error || !data.user) return null;
+    return data.user.id;
+  } catch {
+    return null;
+  }
+}

@@ -12,7 +12,7 @@ import type {
 import type { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 
 import { GenericUploader } from './presign';
-import { QUESTION_TYPE } from '$lib/components/Question/constants';
+import { QUESTION_TYPE, QUESTION_TYPES } from '$lib/components/Question/constants';
 import { STATUS } from '$lib/utils/constants/course';
 import { get } from 'svelte/store';
 import { isOrgAdmin } from '$lib/utils/store/org';
@@ -88,6 +88,7 @@ const SLUG_QUERY = `
   metadata,
   is_certificate_downloadable,
   certificate_theme,
+  join_code,
   lesson_section(id, title, order),
   lessons:lesson(
     id, title, order, section_id
@@ -104,9 +105,7 @@ const ID_QUERY = `
   is_published,
   version,
   group(*,
-    members:groupmember(*,
-      profile(*)
-    )
+    members:groupmember(*)
   ),
   slug,
   cost,
@@ -114,6 +113,7 @@ const ID_QUERY = `
   metadata,
   is_certificate_downloadable,
   certificate_theme,
+  join_code,
   lesson_section(id, title, order, created_at),
   lessons:lesson(
     id, title, public, lesson_at, is_unlocked, order, created_at, section_id,
@@ -146,8 +146,31 @@ export async function fetchCourse(courseId?: Course['id'], slug?: Course['slug']
 
   if (!data || error) {
     console.log(`fetchCourse => error`, error);
-    // return this.redirect(307, '/courses');
     return { data, error };
+  }
+
+  // Enrich group.members with profile data separately
+  // because PostgREST schema cache may miss the groupmember->profile FK
+  if ((data as any).group?.members && Array.isArray((data as any).group.members)) {
+    const members = (data as any).group.members;
+    const profileIds = members.map((m: any) => m.profile_id).filter(Boolean);
+    const uniqueProfileIds = [...new Set(profileIds)];
+
+    if (uniqueProfileIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profile')
+        .select('id, fullname, avatar_url, email')
+        .in('id', uniqueProfileIds);
+
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => {
+        profileMap[p.id] = p;
+      });
+
+      members.forEach((m: any) => {
+        m.profile = profileMap[m.profile_id] || null;
+      });
+    }
   }
 
   return {
@@ -164,22 +187,38 @@ export async function fetchCourseFromAPI(courseId: Course['id']) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: accessToken
+        Authorization: `Bearer ${accessToken}`
       },
       body: JSON.stringify({ courseId })
     });
 
-    const result = await response.json();
-
-    if (!result.success) {
-      console.error('fetchCourseFromAPI error:', result.message);
-      return { data: null, error: result.error || result.message };
+    const text = await response.text();
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
     }
 
-    return { data: result.data, error: null };
+    if (!response.ok) {
+      const message =
+        json?.message || json?.error || text || response.statusText || 'Request failed';
+      console.error('fetchCourseFromAPI HTTP error:', response.status, message);
+      return { data: null, error: { message: `HTTP ${response.status}: ${message}` } };
+    }
+
+    if (!json || json.success === false) {
+      const message = json?.message || json?.error || text || 'Unknown API error';
+      console.error('fetchCourseFromAPI API error:', message);
+      return { data: null, error: { message } };
+    }
+
+    // Merge viewer into data so CourseContainer can resolve membership without a second auth lookup
+    const dataWithViewer = json.data ? { ...json.data, viewer: json.viewer } : null;
+    return { data: dataWithViewer, error: null };
   } catch (error) {
-    console.error('fetchCourseFromAPI error:', error);
-    return { data: null, error };
+    console.error('fetchCourseFromAPI network error:', error);
+    return { data: null, error: { message: error instanceof Error ? error.message : 'Network error' } };
   }
 }
 
@@ -203,9 +242,31 @@ export async function fetchExploreCourses(profileId, orgId) {
 export async function fetchGroup(groupId: Group['id']) {
   const { data, error } = await supabase
     .from('group')
-    .select(`*,members:groupmember(*,profile(*))`)
+    .select(`*,members:groupmember(*)`)
     .match({ id: groupId })
     .single();
+
+  // Enrich members with profile data separately
+  if (data?.members && Array.isArray(data.members)) {
+    const profileIds = data.members.map((m: any) => m.profile_id).filter(Boolean);
+    const uniqueProfileIds = [...new Set(profileIds)];
+
+    if (uniqueProfileIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profile')
+        .select('id, fullname, avatar_url, email')
+        .in('id', uniqueProfileIds);
+
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => {
+        profileMap[p.id] = p;
+      });
+
+      data.members.forEach((m: any) => {
+        m.profile = profileMap[m.profile_id] || null;
+      });
+    }
+  }
 
   return {
     data,
@@ -414,7 +475,7 @@ export async function fetchExercisesByMarks(courseId: Course['id']) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: accessToken
+        Authorization: `Bearer ${accessToken}`
       },
       body: JSON.stringify({ courseId })
     });
@@ -462,131 +523,29 @@ export async function createExerciseFromTemplate(
 }
 
 export async function upsertExercise(questionnaire: any, exerciseId: Exercise['id']) {
-  const {
-    questions,
-    title,
-    description,
-    due_by,
-    is_title_dirty,
-    is_description_dirty,
-    is_due_by_dirty
-  } = questionnaire;
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exercises/${exerciseId}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(questionnaire)
+    });
 
-  if (is_description_dirty || is_title_dirty || is_due_by_dirty) {
-    await supabase
-      .from('exercise')
-      .update({
-        title,
-        description,
-        due_by
-      })
-      .match({ id: exerciseId });
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('upsertExercise API error:', result);
+      return null;
+    }
+
+    return result.questions || [];
+  } catch (err) {
+    console.error('upsertExercise network error:', err);
+    return null;
   }
-
-  const updatedQuestions = [];
-
-  for (const question of questions) {
-    const { title, id, name, question_type, options, deleted_at, order, points, is_dirty } =
-      question;
-
-    // "DELETE" /delete/:questionId - Don't delete if answer already given
-    if (deleted_at) {
-      // Delete from server only if this question exists in the database
-      if (!isNew(id)) {
-        await supabase.from('option').delete().match({ question_id: id });
-        await supabase.from('question_answer').delete().match({ question_id: id });
-        const { error } = await supabase.from('question').delete().match({ id });
-
-        if (error) {
-          console.error('Cannot delete this question', error);
-          continue;
-        }
-      }
-
-      // Skip the remaining operation so we filter out this question from the new questions array
-      continue;
-    }
-
-    // "INSERT" or "UPDATE" /update/:questionId or /insert/:questionId
-    const newQuestion = {
-      id: isNew(id) ? undefined : id,
-      name: isNew(id) ? undefined : name,
-      title,
-      points,
-      order,
-      question_type_id: question_type.id,
-      exercise_id: exerciseId
-    };
-    let questionSupabaseRes;
-
-    if (is_dirty || isNew(id)) {
-      const res = await supabase.from('question').upsert(newQuestion).select();
-
-      if (res.error) {
-        console.error(`Upsert question`, res.error);
-      }
-      questionSupabaseRes = Array.isArray(res.data) ? res.data[0] : null;
-    } else {
-      questionSupabaseRes = Object.assign(newQuestion);
-    }
-
-    if (questionSupabaseRes) {
-      const { question_type_id, id, name, order } = questionSupabaseRes;
-
-      // Delete cause this is not a field in the table
-      delete newQuestion.question_type_id;
-
-      // @ts-ignore
-      newQuestion.question_type = { id: question_type_id, label: question_type.label || '' };
-      newQuestion.id = id;
-      newQuestion.name = name;
-      newQuestion.order = order;
-      // @ts-ignore
-      newQuestion.options = [];
-
-      // Don't map options for 'Paragraph' questions
-      if (QUESTION_TYPE.TEXTAREA !== question_type_id) {
-        for (const option of options) {
-          const { deleted_at, is_dirty } = option;
-
-          // "DELETE" /delete/:optionId
-          if (deleted_at) {
-            // if this option exists in the database
-            if (!isNew(option.id)) {
-              supabase.from('option').delete().match({ id: option.id });
-            }
-
-            // Skip the remaining operation so we filter out this option from the new option array
-            continue;
-          }
-
-          // "INSERT" and "UPDATE"
-          const newOption = {
-            ...option,
-            is_dirty: undefined,
-            id: isNew(option.id) ? undefined : option.id,
-            value: isUUID(option.value) ? option.value : undefined, // this value is of UUID type
-            question_id: newQuestion.id
-          };
-
-          if (is_dirty || isNew(option.id)) {
-            const { data } = await supabase.from('option').upsert(newOption).select();
-            if (Array.isArray(data)) {
-              // @ts-ignore
-              newQuestion.options.push(data[0]);
-            }
-          } else {
-            // @ts-ignore
-            newQuestion.options.push(newOption);
-          }
-        }
-      }
-
-      updatedQuestions.push(newQuestion);
-    }
-  }
-
-  return updatedQuestions;
 }
 
 interface LooseObject {
@@ -659,4 +618,595 @@ export async function deleteExercise(questions: Array<{ id: string }>, exerciseI
 
   await supabase.from('submission').delete().match({ exercise_id: exerciseId });
   await supabase.from('exercise').delete().match({ id: exerciseId });
+}
+
+// ============================================================
+// Exam System Service Functions
+// ============================================================
+
+interface ExamExerciseInput {
+  title: string;
+  description?: string;
+  lesson_id: string;
+  course_id: string;
+  due_by?: string;
+  duration_minutes?: number;
+  attempts_allowed?: number;
+  passing_score?: number;
+  show_result_policy?: string;
+  shuffle_questions?: boolean;
+  shuffle_options?: boolean;
+  available_from?: string;
+  available_until?: string;
+  settings?: Record<string, any>;
+}
+
+interface ExamSettingsInput {
+  title?: string;
+  description?: string;
+  duration_minutes?: number;
+  attempts_allowed?: number;
+  passing_score?: number;
+  show_result_policy?: string;
+  shuffle_questions?: boolean;
+  shuffle_options?: boolean;
+  available_from?: string;
+  available_until?: string;
+  settings?: Record<string, any>;
+}
+
+/**
+ * Create a new exam exercise (assessment_type = 'exam').
+ * Uses server endpoint for authorization and validation.
+ */
+export async function createExamExercise(input: ExamExerciseInput) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch('/api/exams/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(input)
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { data: null, error: { message: json.message || 'Failed to create exam' } as PostgrestError };
+    }
+    return { data: [json.exam], error: null };
+  } catch (e) {
+    console.error('createExamExercise error:', e);
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
+  }
+}
+
+/**
+ * Update exam-specific settings for an existing exercise.
+ */
+export async function updateExamSettings(
+  exerciseId: Exercise['id'],
+  settings: ExamSettingsInput
+) {
+  const payload: Record<string, any> = {};
+
+  if (settings.title !== undefined) payload.title = settings.title;
+  if (settings.description !== undefined) payload.description = settings.description;
+  if (settings.duration_minutes !== undefined) payload.duration_minutes = settings.duration_minutes;
+  if (settings.attempts_allowed !== undefined) payload.attempts_allowed = settings.attempts_allowed;
+  if (settings.passing_score !== undefined) payload.passing_score = settings.passing_score;
+  if (settings.show_result_policy !== undefined) payload.show_result_policy = settings.show_result_policy;
+  if (settings.shuffle_questions !== undefined) payload.shuffle_questions = settings.shuffle_questions;
+  if (settings.shuffle_options !== undefined) payload.shuffle_options = settings.shuffle_options;
+  if (settings.available_from !== undefined) payload.available_from = settings.available_from;
+  if (settings.available_until !== undefined) payload.available_until = settings.available_until;
+  if (settings.settings !== undefined) payload.settings = settings.settings;
+
+  if (Object.keys(payload).length === 0) {
+    return { data: null, error: null };
+  }
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/settings`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('updateExamSettings API error:', result);
+      return {
+        data: null,
+        error: { message: result.message || 'Failed to update exam settings' } as PostgrestError
+      };
+    }
+
+    return { data: result.exam, error: null };
+  } catch (err) {
+    console.error('updateExamSettings network error:', err);
+    return {
+      data: null,
+      error: { message: 'Network error while updating exam settings' } as PostgrestError
+    };
+  }
+}
+
+/**
+ * Fetch all exam exercises for a given course.
+ */
+export async function fetchCourseExams(courseId: Course['id']) {
+  if (!courseId) return { data: [], error: null };
+
+  const { data: lessons, error: lessonError } = await supabase
+    .from('lesson')
+    .select('id')
+    .eq('course_id', courseId);
+
+  if (lessonError || !lessons || lessons.length === 0) {
+    return { data: [], error: lessonError };
+  }
+
+  const lessonIds = lessons.map((l) => l.id);
+
+  const { data, error } = await supabase
+    .from('exercise')
+    .select('*')
+    .in('lesson_id', lessonIds)
+    .eq('assessment_type', 'exam')
+    .order('created_at', { ascending: false });
+
+  return { data: data || [], error };
+}
+
+/**
+ * Fetch all exam exercises for a given lesson.
+ */
+export async function fetchLessonExams(lessonId: Lesson['id']) {
+  if (!lessonId) return { data: [], error: null };
+
+  const { data, error } = await supabase
+    .from('exercise')
+    .select('*')
+    .eq('lesson_id', lessonId)
+    .eq('assessment_type', 'exam')
+    .order('created_at', { ascending: false });
+
+  return { data: data || [], error };
+}
+
+/**
+ * Publish an exam by setting published_at to now().
+ */
+export async function publishExam(exerciseId: Exercise['id']) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/publish`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action: 'publish' })
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('publishExam API error:', result);
+      return {
+        data: null,
+        error: { message: result.message || 'Failed to publish exam' } as PostgrestError
+      };
+    }
+
+    return { data: result.exam, error: null };
+  } catch (err) {
+    console.error('publishExam network error:', err);
+    return {
+      data: null,
+      error: { message: 'Network error while publishing exam' } as PostgrestError
+    };
+  }
+}
+
+/**
+ * Unpublish an exam by clearing published_at.
+ */
+export async function unpublishExam(exerciseId: Exercise['id']) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/publish`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action: 'unpublish' })
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('unpublishExam API error:', result);
+      return {
+        data: null,
+        error: { message: result.message || 'Failed to unpublish exam' } as PostgrestError
+      };
+    }
+
+    return { data: result.exam, error: null };
+  } catch (err) {
+    console.error('unpublishExam network error:', err);
+    return {
+      data: null,
+      error: { message: 'Network error while unpublishing exam' } as PostgrestError
+    };
+  }
+}
+
+/**
+ * Delete an exam permanently (teacher/admin only).
+ */
+export async function deleteExam(exerciseId: Exercise['id']) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('deleteExam API error:', result);
+      return {
+        error: { message: result.message || 'Failed to delete exam' } as PostgrestError
+      };
+    }
+
+    return { error: null };
+  } catch (err) {
+    console.error('deleteExam network error:', err);
+    return {
+      error: { message: 'Network error while deleting exam' } as PostgrestError
+    };
+  }
+}
+
+/**
+ * Fetch a single exam exercise by id, ensuring assessment_type='exam'.
+ * Includes questions and options.
+ */
+export async function fetchExamById(exerciseId: Exercise['id']) {
+  if (!exerciseId) return { data: null, error: null };
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/detail`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('fetchExamById API error:', result);
+      return {
+        data: null,
+        error: { message: result.message || 'Failed to load exam' } as PostgrestError
+      };
+    }
+
+    const data = result.exam;
+
+    if (Array.isArray(data.questions)) {
+      data.questions.forEach((question: any) => {
+        question.question_type = QUESTION_TYPES.find(
+          (type) => type.id === question.question_type?.id
+        ) || question.question_type;
+      });
+      data.questions = data.questions.sort((a: any, b: any) => a.order - b.order);
+    } else {
+      data.questions = [];
+    }
+
+    return { data, error: null };
+  } catch (err) {
+    console.error('fetchExamById network error:', err);
+    return {
+      data: null,
+      error: { message: 'Network error while loading exam' } as PostgrestError
+    };
+  }
+}
+
+/**
+ * Fetch all exam exercises for an organization.
+ * Uses lesson -> course join to filter by organization_id.
+ */
+export async function fetchOrgExams(orgId: string) {
+  if (!orgId) return { data: [], error: null };
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/org/${orgId}/exams`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('fetchOrgExams API error:', result);
+      return {
+        data: [],
+        error: { message: result.message || 'Failed to load exams' } as PostgrestError
+      };
+    }
+
+    return { data: result.exams || [], error: null };
+  } catch (err) {
+    console.error('fetchOrgExams network error:', err);
+    return {
+      data: [],
+      error: { message: 'Network error while loading exams' } as PostgrestError
+    };
+  }
+}
+
+// ============================================================
+// Student Exam Flow Service Functions
+// ============================================================
+
+const SUBMISSION_STATUS = {
+  SUBMITTED: 1,
+  IN_PROGRESS: 2,
+  GRADED: 3
+};
+
+/**
+ * Fetch a published exam for student viewing via server endpoint.
+ * Server handles availability checks, strips is_correct, and returns attempt state.
+ */
+export async function fetchStudentExam(exerciseId: Exercise['id'], courseId: Course['id']) {
+  if (!exerciseId || !courseId) return { data: null, error: { message: 'Missing exam or course ID' } as PostgrestError };
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}?courseId=${courseId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => null);
+      const msg = json?.message || `HTTP ${res.status}`;
+      return { data: null, error: { message: `HTTP ${res.status}: ${msg}` } as PostgrestError };
+    }
+
+    const json = await res.json().catch(() => null);
+    if (!json) {
+      return { data: null, error: { message: 'Invalid response from server' } as PostgrestError };
+    }
+    if (!json.success) {
+      return { data: null, error: { message: json.message || 'Failed to load exam' } as PostgrestError };
+    }
+    return { data: json, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+/**
+ * Fetch the latest submission (attempt) for a student on a given exam.
+ */
+export async function fetchExamAttempt(exerciseId: Exercise['id'], groupMemberId: string) {
+  if (!exerciseId || !groupMemberId) return { data: null, error: null };
+
+  const { data, error } = await supabase
+    .from('submission')
+    .select(
+      `
+      *,
+      answers:question_answer(*, question:question_id(*))
+    `
+    )
+    .eq('exercise_id', exerciseId)
+    .eq('submitted_by', groupMemberId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Count how many attempts a student has made for an exam.
+ */
+export async function countExamAttempts(exerciseId: Exercise['id'], groupMemberId: string) {
+  if (!exerciseId || !groupMemberId) return { count: 0, error: null };
+
+  const { count, error } = await supabase
+    .from('submission')
+    .select('*', { count: 'exact', head: true })
+    .eq('exercise_id', exerciseId)
+    .eq('submitted_by', groupMemberId);
+
+  return { count: count || 0, error };
+}
+
+/**
+ * Start a new exam attempt via server endpoint.
+ * Server handles availability, attempts limit, membership verification, and resume logic.
+ */
+export async function startExamAttempt(
+  exerciseId: Exercise['id'],
+  courseId: Course['id']
+) {
+  if (!exerciseId || !courseId) {
+    return { data: null, error: { message: 'Missing required fields' } as PostgrestError };
+  }
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ courseId })
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { data: null, error: { message: json.message || 'Failed to start exam' } as PostgrestError };
+    }
+    return { data: json.submission, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+/**
+ * Submit an exam attempt via server endpoint.
+ * Server handles ownership verification, auto-scoring, and submission finalization.
+ * Client must NOT pass questions or groupMemberId; only answers are sent.
+ */
+export async function submitExamAttempt(
+  exerciseId: Exercise['id'],
+  courseId: Course['id'],
+  submissionId: string,
+  answers: Record<string, string | string[]>
+) {
+  if (!exerciseId || !courseId || !submissionId) {
+    return { data: null, error: { message: 'Missing required fields' } as PostgrestError };
+  }
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ courseId, submissionId, answers })
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { data: null, error: { message: json.message || 'Failed to submit exam' } as PostgrestError };
+    }
+    return { data: json, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+// ============================================================
+// Course Join Request Service Functions
+// ============================================================
+
+export async function searchCourseByCode(code: string) {
+  try {
+    const res = await fetch(`/api/courses/search?code=${encodeURIComponent(code)}`);
+    const json = await res.json();
+    if (!json.success) {
+      return { data: null, error: { message: json.message } as PostgrestError };
+    }
+    return { data: json.course, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+export async function submitJoinRequest(courseId: string) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch('/api/courses/join-request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ courseId })
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { data: null, error: { message: json.message } as PostgrestError };
+    }
+    return { data: json.request, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+export async function fetchJoinRequests(courseId: string, status = 'pending') {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/courses/${courseId}/join-requests?status=${status}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { data: [], error: { message: json.message } as PostgrestError };
+    }
+    return { data: json.requests || [], error: null };
+  } catch (e) {
+    return { data: [], error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+export async function approveJoinRequest(requestId: string) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/courses/join-requests/${requestId}/approve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { success: false, error: { message: json.message } as PostgrestError };
+    }
+    return { success: true, error: null };
+  } catch (e) {
+    return { success: false, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+export async function rejectJoinRequest(requestId: string) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/courses/join-requests/${requestId}/reject`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { success: false, error: { message: json.message } as PostgrestError };
+    }
+    return { success: true, error: null };
+  } catch (e) {
+    return { success: false, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
 }

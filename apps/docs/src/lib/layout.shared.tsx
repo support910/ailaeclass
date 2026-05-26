@@ -18,7 +18,7 @@ export function baseOptions(): BaseLayoutProps {
             Contact <SquareArrowOutUpRight />
           </div>
         ),
-        url: 'https://twitter.com/classroomio',
+        url: 'https://twitter.com/ailaeclass',
         external: true
       },
       {
@@ -36,7 +36,7 @@ export function baseOptions(): BaseLayoutProps {
             Dashboard <SquareArrowOutUpRight />
           </div>
         ),
-        url: 'https://app.classroomio.com/',
+        url: 'https://app.ailaeclass.com/',
         external: true
       },
       {
@@ -54,6 +54,6 @@ export function baseOptions(): BaseLayoutProps {
         external: true
       }
     ],
-    githubUrl: 'https://github.com/classroomio/classroomio'
+    githubUrl: 'https://github.com/ailaeclass/ailaeclass'
   };
 }

@@ -14,7 +14,7 @@
 
 ## 概述
 
-ClassroomIO 使用 **PostgreSQL 15.x** 作為主資料庫，通過 **Supabase** 平台託管。資料庫包含 37 個表格、2 個視圖、4 個自定義枚舉類型和 15+ 個存儲函數，支援多租戶數據隔離。
+ailaeclass 使用 **PostgreSQL 15.x** 作為主資料庫，通過 **Supabase** 平台託管。資料庫包含 37 個表格、2 個視圖、4 個自定義枚舉類型和 15+ 個存儲函數，支援多租戶數據隔離。
 
 ### 技術特性
 
@@ -501,7 +501,7 @@ auth.users (Supabase Auth)
 
 ### 概述
 
-ClassroomIO 使用 Supabase 的 Row Level Security (RLS) 實現數據隔離。所有公開表格都啟用了 RLS。
+ailaeclass 使用 Supabase 的 Row Level Security (RLS) 實現數據隔離。所有公開表格都啟用了 RLS。
 
 ### 核心策略示例
 

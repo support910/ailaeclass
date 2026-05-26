@@ -31,7 +31,7 @@ export const app = new Hono()
   // Routes
   .get('/', (c) =>
     c.json({
-      message: '"Welcome to Classroomio.com API - docs are at https://api.classroomio.com/docs"'
+      message: '"Welcome to ailaeclass.com API - docs are at https://api.ailaeclass.com/docs"'
     })
   )
   .route('/course', courseRouter)

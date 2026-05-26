@@ -1,8 +1,8 @@
-# Migrating Docs from docs.classroomio.com to classroomio.com/docs
+# Migrating Docs from docs.ailaeclass.com to ailaeclass.com/docs
 
 ## Summary
 
-This guide documents the configuration to serve the docs at `classroomio.com/docs` instead of `docs.classroomio.com` using Vercel rewrites with TanStack Start.
+This guide documents the configuration to serve the docs at `ailaeclass.com/docs` instead of `docs.ailaeclass.com` using Vercel rewrites with TanStack Start.
 
 ## Changes Made
 
@@ -48,9 +48,9 @@ These three configurations work together:
 - `baseURL: '/docs'` - Tells Nitro to handle all routes under `/docs`
 - `basepath: '/docs'` - Tells TanStack Router that routes are under `/docs`
 
-### 2. Main Site Configuration (`apps/classroomio-com`)
+### 2. Main Site Configuration (`apps/ailaeclass-com`)
 
-**Created `apps/classroomio-com/vercel.json`**:
+**Created `apps/ailaeclass-com/vercel.json`**:
 ```json
 {
   "rewrites": [
@@ -66,19 +66,19 @@ These three configurations work together:
 }
 ```
 
-This proxies all `/docs/*` requests from `classroomio.com` to your docs deployment.
+This proxies all `/docs/*` requests from `ailaeclass.com` to your docs deployment.
 
 ### 3. Cleanup
 
-- Removed empty `apps/classroomio-com/src/routes/(redirects)/docs/` folder that would conflict with the Vercel rewrite
+- Removed empty `apps/ailaeclass-com/src/routes/(redirects)/docs/` folder that would conflict with the Vercel rewrite
 
 ## How It Works
 
-1. **User visits:** `classroomio.com/docs/home`
+1. **User visits:** `ailaeclass.com/docs/home`
 2. **Vercel receives:** Request for `/docs/home`
 3. **Vercel rewrites to:** `ciodocs.vercel.app/docs/home`
 4. **Docs app serves:** The page from its `/docs/home` route (configured with `basepath: '/docs'`)
-5. **User sees:** Content at `classroomio.com/docs/home` (URL unchanged)
+5. **User sees:** Content at `ailaeclass.com/docs/home` (URL unchanged)
 
 The key is that **both the rewrite and the docs app preserve the `/docs` path**, keeping everything aligned.
 
@@ -102,30 +102,30 @@ The docs app needs to be built and deployed with the `basepath: '/docs'` configu
 
 The main site needs the `vercel.json` rewrite configuration:
 
-1. Make sure `apps/classroomio-com/vercel.json` is committed
-2. Deploy or redeploy to `classroomio.com`
+1. Make sure `apps/ailaeclass-com/vercel.json` is committed
+2. Deploy or redeploy to `ailaeclass.com`
 
 **Vercel Project Settings for Main Site:**
-- **Root Directory:** `apps/classroomio-com`
+- **Root Directory:** `apps/ailaeclass-com`
 - **Build Command:** `pnpm build`
 - **Output Directory:** `.svelte-kit`
-- **Domain:** `classroomio.com`
+- **Domain:** `ailaeclass.com`
 
 ### Step 3: Test
 
 Once both are deployed:
 
-1. ✅ Visit `classroomio.com/docs` - should show docs homepage
-2. ✅ Visit `classroomio.com/docs/quickstart/signup` - should show specific doc pages
+1. ✅ Visit `ailaeclass.com/docs` - should show docs homepage
+2. ✅ Visit `ailaeclass.com/docs/quickstart/signup` - should show specific doc pages
 3. ✅ Check that styles and JavaScript load correctly
 4. ✅ Test navigation within docs
 
 ## Architecture
 
 ```
-User Request: classroomio.com/docs/quickstart/signup
+User Request: ailaeclass.com/docs/quickstart/signup
        ↓
-Vercel (classroomio.com) - reads vercel.json
+Vercel (ailaeclass.com) - reads vercel.json
        ↓
 Rewrite to: ciodocs.vercel.app/docs/quickstart/signup
        ↓
@@ -133,5 +133,5 @@ Docs App (TanStack Start with basepath: '/docs')
        ↓
 Serves: /quickstart/signup route
        ↓
-User sees content at: classroomio.com/docs/quickstart/signup
+User sees content at: ailaeclass.com/docs/quickstart/signup
 ```

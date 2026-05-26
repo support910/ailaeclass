@@ -4,7 +4,7 @@
   import Copy from 'lucide-svelte/icons/copy';
   import { cn } from '$lib/utils';
 
-  let { command = 'pnpx @classroomio/course-app' } = $props();
+  let { command = 'pnpx @ailaeclass/course-app' } = $props();
 </script>
 
 <button

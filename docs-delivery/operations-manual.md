@@ -24,22 +24,22 @@ vercel ls
 
 # 自建部署（PM2）
 pm2 status
-pm2 logs classroomio-dashboard --lines 50
+pm2 logs ailaeclass-dashboard --lines 50
 
 # Docker
-docker ps | grep classroomio
-docker logs classroomio-dashboard --tail 50
+docker ps | grep ailaeclass
+docker logs ailaeclass-dashboard --tail 50
 ```
 
 **檢查 API 服務：**
 
 ```bash
 # PM2
-pm2 status classroomio-api
-pm2 logs classroomio-api --lines 50
+pm2 status ailaeclass-api
+pm2 logs ailaeclass-api --lines 50
 
 # Docker
-docker logs classroomio-api --tail 50
+docker logs ailaeclass-api --tail 50
 ```
 
 **檢查 Supabase：**
@@ -71,12 +71,12 @@ pm2 logs --lines 200 | grep "ERROR\|WARN"
 
 ```bash
 # PM2 重啟
-pm2 restart classroomio-dashboard
-pm2 restart classroomio-api
+pm2 restart ailaeclass-dashboard
+pm2 restart ailaeclass-api
 
 # Docker 重啟
-docker restart classroomio-dashboard
-docker restart classroomio-api
+docker restart ailaeclass-dashboard
+docker restart ailaeclass-api
 
 # 全部重啟
 pm2 restart all
@@ -88,7 +88,7 @@ pm2 restart all
 
 ### Sentry 錯誤監控
 
-ClassroomIO 整合了 Sentry 進行錯誤監控：
+ailaeclass 整合了 Sentry 進行錯誤監控：
 
 **Dashboard 端：**
 - 環境變數：`VITE_SENTRY_AUTH_TOKEN`、`VITE_SENTRY_ORG_NAME`、`VITE_SENTRY_PROJECT_NAME`
@@ -412,7 +412,7 @@ WHERE r.name = 'ADMIN';
 
 ## 升級指南
 
-### 升級 ClassroomIO
+### 升級 ailaeclass
 
 ```bash
 # 1. 備份資料庫

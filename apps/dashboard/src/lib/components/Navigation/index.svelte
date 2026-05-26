@@ -34,7 +34,7 @@
   class="{navClass} {backgroundColor} sticky top-0 z-50 flex w-full border-b border-l-0 border-r-0 border-t-0 border-gray-300 px-2 py-1"
 >
   <ul class="flex w-full items-center">
-    <Logo {logo} {orgName} />
+    <Logo {logo} {orgName} href={$user.isLoggedIn && isOrgSite ? '/lms' : '/'} />
 
     <span class="flex-grow" />
 

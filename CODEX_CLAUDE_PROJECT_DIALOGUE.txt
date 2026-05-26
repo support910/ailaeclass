@@ -1,0 +1,26 @@
+# Codex Claude Project Dialogue
+## 2026-05-26 — 学生课程导航 + 考试入口修复
+
+### 修改文件列表
+1. `apps/dashboard/src/lib/components/CourseContainer/index.svelte`
+2. `apps/dashboard/src/lib/components/Course/components/Navigation/index.svelte`
+3. `apps/dashboard/src/lib/components/Buttons/VisitOrgSite.svelte`
+4. `apps/dashboard/src/lib/components/LMS/components/Learning.svelte`
+5. `apps/dashboard/src/routes/courses/[id]/exams/+page.svelte`
+6. `apps/dashboard/src/lib/utils/translations/en.json`
+7. `apps/dashboard/src/lib/utils/translations/zh.json`
+8. `apps/dashboard/src/lib/utils/translations/zh-TW.json`
+
+### 学生考试完整路径
+- LMS 首页 (`/lms`) → 课程卡片点击 "View Exams" → `/courses/{id}/exams`
+- Course 侧边栏 Navigation → Exams → `/courses/{id}/exams`
+- Exams 页面显示可用考试列表，学生点击 "Start Exam" 进入考试
+
+### Build 结果
+- `pnpm --filter @cio/dashboard build` ✅ 成功（1m 8s）
+- `node apps/dashboard/scripts/validate-translations.cjs` ✅ 全部通过
+
+### 剩余风险
+- 其他 locale（da/de/es/fr/hi/pl/pt/ru/vi）未添加新翻译 key，切换语言时可能显示英文 fallback。
+- VisitOrgSiteButton 在 `globalStore.isStudent` 为 undefined 时保守跳转 `/lms`，教师可能在非课程页面被误导。
+- CourseContainer `membershipResolved` 依赖 `fetchCourseFromAPI` 返回 group members。极端情况下（API 完全不返回 group），权限判断可能延迟一个 tick，但 Navigation 已做 show() 加固。

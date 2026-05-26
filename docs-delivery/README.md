@@ -1,4 +1,4 @@
-# ClassroomIO 專案交付文件清單
+# ailaeclass 專案交付文件清單
 
 ## 交付日期：2026 年 4 月 29 日
 
@@ -22,11 +22,11 @@
 ## 源碼結構
 
 ```
-classroomio-main/
+ailaeclass-main/
 ├── apps/                    # 應用程式
 │   ├── dashboard/           # 前端主應用（SvelteKit）
 │   ├── api/                 # 後端 API（Express）
-│   ├── classroomio-com/     # 官網
+│   ├── ailaeclass-com/     # 官網
 │   ├── course-app/          # 課程獨立應用
 │   └── docs/                # 文檔站
 ├── packages/                # 共用套件
@@ -84,7 +84,7 @@ pnpm dev
 
 | 項目 | 版本 |
 |------|------|
-| ClassroomIO | v0.1.13 |
+| ailaeclass | v0.1.13 |
 | Node.js | ^20.19.3 |
 | PostgreSQL | 15.x |
 | 文件版本 | v1.0 |

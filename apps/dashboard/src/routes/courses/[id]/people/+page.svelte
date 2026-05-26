@@ -8,7 +8,7 @@
   import InvitationModal from '$lib/components/Course/components/People/InvitationModal.svelte';
   import { deleteMemberModal } from '$lib/components/Course/components/People/store';
   import type { ProfileRole } from '$lib/components/Course/components/People/types';
-  import { group } from '$lib/components/Course/store';
+  import { course, group } from '$lib/components/Course/store';
   import Select from '$lib/components/Form/Select.svelte';
   import IconButton from '$lib/components/IconButton/index.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
@@ -16,7 +16,12 @@
   import RoleBasedSecurity from '$lib/components/RoleBasedSecurity/index.svelte';
   import { ROLE_LABEL, ROLES } from '$lib/utils/constants/roles';
   import { t } from '$lib/utils/functions/translations';
-  import { deleteGroupMember } from '$lib/utils/services/courses';
+  import {
+    approveJoinRequest,
+    deleteGroupMember,
+    fetchJoinRequests,
+    rejectJoinRequest
+  } from '$lib/utils/services/courses';
   import { profile } from '$lib/utils/store/user';
   import type { GroupPerson } from '$lib/utils/types';
   import {
@@ -29,11 +34,43 @@
     StructuredListRow
   } from 'carbon-components-svelte';
   import TrashCanIcon from 'carbon-icons-svelte/lib/TrashCan.svelte';
+  import { onMount } from 'svelte';
 
   let people: Array<GroupPerson> = [];
   let member: { id?: string; email?: string; profile?: { email: string } } = {};
   let filterBy: ProfileRole = ROLES[0];
   let searchValue = '';
+  let joinRequests: any[] = [];
+  let isLoadingRequests = false;
+
+  async function loadJoinRequests() {
+    if (!$course?.id) return;
+    isLoadingRequests = true;
+    const { data } = await fetchJoinRequests($course.id, 'pending');
+    joinRequests = data || [];
+    isLoadingRequests = false;
+  }
+
+  async function handleApprove(requestId: string) {
+    const { success } = await approveJoinRequest(requestId);
+    if (success) {
+      joinRequests = joinRequests.filter((r) => r.id !== requestId);
+      // Refresh group members to show newly approved student
+      // A full page reload or re-fetch of course data is simplest
+      window.location.reload();
+    }
+  }
+
+  async function handleReject(requestId: string) {
+    const { success } = await rejectJoinRequest(requestId);
+    if (success) {
+      joinRequests = joinRequests.filter((r) => r.id !== requestId);
+    }
+  }
+
+  onMount(() => {
+    loadJoinRequests();
+  });
 
   function filterPeople(_query, people) {
     const query = _query.toLowerCase();
@@ -94,6 +131,81 @@
 />
 
 <section class="mx-2 my-5 md:mx-9">
+  <!-- Join Code Display -->
+  <RoleBasedSecurity allowedRoles={[1, 2]}>
+    {#if $course?.join_code}
+      <div class="mb-6 rounded-lg bg-primary-50 p-4 dark:bg-neutral-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-primary-700 dark:text-primary-300">
+              {$t('course.people.course_code')}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              {$t('course.people.course_code_desc')}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              class="rounded-md bg-white px-3 py-1.5 text-lg font-bold tracking-widest text-primary-700 shadow-sm dark:bg-neutral-700 dark:text-primary-300"
+            >
+              {$course.join_code}
+            </span>
+            <CopyButton text={$course.join_code} feedback="Copied!" />
+          </div>
+        </div>
+      </div>
+    {/if}
+  </RoleBasedSecurity>
+
+  <!-- Pending Join Requests -->
+  <RoleBasedSecurity allowedRoles={[1, 2]}>
+    {#if joinRequests.length > 0}
+      <div class="mb-6">
+        <h3 class="mb-3 text-lg font-semibold dark:text-white">
+          {$t('course.people.join_requests')} ({joinRequests.length})
+        </h3>
+        <div class="rounded-lg border border-gray-200 dark:border-neutral-700">
+          {#each joinRequests as request}
+            <div
+              class="flex items-center justify-between border-b border-gray-100 p-4 last:border-0 dark:border-neutral-700"
+            >
+              <div class="flex items-center gap-3">
+                <Avatar
+                  src={request.profile?.avatar_url}
+                  name={request.profile?.fullname}
+                  width="w-8"
+                  height="h-8"
+                />
+                <div>
+                  <p class="font-medium dark:text-white">{request.profile?.fullname || '-'}</p>
+                  <p class="text-xs text-gray-500">{request.profile?.email || ''}</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <PrimaryButton
+                  variant={VARIANTS.OUTLINED}
+                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  label={$t('course.people.reject')}
+                  onClick={() => handleReject(request.id)}
+                />
+                <PrimaryButton
+                  label={$t('course.people.approve')}
+                  onClick={() => handleApprove(request.id)}
+                />
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {:else if !isLoadingRequests}
+      <div class="mb-6 rounded-lg border border-dashed border-gray-200 p-4 dark:border-neutral-700">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {$t('course.people.no_requests')}
+        </p>
+      </div>
+    {/if}
+  </RoleBasedSecurity>
+
   <div
     class="flex-end mb-7 flex flex-col items-start justify-end gap-2 md:flex-row md:items-center"
   >

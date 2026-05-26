@@ -1,6 +1,5 @@
 <script>
   import { RadioButtonGroup, RadioButton, Toggle } from 'carbon-components-svelte';
-  import FlashFilled from 'carbon-icons-svelte/lib/FlashFilled.svelte';
   import { goto } from '$app/navigation';
   import { updateCourse } from '$lib/utils/services/courses';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
@@ -9,7 +8,7 @@
   import Professional from './templates/Professional.svelte';
   import Plain from './templates/Plain.svelte';
   import { course } from '$lib/components/Course/store';
-  import { currentOrg, isFreePlan } from '$lib/utils/store/org';
+  import { currentOrg } from '$lib/utils/store/org';
   import { globalStore } from '$lib/utils/store/app';
   import { t } from '$lib/utils/functions/translations';
   import PurpleProfessionalBadge from './templates/PurpleProfessionalBadge.svelte';
@@ -39,12 +38,6 @@
     isSaving = true;
 
     try {
-      // Prevent free plan users from bypassing UI restrictions  
-      if ($isFreePlan) {
-        errors.description = 'Certificate customization is only available on paid plans';
-        throw new Error(errors.description);
-      }
-
       const result = saveCertificateValidation({
         description: $course.description || '',
         is_certificate_downloadable: $course.is_certificate_downloadable || false,
@@ -102,7 +95,6 @@
       <RadioButtonGroup
         bind:selected={$course.certificate_theme}
         class="mb-10"
-        disabled={$isFreePlan}
       >
         <div class="flex flex-wrap justify-between gap-y-5">
           {#each themes as theme}
@@ -144,7 +136,6 @@
             placeholder={$t('course.navItem.certificates.placeholder')}
             bind:value={$course.description}
             errorMessage={errors.description}
-            disabled={$isFreePlan}
             helperMessage={helperText}
           />
         </span>
@@ -153,7 +144,6 @@
           bind:toggled={$course.is_certificate_downloadable}
           class="my-4"
           size="sm"
-          disabled={$isFreePlan}
         >
           <span slot="labelA" style={$globalStore.isDark ? 'color: white' : 'color: #161616'}
             >{$t('generic.locked')}</span
@@ -188,11 +178,7 @@
       variant={VARIANTS.CONTAINED_DARK}
       onClick={saveCertificate}
       isLoading={isSaving}
-      isDisabled={$isFreePlan}
     >
-      {#if $isFreePlan}
-        <FlashFilled size={16} class="text-blue-700" />
-      {/if}
       {$t('course.navItem.certificates.save')}
     </PrimaryButton>
   </div>

@@ -12,7 +12,7 @@
 
 ## 概述
 
-ClassroomIO 的 API 分為兩部分：
+ailaeclass 的 API 分為兩部分：
 
 1. **Supabase Auto-generated API**: 由 Supabase 根據資料庫結構自動生成的 RESTful API
 2. **Custom API**: 由 Hono（輕量級 Web 框架）實現的自定義業務邏輯 API

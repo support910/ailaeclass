@@ -31,12 +31,12 @@
       {/if}
     </ul>
     <a
-      href="https://classroomio.com"
+      href="https://ailaeclass.com"
       class="flex items-center gap-1 text-blue-700 hover:underline dark:text-white"
       target="_blank"
       rel="noopener noreferrer"
     >
-      <p class="text-base font-semibold">Built on ClassroomIO</p>
+      <p class="text-base font-semibold">Built on ailaeclass</p>
     </a>
   </nav>
 {/if}

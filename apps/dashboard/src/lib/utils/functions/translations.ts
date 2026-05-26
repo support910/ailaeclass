@@ -74,7 +74,7 @@ export const { t, loading, locales, locale, initialized, translations, loadTrans
 
 export const selectedLocale = writable<string>('zh-TW');
 
-const LOCALE_STORAGE_KEY = 'classroomio_locale';
+const LOCALE_STORAGE_KEY = 'ailaeclass_locale';
 
 // Translations logs
 loading.subscribe(async ($loading) => {

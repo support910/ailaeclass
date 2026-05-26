@@ -51,8 +51,8 @@ export const GET: RequestHandler = async ({ request, url }) => {
       query.submitted_by = submittedBy;
     }
 
-    // Fetch submission
-    const { data, error } = await supabase
+    // Fetch submissions without nested groupmember->profile
+    const { data: submissions, error } = await supabase
       .from('submission')
       .select(
         `
@@ -60,24 +60,60 @@ export const GET: RequestHandler = async ({ request, url }) => {
         answers:question_answer(*),
         status_id,
         feedback,
-        submitted_by:groupmember!inner(
-          profile!inner(
-            id,
-            fullname,
-            avatar_url
-          )
-        )
+        submitted_by
       `
       )
       .match(query);
 
     if (error) {
+      console.error('fetch submission error:', error);
       throw new Error('Error fetching submission');
     }
 
+    // Enrich with profile data separately
+    const submittedByIds = (submissions || [])
+      .map((s: any) => s.submitted_by)
+      .filter(Boolean);
+    const uniqueGroupMemberIds = Array.from(new Set(submittedByIds));
+
+    let profileMap: Record<string, any> = {};
+    if (uniqueGroupMemberIds.length > 0) {
+      const { data: groupMembers } = await supabase
+        .from('groupmember')
+        .select('id, profile_id')
+        .in('id', uniqueGroupMemberIds);
+
+      const profileIds = (groupMembers || [])
+        .map((gm: any) => gm.profile_id)
+        .filter(Boolean);
+      const uniqueProfileIds = Array.from(new Set(profileIds));
+
+      if (uniqueProfileIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profile')
+          .select('id, fullname, avatar_url')
+          .in('id', uniqueProfileIds);
+
+        (profiles || []).forEach((p: any) => {
+          profileMap[p.id] = p;
+        });
+      }
+
+      (groupMembers || []).forEach((gm: any) => {
+        profileMap[gm.id] = profileMap[gm.profile_id] || null;
+      });
+    }
+
+    const enriched = (submissions || []).map((s: any) => ({
+      ...s,
+      submitted_by: {
+        profile: profileMap[s.submitted_by] || null
+      }
+    }));
+
     return json({
       success: true,
-      data: data || []
+      data: enriched || []
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error';

@@ -1,0 +1,44 @@
+# AilaeClass Runtime Fix & Exam Handoff
+## 2026-05-26 — 学生课程导航 + 考试入口修复
+
+### 修改摘要
+
+#### 1. CourseContainer 等待 membership 解析后再渲染导航
+- 新增 `membershipResolved` 标志，在 `fetchCourseFromAPI` 完成后（`prevCourseId` 设置）设为 true。
+- 传给 Navigation 的 `isStudent` 在解析完成前默认为 `true`（保守学生模式），防止教师菜单闪烁。
+- 使用 `ROLE.STUDENT` 常量替代硬编码 `3`。
+
+#### 2. Permission denied 返回按钮安全化
+- 引入 `isOrgTeacher` derived store 判断身份。
+- Verified teacher/admin → `goto($currentOrgPath)`
+- 学生或无权限 → `goto('/lms')`
+
+#### 3. Course Navigation student-safe 过滤
+- 所有教师菜单（Analytics, Submissions, Landing Page, People, Settings）的 `show()` 改为 `return isStudent === false;`
+- 未解析时（isStudent === undefined）不显示任何教师入口。
+- Marks 菜单逻辑改为 `isStudent === true ? ... : true`，未解析时默认显示（安全，因为 Marks 不是管理功能）。
+
+#### 4. LMS VisitOrgSite 按钮防误跳
+- `VisitOrgSite.svelte` 读取 `globalStore.isStudent`。
+- 当 `isLMS=true` 且 `globalStore.isStudent !== false` 时，跳转 `/lms` 而非 `${currentOrgDomain}/home`。
+
+#### 5. LMS Learning 课程卡片增加 Exams 入口
+- 每个课程卡片增加 "View Exams" 按钮（contained 样式）。
+- 跳转 `/courses/${course.id}/exams`。
+
+#### 6. Exams 页面空状态区分学生/老师
+- 学生：显示 "No available exams" / "There are no available exams for you at the moment."
+- 老师：保留 "No Exams Created" / "Create your first exam..."
+
+#### 7. 新增 i18n keys
+- `dashboard.view_exams` — View Exams / 查看考试 / 查看考試
+- `components.exam.no_available_exams` — No available exams / 暂无可用考试 / 暫無可用考試
+- `components.exam.no_available_exams_desc` — 学生专属空状态描述
+
+### Build & Validation
+- `pnpm --filter @cio/dashboard build` ✅
+- `node apps/dashboard/scripts/validate-translations.cjs` ✅
+
+### 剩余风险
+- 非 zh/zh-TW locale 缺少新 key，fallback 到英文。
+- CourseContainer 极端空 group 场景下 membershipResolved 仍会在 fetch 完成后置 true（安全）。

@@ -16,7 +16,6 @@
   import { t } from '$lib/utils/functions/translations';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher/index.svelte';
   import { BRAND } from '$lib/utils/config/brand';
-  import { isSingleOrgMode } from '$lib/utils/config/singleOrg';
 
   export let title = '';
   export let navClass = '';
@@ -36,7 +35,7 @@
     }
   }
 
-  $: coursesPath = $globalStore.isOrgSite && !isSingleOrgMode()
+  $: coursesPath = $globalStore.isStudent !== false
     ? '/lms/mylearning'
     : isCoursePage
       ? `${$currentOrgPath}/courses`

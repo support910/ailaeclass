@@ -2,15 +2,14 @@ import type { RequestHandler } from './$types';
 import type { CourseAnalytics, StudentOverview } from '$lib/utils/types/analytics';
 import type { UserExercisesStats } from '$lib/utils/types/analytics';
 import { calcPercentageWithRounding } from '$lib/utils/functions/number.js';
-import { fetchProfileCourseProgress } from '$lib/utils/services/courses';
-import { getServerSupabase } from '$lib/utils/functions/supabase.server';
+import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 import { json } from '@sveltejs/kit';
 
 const CACHE_DURATION = 60 * 5; // 5 minutes
 
 export const GET: RequestHandler = async ({ setHeaders, request }) => {
-  const userId = request.headers.get('user_id');
+  const userId = await getUserIdFromRequest(request);
   if (!userId) {
     return json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
@@ -24,13 +23,41 @@ export const GET: RequestHandler = async ({ setHeaders, request }) => {
   try {
     const supabase = getServerSupabase();
 
-    const hasPermission = await checkUserCoursePermissions(supabase, userId, courseId);
+    // Fetch course to get group_id for permission check
+    const { data: courseData, error: courseError } = await supabase
+      .from('course')
+      .select('id, title, group_id')
+      .eq('id', courseId)
+      .single();
 
-    if (!hasPermission) {
+    if (courseError || !courseData) {
+      return json(
+        { success: false, message: 'Course not found.' },
+        { status: 404 }
+      );
+    }
+
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
+      supabase,
+      userId,
+      courseData.group_id
+    );
+
+    if (!hasAccess) {
       return json(
         {
           success: false,
           message: 'Access denied. User is not a member of this course or organization.'
+        },
+        { status: 403 }
+      );
+    }
+
+    if (isStudent) {
+      return json(
+        {
+          success: false,
+          message: 'Access denied. Analytics is only available to teachers and admins.'
         },
         { status: 403 }
       );
@@ -41,7 +68,7 @@ export const GET: RequestHandler = async ({ setHeaders, request }) => {
       'content-type': 'application/json'
     });
 
-    const analytics = await getCourseAnalytics(supabase, courseId);
+    const analytics = await getCourseAnalytics(supabase, courseId, courseData);
     return json({ success: true, data: analytics });
   } catch (error) {
     console.error('Course analytics error:', error);
@@ -49,99 +76,110 @@ export const GET: RequestHandler = async ({ setHeaders, request }) => {
   }
 };
 
-async function getCourseAnalytics(supabase: any, courseId: string): Promise<CourseAnalytics> {
-  const analytics: CourseAnalytics = {
-    totalTutors: 0,
-    totalStudents: 0,
-    totalLessons: 0,
-    totalExercises: 0,
-    lessonCompletionRate: 0,
-    exerciseCompletionRate: 0,
-    averageGrade: 0,
-    students: []
-  };
+async function getCourseAnalytics(
+  supabase: any,
+  courseId: string,
+  courseData: any
+): Promise<CourseAnalytics> {
+  // 1. group_id already available from courseData, skip re-fetching course
 
-  // Fetch course basic info and group members
-  const { data: courseData, error: courseError } = await supabase
-    .from('course')
-    .select(
-      `
-      id,
-      title,
-      group(
-        members:groupmember(
-          id,
-          role_id,
-          profile_id,
-          profile(
-            id,
-            fullname,
-            email,
-            avatar_url
-          )
-        )
-      ),
-      lessons:lesson(
-        id,
-        title,
-        exercise(id)
-      )
-    `
-    )
-    .eq('id', courseId)
-    .single();
+  // 2. Fetch group members (no nested profile to avoid PGRST200)
+  const { data: members, error: membersError } = await supabase
+    .from('groupmember')
+    .select('id, role_id, profile_id')
+    .eq('group_id', courseData.group_id);
 
-  if (courseError) {
-    throw new Error('Failed to fetch course data');
+  if (membersError) {
+    throw new Error('Failed to fetch group members');
   }
 
-  // Count tutors and students
-  const members = (courseData.group as any)?.members || [];
-  analytics.totalTutors = members.filter(
-    (member) => member.role_id === 1 || member.role_id === 2
-  ).length;
-  analytics.totalStudents = members.filter((member) => member.role_id === 3).length;
+  // 3. Fetch profiles separately
+  const profileIds = (members || []).map((m: any) => m.profile_id).filter(Boolean);
+  let profileMap: Record<string, any> = {};
+  if (profileIds.length > 0) {
+    const { data: profiles, error: profileError } = await supabase
+      .from('profile')
+      .select('id, fullname, email, avatar_url')
+      .in('id', profileIds);
 
-  // Count lessons and exercises
-  analytics.totalLessons = courseData.lessons?.length || 0;
-  analytics.totalExercises =
-    courseData.lessons?.reduce((total, lesson) => total + (lesson.exercise?.length || 0), 0) || 0;
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+    } else {
+      (profiles || []).forEach((p: any) => {
+        profileMap[p.id] = p;
+      });
+    }
+  }
 
-  // Get student analytics
+  const membersWithProfile = (members || []).map((m: any) => ({
+    ...m,
+    profile: profileMap[m.profile_id] || null
+  }));
+
+  // 4. Fetch lessons and exercises for counting
+  const { data: lessons, error: lessonsError } = await supabase
+    .from('lesson')
+    .select('id, exercise(id)')
+    .eq('course_id', courseId);
+
+  if (lessonsError) {
+    console.error('Lessons fetch error:', lessonsError);
+  }
+
+  const totalLessons = lessons?.length || 0;
+  const totalExercises =
+    lessons?.reduce((sum: number, l: any) => sum + (l.exercise?.length || 0), 0) || 0;
+
+  // 5. Count tutors and students
+  const students = membersWithProfile.filter((m: any) => m.role_id === 3);
+  const tutors = membersWithProfile.filter((m: any) => m.role_id === 1 || m.role_id === 2);
+
+  // 6. Get student analytics
   const studentAnalytics = await Promise.all(
-    members
-      .filter((member) => member.role_id === 3)
-      .map((member) => getStudentOverview(supabase, courseId, member))
+    students.map((member: any) => getStudentOverview(supabase, courseId, member))
   );
 
-  analytics.students = studentAnalytics.filter(
+  const validStudents = studentAnalytics.filter(
     (student): student is StudentOverview => student !== null
   );
 
-  // Calculate aggregated metrics
-  if (analytics.students.length > 0) {
-    analytics.lessonCompletionRate = Math.round(
-      analytics.students.reduce((sum, student) => sum + student.progressPercentage, 0) /
-        analytics.students.length
+  // 7. Calculate aggregated metrics
+  let lessonCompletionRate = 0;
+  let exerciseCompletionRate = 0;
+  let averageGrade = 0;
+
+  if (validStudents.length > 0) {
+    lessonCompletionRate = Math.round(
+      validStudents.reduce((sum, student) => sum + student.progressPercentage, 0) /
+        validStudents.length
     );
 
-    analytics.exerciseCompletionRate = Math.round(
-      analytics.students.reduce((sum, student) => {
+    exerciseCompletionRate = Math.round(
+      validStudents.reduce((sum, student) => {
         const completionRate =
           student.totalExercises > 0
             ? (student.exercisesSubmitted / student.totalExercises) * 100
             : 0;
         return sum + completionRate;
-      }, 0) / analytics.students.length
+      }, 0) / validStudents.length
     );
 
-    analytics.averageGrade = Math.round(
-      analytics.students.reduce((sum, student) => sum + student.averageGrade, 0) /
-        analytics.students.length
+    averageGrade = Math.round(
+      validStudents.reduce((sum, student) => sum + student.averageGrade, 0) /
+        validStudents.length
     );
   }
 
-  return analytics;
+  return {
+    totalTutors: tutors.length,
+    totalStudents: students.length,
+    totalLessons,
+    totalExercises,
+    lessonCompletionRate,
+    exerciseCompletionRate,
+    averageGrade,
+    students: validStudents
+  };
 }
 
 async function getLastLogin(supabase: any, userId: string): Promise<string | undefined> {
@@ -168,35 +206,31 @@ async function getStudentOverview(
   member: any
 ): Promise<StudentOverview | null> {
   try {
-    // Use the same service function that the working analytics/user API uses
-    const { data: courseProgressData, error: progressError } = await fetchProfileCourseProgress(
-      courseId,
-      member.profile_id
-    );
+    const { data: courseProgressData, error: progressError } = await supabase
+      .rpc('get_course_progress', {
+        course_id_arg: courseId,
+        profile_id_arg: member.profile_id
+      });
 
     if (progressError) {
       console.error('Error fetching course progress:', progressError);
       return null;
     }
 
-    const courseProgress = courseProgressData?.[0];
+    const courseProgress = Array.isArray(courseProgressData) ? courseProgressData[0] : courseProgressData;
     if (!courseProgress) {
       console.error('No course progress data found');
       return null;
     }
 
-    // Fetch exercise stats using the same method as the people page
-    const userExercisesStats = await fetchUserExercisesStats(supabase, courseId, member.profile_id);
+    const userExercisesStats = await fetchUserExercisesStats(supabase, courseId, member.id);
 
-    // Calculate exercise completion using the same logic as people page
     const completedExercises =
       userExercisesStats?.filter((exercise) => exercise.isCompleted)?.length || 0;
     const totalExercises = userExercisesStats?.length || 0;
 
-    // Get last login using the same approach as analytics/user API
     const lastLoginDate = await getLastLogin(supabase, member.profile_id);
 
-    // Format last seen
     let lastSeen = 'Never';
     if (lastLoginDate) {
       const lastLogin = new Date(lastLoginDate);
@@ -213,12 +247,10 @@ async function getStudentOverview(
       }
     }
 
-    // Calculate progress percentage
     const lessonsCompleted = courseProgress.lessons_completed || 0;
     const totalLessons = courseProgress.lessons_count || 0;
     const progressPercentage = calcPercentageWithRounding(lessonsCompleted, totalLessons);
 
-    // Calculate average grade using the same logic as the people page
     const totalEarnedPoints =
       userExercisesStats?.reduce((sum, exercise) => sum + exercise.score, 0) || 0;
     const totalPoints =
@@ -249,56 +281,60 @@ async function getStudentOverview(
 async function fetchUserExercisesStats(
   supabase: any,
   courseId: string,
-  userId: string
+  groupmemberId: string
 ): Promise<UserExercisesStats[] | undefined> {
   try {
-    const { data: courseData, error: queryError } = await supabase
-      .from('course')
-      .select(
-        `
-        lesson!inner (
-          title,exercise!inner (
-            id,title,lesson_id,created_at,question (points),
-            submission!left (
-              id,total,status_id,submitted_by,groupmember!inner (id,profile_id)
-            )
-          )
-        )
-      `
-      )
-      .eq('lesson.exercise.submission.groupmember.profile_id', userId)
-      .eq('id', courseId);
+    // Step 1: Fetch exercises for this course (no nested submission to avoid PGRST200)
+    const { data: lessons, error: lessonError } = await supabase
+      .from('lesson')
+      .select('id, title, exercise(id, title, lesson_id, created_at, question(points))')
+      .eq('course_id', courseId);
 
-    if (queryError) {
-      console.error('Error fetching exercise data:', queryError);
-      return;
+    if (lessonError) {
+      console.error('fetchUserExercisesStats lesson error:', lessonError);
+      return undefined;
     }
 
-    if (!courseData || courseData.length === 0) {
-      return;
+    // Step 2: Fetch submissions for this groupmember
+    const { data: submissions, error: subError } = await supabase
+      .from('submission')
+      .select('id, total, status_id, exercise_id')
+      .eq('submitted_by', groupmemberId);
+
+    if (subError) {
+      console.error('fetchUserExercisesStats submission error:', subError);
+      return undefined;
     }
 
-    const userExercisesStats = courseData[0].lesson.flatMap(
-      (lesson) =>
-        lesson.exercise?.map((exercise) => {
-          const totalPoints = exercise.question?.reduce((sum, q) => sum + (q.points || 0), 0) || 0;
-          const userSubmission = exercise.submission?.[0];
+    const submissionMap: Record<string, any> = {};
+    (submissions || []).forEach((s: any) => {
+      submissionMap[s.exercise_id] = s;
+    });
 
-          return {
-            id: exercise.id,
-            lessonId: exercise.lesson_id,
-            lessonTitle: lesson.title,
-            title: exercise.title,
-            status: userSubmission?.status_id,
-            score: userSubmission?.total || 0,
-            totalPoints,
-            isCompleted: !!userSubmission
-          };
-        }) || []
-    );
+    // Step 3: Build stats in JS
+    const stats: UserExercisesStats[] = [];
+    (lessons || []).forEach((lesson: any) => {
+      (lesson.exercise || []).forEach((exercise: any) => {
+        const totalPoints =
+          exercise.question?.reduce((sum: number, q: any) => sum + (q.points || 0), 0) || 0;
+        const sub = submissionMap[exercise.id];
 
-    return userExercisesStats;
+        stats.push({
+          id: exercise.id,
+          lessonId: exercise.lesson_id,
+          lessonTitle: lesson.title,
+          title: exercise.title,
+          status: sub?.status_id,
+          score: sub?.total || 0,
+          totalPoints,
+          isCompleted: !!sub
+        });
+      });
+    });
+
+    return stats;
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('Unexpected error in fetchUserExercisesStats:', error);
+    return undefined;
   }
 }

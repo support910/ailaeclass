@@ -4,11 +4,12 @@
 
   export let logo: string | undefined;
   export let orgName: string | undefined;
+  export let href: string = '/';
 </script>
 
 <div class="logo">
   <a
-    href="/"
+    href={href}
     title={`${$t('navigation.goto')} ${orgName || BRAND.name} ${$t('navigation.home')}`}
     class="flex items-center gap-2"
     id="logo"

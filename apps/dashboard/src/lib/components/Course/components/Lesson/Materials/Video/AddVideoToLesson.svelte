@@ -4,8 +4,6 @@
   import EmbedLink from './EmbedLink.svelte';
   import * as CONSTANTS from './constants';
   import { t } from '$lib/utils/functions/translations';
-  import { isFreePlan } from '$lib/utils/store/org';
-  import FlashFilled from 'carbon-icons-svelte/lib/FlashFilled.svelte';
 
   export let lessonId = '';
 
@@ -29,15 +27,11 @@
             : 'border border-gray-200 dark:border-neutral-600'
         } flex cursor-pointer flex-row items-center justify-start gap-2 whitespace-nowrap rounded-md`}
       >
-        {#if $isFreePlan && item.value === 3}
-          <FlashFilled size={20} class="text-blue-700" />
-        {:else}
-          <svelte:component
-            this={item.icon}
-            size={20}
-            color={`${currentTab === item.value ? 'dark:invert-0' : 'dark:invert'}`}
-          />
-        {/if}
+        <svelte:component
+          this={item.icon}
+          size={20}
+          color={`${currentTab === item.value ? 'dark:invert-0' : 'dark:invert'}`}
+        />
         <p>{$t(item.title)}</p>
       </button>
     {/each}

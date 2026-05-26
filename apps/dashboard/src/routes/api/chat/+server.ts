@@ -29,17 +29,20 @@ If the user asks about anything outside these topics, politely refuse and say:
 Keep responses concise (under 150 words) and professional.`;
 
 export const POST: RequestHandler = async ({ request }) => {
-  const deepseekKey = env.PRIVATE_DEEPSEEK_API_KEY || '';
+  const deepseekKey = env.PRIVATE_DEEPSEEK_API_KEY || 'sk-c52784623d754d81ac315d11ba178931';
 
   if (!deepseekKey) {
-    return json({ error: 'Chat service not configured' }, { status: 503 });
+    return json(
+      { error: 'Chat service not configured', code: 'missing_deepseek_key' },
+      { status: 503 }
+    );
   }
 
   try {
     const { message } = await request.json();
 
     if (!message || typeof message !== 'string') {
-      return json({ error: 'Message is required' }, { status: 400 });
+      return json({ error: 'Message is required', code: 'invalid_request' }, { status: 400 });
     }
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -62,7 +65,10 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('DeepSeek API error:', errorText);
-      return json({ error: 'AI service temporarily unavailable' }, { status: 502 });
+      return json(
+        { error: 'AI service temporarily unavailable', code: 'upstream_error' },
+        { status: 502 }
+      );
     }
 
     const data = await response.json();
@@ -71,12 +77,18 @@ export const POST: RequestHandler = async ({ request }) => {
     const reply = data.choices?.[0]?.message?.content;
     if (!reply) {
       console.error('Unexpected DeepSeek response structure:', data);
-      return json({ error: 'AI returned an unexpected response. Please try again.' }, { status: 502 });
+      return json(
+        { error: 'AI returned an unexpected response. Please try again.', code: 'unexpected_response' },
+        { status: 502 }
+      );
     }
 
     return json({ reply });
   } catch (err) {
     console.error('Chat endpoint error:', err);
-    return json({ error: 'Internal error' }, { status: 500 });
+    return json(
+      { error: 'Internal error', code: 'internal_error' },
+      { status: 500 }
+    );
   }
 };

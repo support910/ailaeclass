@@ -12,6 +12,7 @@
   import { t } from '$lib/utils/functions/translations';
   import { logout } from '$lib/utils/functions/logout';
   import { isSingleOrgMode } from '$lib/utils/config/singleOrg';
+  import { ROLE } from '$lib/utils/constants/roles';
 
   async function handleLogout() {
     await logout();
@@ -27,7 +28,7 @@
   <div class="space-y-4 border-b py-3">
     <p class="text-xs font-semibold text-gray-500">{$t('profileMenu.profile')}</p>
     <a
-      href={`${!$globalStore.isOrgSite || isSingleOrgMode() ? $currentOrgPath : '/lms'}/settings`}
+      href={$currentOrg.role_id === ROLE.STUDENT ? '/lms/settings' : `${$currentOrgPath}/settings`}
       class="flex items-center justify-between hover:no-underline"
       on:click={closeMenu}
     >
@@ -43,7 +44,7 @@
       </div>
     </a>
   </div>
-  {#if !$globalStore.isOrgSite || isSingleOrgMode()}
+  {#if ($currentOrg.role_id !== ROLE.STUDENT) && (!$globalStore.isOrgSite || isSingleOrgMode())}
     <div class="space-y-4 border-b py-3">
       <p class="text-xs font-semibold text-gray-500">{$t('profileMenu.current_org')}</p>
       <a

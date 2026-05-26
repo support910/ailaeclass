@@ -1,20 +1,20 @@
 ---
-title: Self-hosting ClassroomIO
-description: Guide to self-hosting ClassroomIO on your own servers.
+title: Self-hosting ailaeclass
+description: Guide to self-hosting ailaeclass on your own servers.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-This guide will help you quickly self-host ClassroomIO.
+This guide will help you quickly self-host ailaeclass.
 
-![Selfhost ClassroomIO](/selfhost-classroomio.webp)
+![Selfhost ailaeclass](/selfhost-ailaeclass.webp)
 
-ClassroomIO is made up of the following applications:
+ailaeclass is made up of the following applications:
 
-- [apps/api](https://github.com/rotimi-best/classroomio/tree/main/apps/api) - an Express server
-- [apps/dashboard](https://github.com/rotimi-best/classroomio/tree/main/apps/dashboard) - the admin dashboard + LMS
-- [supabase](https://github.com/rotimi-best/classroomio/tree/main/supabase) - the database + REST API
+- [apps/api](https://github.com/rotimi-best/ailaeclass/tree/main/apps/api) - an Express server
+- [apps/dashboard](https://github.com/rotimi-best/ailaeclass/tree/main/apps/dashboard) - the admin dashboard + LMS
+- [supabase](https://github.com/rotimi-best/ailaeclass/tree/main/supabase) - the database + REST API
 
 The quickest and easiest way to deploy both the api and dashboard is by using our [Railway Template](https://railway.app/template/dl9RG7?referralCode=8OyIj5). However there are a couple of things that you'd need first before heading over to the template, which are:
 
@@ -94,7 +94,7 @@ SENTRY_DNS=""
 
 <Callout title="Learn More">
   Learn more about the environment variables
-  [here](https://github.com/rotimi-best/classroomio/blob/main/apps/api/.env.example)
+  [here](https://github.com/rotimi-best/ailaeclass/blob/main/apps/api/.env.example)
 </Callout>
 
 #### cio-dashboard
@@ -116,7 +116,7 @@ PRIVATE_APP_SUBDOMAINS=""
 
 <Callout title="Learn More">
   Learn more about the environment variables
-  [here](https://github.com/rotimi-best/classroomio/blob/main/apps/dashboard/.env.example)
+  [here](https://github.com/rotimi-best/ailaeclass/blob/main/apps/dashboard/.env.example)
 </Callout>
 
 ## Using Docker
@@ -126,8 +126,8 @@ We provide a docker-compose configuration to deploy both the api and dashboard s
 1. Clone the repository:
 
 ```zsh title="Terminal"
-git clone https://github.com/rotimi-best/classroomio.git
-cd classroomio
+git clone https://github.com/rotimi-best/ailaeclass.git
+cd ailaeclass
 ```
 
 2. Create a `.env` file with your environment variables (see Environment Variables section above)

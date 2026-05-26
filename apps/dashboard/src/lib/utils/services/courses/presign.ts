@@ -5,7 +5,7 @@ import {
 } from '$lib/components/Course/components/Lesson/store/lessons';
 
 import axios from 'axios';
-import { classroomio } from '$lib/utils/services/api';
+import { appApi } from '$lib/utils/services/api';
 import { getAccessToken, getSupabase } from '$lib/utils/functions/supabase';
 import { DOCUMENT_UPLOAD_BUCKET } from '$lib/utils/constants/documentUpload';
 
@@ -25,8 +25,8 @@ export class GenericUploader {
   async getDownloadPresignedUrl(keys: string[], type = this.uploadType) {
     const endpoint =
       type === 'document'
-        ? classroomio.course.presign.document.download
-        : classroomio.course.presign.video.download;
+        ? appApi.course.presign.document.download
+        : appApi.course.presign.video.download;
 
     const response = await endpoint.$post({
       json: {
@@ -65,8 +65,8 @@ export class GenericUploader {
   async getPresignedUrl(file: File) {
     const endpoint =
       this.uploadType === 'document'
-        ? classroomio.course.presign.document.upload
-        : classroomio.course.presign.video.upload;
+        ? appApi.course.presign.document.upload
+        : appApi.course.presign.video.upload;
 
     const response = await endpoint.$post({
       json: {

@@ -153,7 +153,7 @@
       <PageLoadProgressBar textColorClass="text-neutral-700" />
     {/if}
 
-    <div class={path.includes('home') ? '' : 'flex justify-between'}>
+    <div class={path.includes('home') || !path ? '' : 'flex justify-between'}>
       <slot />
 
       {#if showAppsSideBar(path)}

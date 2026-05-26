@@ -6,7 +6,7 @@ import { PLAN } from 'shared/src/plans/constants';
 import { PUBLIC_IS_SELFHOSTED } from '$env/static/public';
 import { ROLE } from '$lib/utils/constants/roles';
 import { STEPS } from '../constants/quiz';
-import type { UserLessonDataType } from '$lib/utils/types';
+import type { UserLessonDataType, Exercise } from '$lib/utils/types';
 import type { Writable } from 'svelte/store';
 import { isSingleOrgMode } from '$lib/utils/config/singleOrg';
 
@@ -37,7 +37,13 @@ export const orgTeam = writable<OrgTeamMember[]>([]);
 export const isOrgAdmin = derived(currentOrg, ($currentOrg) => {
   if ($currentOrg.role_id === 0) return null;
 
-  return $currentOrg.role_id === ROLE.ADMIN;
+  return $currentOrg.role_id === ROLE.ADMIN && $currentOrg.verified === true;
+});
+
+export const isOrgTeacher = derived(currentOrg, ($currentOrg) => {
+  if ($currentOrg.role_id === 0) return null;
+
+  return ($currentOrg.role_id === ROLE.ADMIN || $currentOrg.role_id === ROLE.TUTOR) && $currentOrg.verified === true;
 });
 
 const getActivePlan = (org: CurrentOrg) => {
@@ -147,5 +153,21 @@ export const quizStore = writable<QuizStore>({
 export const playQuizStore = writable({
   step: STEPS.CONNECT_TO_PLAY
 });
+
+// Exam system stores
+export const createExamModal = writable({
+  open: false,
+  title: '',
+  description: '',
+  courseId: '',
+  lessonId: '',
+  durationMinutes: 60,
+  attemptsAllowed: 1,
+  passingScore: 60,
+  showResultPolicy: 'after_grade',
+  isLoading: false
+});
+
+export const examsStore = writable<Exercise[]>([]);
 
 export const userUpcomingData = writable<UserLessonDataType[]>([]);

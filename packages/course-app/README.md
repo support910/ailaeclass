@@ -1,6 +1,6 @@
 <a href="https://courseapp.oncws.com/">
   <img alt="Create beautiful course websites to educate your customers" src="https://cdn.courseapp.oncws.com/courseapp-og.png" />
-  <h1 align="center">CourseApp by ClassroomIO</h1>
+  <h1 align="center">CourseApp by ailaeclass</h1>
   <p align="center">
     Create beautiful course websites to educate your customers.
     <br />
@@ -17,7 +17,7 @@ Create a beautiful course website in seconds with our SvelteKit-powered CLI tool
 ## Quick Start
 
 ```bash
-pnpx @classroomio/course-app@latest
+pnpx @ailaeclass/course-app@latest
 ```
 
 You'll be prompted to:

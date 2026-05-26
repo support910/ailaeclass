@@ -30,7 +30,7 @@
   import { isObject } from '$lib/utils/functions/isObject';
   import { t } from '$lib/utils/functions/translations';
   import { deleteCourse, updateCourse } from '$lib/utils/services/courses';
-  import { currentOrg, currentOrgDomain, currentOrgPath, isFreePlan } from '$lib/utils/store/org';
+  import { currentOrg, currentOrgDomain, currentOrgPath } from '$lib/utils/store/org';
   import type { Course } from '$lib/utils/types';
   import { COURSE_TYPE } from '$lib/utils/types';
   import { lessons } from '../Lesson/store/lessons';
@@ -323,19 +323,6 @@
       <p>{$t('course.navItem.settings.available')}</p>
     </Column>
     <Column sm={8} md={8} lg={8}>
-      {#if $isFreePlan}
-        <Toggle
-          size="sm"
-          bind:toggled={$settings.lesson_download}
-          on:toggle={() => {
-            hasUnsavedChanges = true;
-          }}
-          disabled={true}
-        >
-          <span slot="labelA" style="color: gray">{$t('course.navItem.settings.disabled')}</span>
-          <span slot="labelB" style="color: gray">{$t('course.navItem.settings.enabled')}</span>
-        </Toggle>
-      {:else}
         <Toggle
           size="sm"
           bind:toggled={$settings.lesson_download}
@@ -346,7 +333,6 @@
           <span slot="labelA" style="color: gray">{$t('course.navItem.settings.disabled')}</span>
           <span slot="labelB" style="color: gray">{$t('course.navItem.settings.enabled')}</span>
         </Toggle>
-      {/if}
     </Column>
   </Row>
   <Row class="border-bottom-c flex flex-col py-7 lg:flex-row">
@@ -355,14 +341,6 @@
       <p>{$t('course.navItem.settings.course_avail')}</p>
     </Column>
     <Column sm={8} md={8} lg={8}>
-      {#if $isFreePlan}
-        <PrimaryButton
-          variant={VARIANTS.OUTLINED}
-          label={$t('course.navItem.settings.download')}
-          onClick={() => {}}
-          isDisabled={true}
-        />
-      {:else}
         <PrimaryButton
           variant={VARIANTS.OUTLINED}
           label={$t('course.navItem.settings.download')}
@@ -370,7 +348,6 @@
           isDisabled={isLoading || !env.PUBLIC_SERVER_URL}
           {isLoading}
         />
-      {/if}
     </Column>
   </Row>
 

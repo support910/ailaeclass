@@ -76,7 +76,7 @@
           <PrimaryButton
             className="mb-5"
             variant={VARIANTS.OUTLINED}
-            onClick={() => window.open('https://t.me/classroomio_bot', '_blank')}
+            onClick={() => window.open('https://t.me/ailaeclass_bot', '_blank')}
             ><span class="mr-2">{$t('settings.integrations.open_bot_button')}</span>
             <ArrowUpRightIcon /></PrimaryButton
           >

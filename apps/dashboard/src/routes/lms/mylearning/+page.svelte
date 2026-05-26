@@ -13,7 +13,9 @@
     coursesInProgress
   } from '$lib/components/Courses/store';
   import { browser } from '$app/environment';
+  import { goto } from '$app/navigation';
   import { t } from '$lib/utils/functions/translations';
+  import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
 
   let hasFetched = false;
 
@@ -64,7 +66,13 @@
     <div role="searchbox" class=" bg-gray-100 w-full md:w-[60%] lg:w-[30%]">
       <Search placeholder={$t('my_learning.search')} class="dark:text-black" />
     </div>
-    <h1 class="text-3xl font-semibold my-4">{$t('my_learning.heading')}</h1>
+    <div class="flex items-center justify-between my-4">
+      <h1 class="text-3xl font-semibold">{$t('my_learning.heading')}</h1>
+      <PrimaryButton
+        label={$t('course.join.join_course')}
+        onClick={() => goto('/join-course')}
+      />
+    </div>
     <Tabs {tabs} {currentTab} {onChange}>
       <slot:fragment slot="content">
         <TabContent value={tabs[0].value} index={currentTab}>

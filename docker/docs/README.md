@@ -1,6 +1,6 @@
-# Publishing ClassroomIO Docker Images to Docker Hub
+# Publishing ailaeclass Docker Images to Docker Hub
 
-This guide explains how to publish the ClassroomIO API and Dashboard Docker images to Docker Hub.
+This guide explains how to publish the ailaeclass API and Dashboard Docker images to Docker Hub.
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ docker login
 Use the provided script to build and push both images:
 
 ```bash
-# Default (uses 'classroomio' as username and 'latest' as version)
+# Default (uses 'ailaeclass' as username and 'latest' as version)
 ./docker/docker-push.sh
 
 # Custom username
@@ -32,14 +32,14 @@ DOCKERHUB_USERNAME=your-username ./docker/docker-push.sh
 VERSION=v0.1.0 ./docker/docker-push.sh
 
 # Both custom username and version
-DOCKERHUB_USERNAME=classroomio VERSION=v0.1.0 ./docker/docker-push.sh
+DOCKERHUB_USERNAME=ailaeclass VERSION=v0.1.0 ./docker/docker-push.sh
 ```
 
 ### Step 3: Verify Images
 
 Check your Docker Hub repository at:
-- https://hub.docker.com/r/classroomio/api
-- https://hub.docker.com/r/classroomio/dashboard
+- https://hub.docker.com/r/ailaeclass/api
+- https://hub.docker.com/r/ailaeclass/dashboard
 
 ## Method 2: GitHub Actions (Automated)
 
@@ -80,15 +80,15 @@ git push origin v0.1.0
 ### Build API Image
 
 ```bash
-docker build -f docker/Dockerfile.api -t classroomio/api:latest .
-docker push classroomio/api:latest
+docker build -f docker/Dockerfile.api -t ailaeclass/api:latest .
+docker push ailaeclass/api:latest
 ```
 
 ### Build Dashboard Image
 
 ```bash
-docker build -f docker/Dockerfile.dashboard -t classroomio/dashboard:latest .
-docker push classroomio/dashboard:latest
+docker build -f docker/Dockerfile.dashboard -t ailaeclass/dashboard:latest .
+docker push ailaeclass/dashboard:latest
 ```
 
 ## Using Published Images
@@ -96,8 +96,8 @@ docker push classroomio/dashboard:latest
 ### Pull Images
 
 ```bash
-docker pull classroomio/api:latest
-docker pull classroomio/dashboard:latest
+docker pull ailaeclass/api:latest
+docker pull ailaeclass/dashboard:latest
 ```
 
 ### Update docker-compose.yml
@@ -107,7 +107,7 @@ Instead of building locally, use the published images:
 ```yaml
 services:
   api:
-    image: classroomio/api:latest
+    image: ailaeclass/api:latest
     # Remove the 'build' section
     ports:
       - "3081:3081"
@@ -115,7 +115,7 @@ services:
       # ... your environment variables
 
   dashboard:
-    image: classroomio/dashboard:latest
+    image: ailaeclass/dashboard:latest
     # Remove the 'build' section
     ports:
       - "3082:3082"
@@ -139,17 +139,17 @@ services:
 ```bash
 # Build with multiple tags
 docker build -f docker/Dockerfile.api \
-  -t classroomio/api:latest \
-  -t classroomio/api:v1.2.0 \
-  -t classroomio/api:v1.2 \
-  -t classroomio/api:v1 \
+  -t ailaeclass/api:latest \
+  -t ailaeclass/api:v1.2.0 \
+  -t ailaeclass/api:v1.2 \
+  -t ailaeclass/api:v1 \
   .
 
 # Push all tags
-docker push classroomio/api:latest
-docker push classroomio/api:v1.2.0
-docker push classroomio/api:v1.2
-docker push classroomio/api:v1
+docker push ailaeclass/api:latest
+docker push ailaeclass/api:v1.2.0
+docker push ailaeclass/api:v1.2
+docker push ailaeclass/api:v1
 ```
 
 ## Image Sizes and Build Times
@@ -196,7 +196,7 @@ docker image prune -a
 3. **Enable 2FA** on your Docker Hub account
 4. **Scan images** for vulnerabilities:
    ```bash
-   docker scan classroomio/api:latest
+   docker scan ailaeclass/api:latest
    ```
 5. **Use specific version tags** in production, not `latest`
 

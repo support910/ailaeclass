@@ -8,12 +8,13 @@
   import SiteSettingsIcon from '$lib/components/Icons/SiteSettingsIcon.svelte';
   import OrgSelector from '$lib/components/OrgSelector/OrgSelector.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
-  import { currentOrgPath, isFreePlan, currentOrg } from '$lib/utils/store/org';
+  import Modal from '$lib/components/Modal/index.svelte';
+  import { currentOrgPath, currentOrg } from '$lib/utils/store/org';
+  import { ROLE } from '$lib/utils/constants/roles';
   import { ChevronRight, SettingsAdjust } from 'carbon-icons-svelte';
   import ForumIcon from 'carbon-icons-svelte/lib/Forum.svelte';
   import HelpIcon from 'carbon-icons-svelte/lib/Help.svelte';
 
-  import { goto } from '$app/navigation';
   import ProfileMenu from '$lib/components/Org/ProfileMenu/index.svelte';
   import { NavClasses } from '$lib/utils/constants/reusableClass';
   import { t } from '$lib/utils/functions/translations';
@@ -22,6 +23,8 @@
   import { profileMenu, sideBar } from './store';
   import { isSingleOrgMode } from '$lib/utils/config/singleOrg';
   import TextChip from '$lib/components/Chip/Text.svelte';
+  import TaskIcon from 'carbon-icons-svelte/lib/Task.svelte';
+  import JoinIcon from 'carbon-icons-svelte/lib/Education.svelte';
 
   interface menuItems {
     label: string;
@@ -31,6 +34,7 @@
   }
 
   let menuItems: menuItems[] = [];
+  let showHelpModal = false;
 
   function isActive(pagePath: string, itemPath: string) {
     const pageLinkItems = pagePath.split('/');
@@ -46,10 +50,6 @@
     $sideBar.hidden = !$sideBar.hidden;
   };
 
-  const openModal = () => {
-    goto(window.location.pathname + '?upgrade=true');
-  };
-
   $: menuItems = [
     {
       path: '',
@@ -61,6 +61,18 @@
       path: '/courses',
       label: $t('org_navigation.courses'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/courses`),
+      show: true
+    },
+    {
+      path: '/join-course',
+      label: $t('org_navigation.join_course'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/join-course`),
+      show: $currentOrg.role_id === ROLE.STUDENT
+    },
+    {
+      path: '/exams',
+      label: $t('org_navigation.exams'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/exams`),
       show: true
     },
     {
@@ -98,9 +110,9 @@
           <!-- Single-org: show org name statically (no dropdown) -->
           <div class="px-4 py-3 border border-l-0 border-r-0 border-t-0 border-gray-200 dark:border-neutral-600">
             <div class="flex items-center gap-2">
-              <img src="/logo-512.png" alt={$currentOrg.name} class="w-7 h-7 rounded-md object-contain" />
+              <img src="/logo-512.png" alt={$currentOrg.name || 'Organization'} class="w-7 h-7 rounded-md object-contain" />
               <p class="dark:text-white text-sm font-medium whitespace-nowrap truncate">
-                {$currentOrg.name}
+                {$currentOrg.name || 'Organization'}
               </p>
             </div>
           </div>
@@ -131,8 +143,12 @@
                     <ForumIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/quiz'}
                     <QuizIcon />
+                  {:else if menuItem.path === '/exams'}
+                    <TaskIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/audience'}
                     <AudienceIcon />
+                  {:else if menuItem.path === '/join-course'}
+                    <JoinIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/setup'}
                     <SettingsAdjust />
                   {/if}
@@ -145,30 +161,13 @@
       </div>
       <span class="flex-grow" />
 
-      {#if $isFreePlan}
-        <div
-          class="border-primary-700 mx-4 flex flex-col items-center justify-center gap-4 rounded-md border px-2 py-6 text-center transition-all ease-in-out hover:scale-95"
-        >
-          <img src="/upgrade.png" alt="upgrade" class="h-16 w-16" />
-          <span class="flex flex-col gap-1">
-            <p class="text-base font-semibold">{$t('org_navigation.early_adopter')}</p>
-            <p class="text-xs">{$t('org_navigation.unlock')}</p>
-          </span>
-          <PrimaryButton
-            label={$t('org_navigation.upgrade')}
-            onClick={openModal}
-            className="font-normal"
-          />
-        </div>
-      {/if}
-
       <ul class="my-5 px-4 pb-5">
-        <a href={$currentOrgPath} class="text-black no-underline" on:click={toggleSidebar}>
-          <li class="mb-2 flex items-center rounded px-2.5 py-1.5">
+        <button class="w-full text-left" on:click={() => (showHelpModal = true)}>
+          <li class="mb-2 flex items-center rounded px-2.5 py-1.5 cursor-pointer">
             <HelpIcon size={20} class="carbon-icon dark:text-white" />
             <p class="ml-2.5 text-sm font-medium dark:text-white">{$t('org_navigation.help')}</p>
           </li>
-        </a>
+        </button>
 
         <button
           class="w-full"
@@ -205,4 +204,16 @@
   </aside>
 
   <ProfileMenu />
+
+  <Modal open={showHelpModal} width="w-96" modalHeading={$t('support.help_title')} onClose={() => (showHelpModal = false)}>
+    <div class="text-center py-2">
+      <p class="dark:text-white mb-4">{$t('support.help_text')}</p>
+      <a
+        href="mailto:support@5gnumultimedia.com"
+        class="text-primary-700 hover:underline font-medium"
+      >
+        support@5gnumultimedia.com
+      </a>
+    </div>
+  </Modal>
 </div>

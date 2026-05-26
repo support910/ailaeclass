@@ -1,6 +1,6 @@
 # Docker Usage Guide
 
-This directory contains all Docker-related files for the ClassroomIO project.
+This directory contains all Docker-related files for the ailaeclass project.
 
 ## 📁 Directory Structure
 
@@ -86,13 +86,13 @@ Required variables are listed in `docker-compose.yaml`.
 
 ## 🔗 Published Images
 
-- **API**: `classroomio/api` or `classroomio/api`
-- **Dashboard**: `classroomio/dashboard` or `classroomio/dashboard`
+- **API**: `ailaeclass/api` or `ailaeclass/api`
+- **Dashboard**: `ailaeclass/dashboard` or `ailaeclass/dashboard`
 
 Pull from Docker Hub:
 ```bash
-docker pull classroomio/api:latest
-docker pull classroomio/dashboard:latest
+docker pull ailaeclass/api:latest
+docker pull ailaeclass/dashboard:latest
 ```
 
 ## 💡 Tips

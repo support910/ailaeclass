@@ -10,7 +10,7 @@ export async function POST({ fetch, request }) {
 
   const emailData = [
     {
-      from: `"${orgName}" <notify@mail.classroomio.com>`,
+      from: `"${orgName}" <notify@mail.5gnumultimedia.com>`,
       to,
       subject: `[Submitted]: ${exerciseTitle}`,
       content

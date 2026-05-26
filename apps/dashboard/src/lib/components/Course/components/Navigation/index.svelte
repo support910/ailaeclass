@@ -15,7 +15,7 @@
   import { sideBar } from '$lib/components/Org/store';
   import { profile } from '$lib/utils/store/user';
   import { getIsLessonComplete } from '../Lesson/functions';
-  import { currentOrg, isFreePlan } from '$lib/utils/store/org';
+  import { currentOrg } from '$lib/utils/store/org';
   import { t, initialized } from '$lib/utils/functions/translations';
   import { COURSE_TYPE, COURSE_VERSION, type Lesson } from '$lib/utils/types';
   import { NAV_IDS } from './constants';
@@ -36,7 +36,6 @@
     to: string;
     hideSortIcon: boolean;
     isLesson?: boolean;
-    isPaidFeature: boolean;
     isExpanded?: boolean;
     sections?: Section[];
     show?: () => boolean;
@@ -153,7 +152,6 @@
         label: $t('course.navItems.nav_news_feed'),
         to: getNavItemRoute($course.id),
         hideSortIcon: true,
-        isPaidFeature: false,
         show() {
           return isStudent ? $currentOrg.customization.course.newsfeed : true;
         }
@@ -163,7 +161,6 @@
         label: $t('course.navItems.nav_content'),
         to: getLessonsRoute($course.id),
         hideSortIcon: false,
-        isPaidFeature: false,
         isLesson: true,
         sections: $lessonSections.map((section) => ({
           ...section,
@@ -173,20 +170,27 @@
         isExpanded: isStudent ? true : $page.url.pathname.includes('/lessons')
       },
       {
+        id: NAV_IDS.EXAMS,
+        label: $t('course.navItems.nav_exams'),
+        to: getNavItemRoute($course.id, 'exams'),
+        hideSortIcon: true,
+        show() {
+          return true;
+        }
+      },
+      {
         id: NAV_IDS.ANALYTICS,
         label: $t('course.navItems.nav_analytics'),
         to: getNavItemRoute($course.id, 'analytics'),
-        isPaidFeature: false,
         hideSortIcon: true,
         show() {
-          return !isStudent;
+          return isStudent === false;
         }
       },
       {
         id: NAV_IDS.ATTENDANCE,
         label: $t('course.navItems.nav_attendance'),
         to: getNavItemRoute($course.id, 'attendance'),
-        isPaidFeature: false,
         hideSortIcon: true,
         show() {
           if ($course.type !== COURSE_TYPE.LIVE_CLASS) return false;
@@ -199,22 +203,18 @@
         label: $t('course.navItems.nav_submissions'),
         to: getNavItemRoute($course.id, 'submissions'),
         hideSortIcon: true,
-        isPaidFeature: false,
         show() {
-          if (isStudent) return false;
-
-          return true;
+          return isStudent !== true;
         }
       },
       {
         id: NAV_IDS.MARKS,
         label: $t('course.navItems.nav_marks'),
         to: getNavItemRoute($course.id, 'marks'),
-        isPaidFeature: false,
         hideSortIcon: true,
         show() {
           if ($course.type == COURSE_TYPE.LIVE_CLASS) {
-            return isStudent ? $currentOrg.customization.course.grading : true;
+            return isStudent === true ? $currentOrg.customization.course.grading : true;
           }
 
           return false;
@@ -225,12 +225,7 @@
         label: $t('course.navItems.nav_certificates'),
         to: getNavItemRoute($course.id, 'certificates'),
         hideSortIcon: true,
-        isPaidFeature: true,
         show() {
-          // Dont show students if org on free plan
-          if (isStudent && $isFreePlan) {
-            return false;
-          }
           return true;
         }
       },
@@ -239,19 +234,17 @@
         label: $t('course.navItems.nav_landing_page'),
         to: getNavItemRoute($course.id, 'landingpage'),
         hideSortIcon: true,
-        isPaidFeature: false,
         show() {
-          return !isStudent;
+          return isStudent === false;
         }
       },
       {
         id: NAV_IDS.PEOPLE,
         label: $t('course.navItems.nav_people'),
         to: getNavItemRoute($course.id, 'people'),
-        isPaidFeature: false,
         hideSortIcon: true,
         show() {
-          return !isStudent;
+          return isStudent === false;
         }
       },
       {
@@ -259,9 +252,8 @@
         label: $t('course.navItems.nav_settings'),
         to: getNavItemRoute($course.id, 'settings'),
         hideSortIcon: true,
-        isPaidFeature: false,
         show() {
-          return !isStudent;
+          return isStudent === false;
         }
       }
     ];
@@ -300,7 +292,6 @@
             total={navItem.isLesson ? ($lessons || []).length : 0}
             isLoading={!$course.id}
             isLesson={navItem.isLesson}
-            isPaidFeature={navItem.isPaidFeature}
             isExpanded={navItem.isExpanded}
             {isStudent}
           >

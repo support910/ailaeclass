@@ -41,7 +41,7 @@
   import { ChevronLeft, ChevronRight, Edit, Save } from 'carbon-icons-svelte';
   import OverflowMenuVertical from 'carbon-icons-svelte/lib/OverflowMenuVertical.svelte';
   import ResultOld from 'carbon-icons-svelte/lib/ResultOld.svelte';
-  import { classroomio } from '$lib/utils/services/api';
+  import { appApi } from '$lib/utils/services/api';
 
   export let data;
 
@@ -160,7 +160,7 @@
       const lessonNumber = getLessonOrder(currentLesson.id);
       const slideUrl = $lesson.materials.slide_url || '';
 
-      const response = await classroomio.course.lesson.download.pdf.$post({
+      const response = await appApi.course.lesson.download.pdf.$post({
         json: {
           title: currentLesson.title,
           number: lessonNumber,

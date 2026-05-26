@@ -1,6 +1,6 @@
 # ailaeclass — 5G nuMultiMedia Learning Platform
 
-> A customized LMS powered by ClassroomIO, rebranded and enhanced for **5G nuMultiMedia Limited (5GNU)**.
+> A customized LMS powered by ailaeclass, rebranded and enhanced for **5G nuMultiMedia Limited (5GNU)**.
 > Deployed at: `http://localhost:3082` (Docker local)
 
 ---
@@ -113,10 +113,10 @@ SMTP_SENDER=
 
 ### 1. Build the Image
 
-From the **repository root** (`classroomio-main/`):
+From the **repository root** (`ailaeclass-main/`):
 
 ```bash
-docker build -f docker/Dockerfile.dashboard -t classroomio/dashboard:local .
+docker build -f docker/Dockerfile.dashboard -t ailaeclass/dashboard:local .
 ```
 
 Build-time fixes applied:
@@ -138,7 +138,7 @@ docker run -d \
   -e PRIVATE_DEEPSEEK_API_KEY=your_deepseek_key_here \
   -e PRIVATE_APP_HOST=5gnu.com \
   -e PRIVATE_APP_SUBDOMAINS=app \
-  classroomio/dashboard:local
+  ailaeclass/dashboard:local
 ```
 
 ### 3. Access the App
@@ -244,7 +244,7 @@ The post-login dashboard (`/org/[slug]`) now features a **tech-themed hero secti
 
 | Original | Rebranded To |
 |----------|-------------|
-| ClassroomIO | **ailaeclass** |
+| ailaeclass | **ailaeclass** |
 | Theme color | `#0E7372` (teal) + `#00D4FF` (cyan accent) |
 | Logo / favicon | Retained original asset paths (recommend replacing `/logo-192.png`) |
 | Course image template | `/images/ailaeclass-course-img-template.jpg` |

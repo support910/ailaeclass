@@ -6,7 +6,7 @@
   import TextField from '$lib/components/Form/TextField.svelte';
   import TextArea from '$lib/components/Form/TextArea.svelte';
   import { copyCourseModalInitialState, copyCourseModal } from '$lib/components/Courses/store';
-  import { classroomio } from '$lib/utils/services/api';
+  import { appApi } from '$lib/utils/services/api';
   import generateSlug from '$lib/utils/functions/generateSlug';
   import { currentOrg } from '$lib/utils/store/org';
   import { t } from '$lib/utils/functions/translations';
@@ -29,7 +29,7 @@
       // Generate unique slug from the title
       const slug = generateSlug($copyCourseModal.title);
 
-      const response = await classroomio.course.clone.$post({
+      const response = await appApi.course.clone.$post({
         json: {
           id: $copyCourseModal.id,
           title: $copyCourseModal.title,

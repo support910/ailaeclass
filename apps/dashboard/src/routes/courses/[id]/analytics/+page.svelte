@@ -32,7 +32,7 @@
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: accessToken
+          Authorization: `Bearer ${accessToken}`
         }
       });
 
@@ -41,13 +41,14 @@
 
         courseAnalytics = data as CourseAnalytics;
       } else {
-        console.error('Failed to fetch course analytics:', response);
-        snackbar.error('Failed to load analytics data');
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Failed to fetch course analytics:', response.status, errorText);
+        snackbar.error($t('analytics.load_error'));
         courseAnalytics = null;
       }
     } catch (error) {
       console.error('Failed to fetch course analytics:', error);
-      snackbar.error('Failed to load analytics data');
+      snackbar.error($t('analytics.load_error'));
       courseAnalytics = null;
     } finally {
       isLoading = false;

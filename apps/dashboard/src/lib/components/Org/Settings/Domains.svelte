@@ -22,7 +22,7 @@
   import { supabase } from '$lib/utils/functions/supabase';
   import { t } from '$lib/utils/functions/translations';
   import { updateOrgSiteNameValidation } from '$lib/utils/functions/validator';
-  import { currentOrg, isFreePlan } from '$lib/utils/store/org';
+  import { currentOrg } from '$lib/utils/store/org';
   import type { CurrentOrg } from '$lib/utils/types/org';
   import SectionTitle from '../SectionTitle.svelte';
 
@@ -79,12 +79,6 @@
 
   async function handleSaveCustomDomain() {
     if (!isDomainValid) return;
-
-    // Prevent free plan users from bypassing UI restrictions
-    if ($isFreePlan) {
-      errors.customDomain = 'Custom domains are only available on paid plans';
-      return;
-    }
 
     const sanitizedDomain = sanitizeDomain(customDomain);
 
@@ -360,14 +354,13 @@
             helperMessage="https://{customDomain || 'course.yourwebsite.com'}"
             errorMessage={errors.customDomain}
             className="w-4/5"
-            isDisabled={$isFreePlan}
           />
 
           <div class="mt-5 flex items-center">
             <PrimaryButton
               label={$t('components.settings.domains.save')}
               className="py-4"
-              onClick={$isFreePlan ? () => {} : handleSaveCustomDomain}
+              onClick={handleSaveCustomDomain}
               isLoading={isCustomDomainLoading}
               isDisabled={isLoading || !isDomainValid}
             />

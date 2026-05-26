@@ -9,7 +9,6 @@
   import CloseIcon from 'carbon-icons-svelte/lib/Close.svelte';
   import { DocumentUploader } from '$lib/utils/services/courses/presign';
   import { onDestroy } from 'svelte';
-  import { isFreePlan } from '$lib/utils/store/org';
   import { lesson } from '../../store/lessons';
   import {
     ALLOWED_DOCUMENT_TYPES,
@@ -115,13 +114,6 @@
       return;
     }
 
-    // Prevent free plan users from bypassing UI restrictions
-    if ($isFreePlan) {
-      $lessonDocUpload.error = $t('upgrade.required');
-      snackbar.error($lessonDocUpload.error);
-      return;
-    }
-
     $lessonDocUpload.isUploading = true;
 
     try {
@@ -215,7 +207,7 @@
     if (errorTimeout) clearTimeout(errorTimeout);
   });
 
-  $: isDisabled = $lessonDocUpload.isUploading || $isFreePlan;
+  $: isDisabled = $lessonDocUpload.isUploading;
 </script>
 
 <div class="p-6">

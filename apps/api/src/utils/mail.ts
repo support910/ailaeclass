@@ -184,16 +184,16 @@ export const withEmailTemplate = (content: string): string =>
     <table class="socialicons">
       <tr>
         <td>
-          <a target="_blank" href="https://twitter.com/classroomio"><img title="X"
-              src="https://brand.cdn.clsrio.com/socials/twitter.png" alt="X" width="19" /></a>
+          <a target="_blank" href="https://twitter.com/ailaeclass"><img title="X"
+              src="https://brand.cdn.ailaeclass.com/socials/twitter.png" alt="X" width="19" /></a>
         </td>
         <td>
           <a target="_blank" href="https://www.youtube.com/@5GNU"><img title="Youtube"
-              src="https://brand.cdn.clsrio.com/socials/youtube.png" alt="Youtube" width="24" /></a>
+              src="https://brand.cdn.ailaeclass.com/socials/youtube.png" alt="Youtube" width="24" /></a>
         </td>
         <td>
-          <a target="_blank" href="https://www.facebook.com/classroomiohq"><img title="Facebook"
-              src="https://brand.cdn.clsrio.com/socials/facebook.png" alt="Facebook" width="24" /></a>
+          <a target="_blank" href="https://www.facebook.com/ailaeclasshq"><img title="Facebook"
+              src="https://brand.cdn.ailaeclass.com/socials/facebook.png" alt="Facebook" width="24" /></a>
         </td>
       </tr>
     </table>

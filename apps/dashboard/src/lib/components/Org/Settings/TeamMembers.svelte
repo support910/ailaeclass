@@ -18,7 +18,6 @@
     triggerSendEmail,
     NOTIFICATION_NAME
   } from '$lib/utils/services/notification/notification';
-  import { isFreePlan } from '$lib/utils/store/org';
   import type { OrgTeamMember } from '$lib/utils/types/org';
   import { t } from '$lib/utils/functions/translations';
 
@@ -28,14 +27,9 @@
   let isFetching = false;
   let isLoading = false;
   let isRemoving: number | null = null;
+  let isApproving: number | null = null;
 
   async function onSendInvite() {
-    // Check if user is on free plan
-    if ($isFreePlan) {
-      snackbar.error('upgrade.required');
-      return;
-    }
-
     const { hasError, error: _error, emails } = validateEmailInString(emailsStr);
 
     if (hasError) {
@@ -110,13 +104,45 @@
     });
   }
 
-  async function onRemove(id: number) {
-    // Check if user is on free plan
-    if ($isFreePlan) {
-      snackbar.error('upgrade.required');
-      return;
-    }
+  async function onApprove(id: number) {
+    isApproving = id;
+    try {
+      const accessToken = await (await import('$lib/utils/functions/supabase')).getAccessToken();
+      const res = await fetch('/api/org/team', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: accessToken
+        },
+        body: JSON.stringify({
+          orgId: $currentOrg.id,
+          memberId: id,
+          verified: true
+        })
+      });
 
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        console.error('onApprove error:', result);
+        snackbar.error('course.navItem.people.teams.approve_fail');
+        isApproving = null;
+        return;
+      }
+
+      orgTeam.update((team) =>
+        team.map((member) =>
+          member.id === id ? { ...member, verified: true } : member
+        )
+      );
+      snackbar.success('course.navItem.people.teams.approve_success');
+    } catch (err) {
+      console.error('onApprove exception:', err);
+      snackbar.error('course.navItem.people.teams.approve_fail');
+    }
+    isApproving = null;
+  }
+
+  async function onRemove(id: number) {
     console.log('onRemove called');
     isRemoving = id;
     const { error } = await supabase.from('organizationmember').delete().match({ id });
@@ -156,33 +182,37 @@
         {$t('course.navItem.people.teams.add_team')}
       </p>
 
-      <div class="">
-        <TextField
-          label={$t('course.navItem.people.teams.invite')}
-          placeholder={$t('course.navItem.people.teams.placeholder')}
-          bind:value={emailsStr}
-          className="mb-3"
-          isDisabled={$isFreePlan}
-          {errorMessage}
-        />
+      {#if isTeamMemberAdmin($orgTeam, $profile.id)}
+        <div class="">
+          <TextField
+            label={$t('course.navItem.people.teams.invite')}
+            placeholder={$t('course.navItem.people.teams.placeholder')}
+            bind:value={emailsStr}
+            className="mb-3"
+            {errorMessage}
+          />
 
-        <Select
-          labelText={$t('course.navItem.people.teams.role')}
-          bind:selected={role}
-          class="mb-5 w-40"
-          disabled={$isFreePlan}
-        >
-          <SelectItem value={ROLE.ADMIN} text={$t(ROLE_LABEL[ROLE.ADMIN])} />
-          <SelectItem value={ROLE.TUTOR} text={$t(ROLE_LABEL[ROLE.TUTOR])} />
-        </Select>
+          <Select
+            labelText={$t('course.navItem.people.teams.role')}
+            bind:selected={role}
+            class="mb-5 w-40"
+          >
+            <SelectItem value={ROLE.ADMIN} text={$t(ROLE_LABEL[ROLE.ADMIN])} />
+            <SelectItem value={ROLE.TUTOR} text={$t(ROLE_LABEL[ROLE.TUTOR])} />
+          </Select>
 
-        <PrimaryButton
-          label={$t('course.navItem.people.teams.send_invite')}
-          onClick={onSendInvite}
-          {isLoading}
-          isDisabled={isLoading || $isFreePlan}
-        />
-      </div>
+          <PrimaryButton
+            label={$t('course.navItem.people.teams.send_invite')}
+            onClick={onSendInvite}
+            {isLoading}
+            isDisabled={isLoading}
+          />
+        </div>
+      {:else}
+        <p class="text-sm text-gray-500 dark:text-white">
+          {$t('course.navItem.people.teams.admin_only_invite')}
+        </p>
+      {/if}
     </Column>
   </Row>
 
@@ -203,7 +233,7 @@
               <TextChip value={$t(teamMember.role)} className="text-xs mr-3" size="sm" />
               {#if !teamMember.verified}
                 <TextChip
-                  value={$t('course.navItem.people.teams.invite_sent')}
+                  value={$t('course.navItem.people.teams.pending_approval')}
                   className="text-xs bg-yellow-200 text-yellow-700"
                   size="sm"
                 />
@@ -212,13 +242,24 @@
               {/if}
             </div>
             {#if teamMember.profileId !== $profile.id && isTeamMemberAdmin($orgTeam, $profile.id)}
-              <PrimaryButton
-                label={$t('course.navItem.people.teams.remove')}
-                variant={VARIANTS.TEXT_DANGER}
-                onClick={() => onRemove(teamMember.id)}
-                isLoading={isRemoving === teamMember.id}
-                isDisabled={isRemoving === teamMember.id}
-              />
+              <div class="flex items-center gap-2">
+                {#if !teamMember.verified && !teamMember.isAdmin}
+                  <PrimaryButton
+                    label={$t('course.navItem.people.teams.approve')}
+                    variant={VARIANTS.TEXT}
+                    onClick={() => onApprove(teamMember.id)}
+                    isLoading={isApproving === teamMember.id}
+                    isDisabled={isApproving === teamMember.id || isRemoving === teamMember.id}
+                  />
+                {/if}
+                <PrimaryButton
+                  label={$t('course.navItem.people.teams.remove')}
+                  variant={VARIANTS.TEXT_DANGER}
+                  onClick={() => onRemove(teamMember.id)}
+                  isLoading={isRemoving === teamMember.id}
+                  isDisabled={isRemoving === teamMember.id || isApproving === teamMember.id}
+                />
+              </div>
             {/if}
           </div>
         {/each}

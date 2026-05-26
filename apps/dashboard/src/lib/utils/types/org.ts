@@ -40,6 +40,7 @@ export interface CurrentOrg {
   isCustomDomainVerified?: boolean;
   customCode?: string;
   favicon?: string;
+  verified?: boolean;
 }
 
 export interface OrgTeamMember {

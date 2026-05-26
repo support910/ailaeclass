@@ -9,24 +9,24 @@ docker login
 
 ### API
 ```bash
-docker build -f ./docker/Dockerfile.api -t classroomio/api:latest .
+docker build -f ./docker/Dockerfile.api -t ailaeclass/api:latest .
 ```
 
 ### Dashboard
 ```bash
-docker build -f ./docker/Dockerfile.dashboard -t classroomio/dashboard:latest .
+docker build -f ./docker/Dockerfile.dashboard -t ailaeclass/dashboard:latest .
 ```
 
 ## Push to Docker Hub
 
 ### API
 ```bash
-docker push classroomio/api:latest
+docker push ailaeclass/api:latest
 ```
 
 ### Dashboard
 ```bash
-docker push classroomio/dashboard:latest
+docker push ailaeclass/dashboard:latest
 ```
 
 ## All in One Script
@@ -46,8 +46,8 @@ VERSION=v1.0.0 ./docker-push.sh
 
 ## Pull Published Images
 ```bash
-docker pull classroomio/api:latest
-docker pull classroomio/dashboard:latest
+docker pull ailaeclass/api:latest
+docker pull ailaeclass/dashboard:latest
 ```
 
 ## Run Published Images
@@ -56,35 +56,35 @@ docker pull classroomio/dashboard:latest
 docker run -d -p 3081:3081 \
   -e PUBLIC_SUPABASE_ANON_KEY=your_key \
   -e PUBLIC_SUPABASE_URL=your_url \
-  classroomio/api:latest
+  ailaeclass/api:latest
 
 # Dashboard
 docker run -d -p 3082:3082 \
   -e PUBLIC_SUPABASE_ANON_KEY=your_key \
   -e PUBLIC_SUPABASE_URL=your_url \
-  classroomio/dashboard:latest
+  ailaeclass/dashboard:latest
 ```
 
 ## Useful Commands
 
 ### Check local images
 ```bash
-docker images | grep classroomio
+docker images | grep ailaeclass
 ```
 
 ### Remove local images
 ```bash
-docker rmi classroomio/api:latest
-docker rmi classroomio/dashboard:latest
+docker rmi ailaeclass/api:latest
+docker rmi ailaeclass/dashboard:latest
 ```
 
 ### View image details
 ```bash
-docker inspect classroomio/api:latest
+docker inspect ailaeclass/api:latest
 ```
 
 ### Check image size
 ```bash
-docker images classroomio/api:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+docker images ailaeclass/api:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
 ```
 

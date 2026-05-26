@@ -1,6 +1,6 @@
 # UI 風格指南 — AI 模塊延伸開發手冊
 
-> 本文檔目標讀者：負責在 ClassroomIO 既有介面之上,繼續開發 AI 相關模塊(如 AI 助教、AI 出題、AI 批改、AI 對話等)的開發者或 AI 編程代理。
+> 本文檔目標讀者：負責在 ailaeclass 既有介面之上,繼續開發 AI 相關模塊(如 AI 助教、AI 出題、AI 批改、AI 對話等)的開發者或 AI 編程代理。
 >
 > 閱讀本文後,你應該能在不引入新 UI 庫、不破壞現有風格的前提下,新增 AI 模塊功能。
 
@@ -815,6 +815,6 @@ import MagicWandFilled from 'carbon-icons-svelte/lib/MagicWandFilled.svelte';
 
 **版本資訊**
 
-* 適用版本:ClassroomIO main 分支(2026-05-05 截稿)
+* 適用版本:ailaeclass main 分支(2026-05-05 截稿)
 * 撰寫者:UI 風格延伸文件
 * 後續維護:每當新增主要 AI 模塊或更動主題色系時,請同步更新本文件第 8 章「核心元件清單」與第 10 章「AI 模塊既有實作」。

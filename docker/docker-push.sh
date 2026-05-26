@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Docker Hub Push Script for ClassroomIO
+# Docker Hub Push Script for ailaeclass
 # This script builds and pushes the API and Dashboard images to Docker Hub
 
 set -e  # Exit on error
 
 # Configuration
-DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME:-classroomio}"  # Change this to your Docker Hub username
+DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME:-ailaeclass}"  # Change this to your Docker Hub username
 VERSION="${VERSION:-latest}"  # Can be overridden with VERSION env var
 
 # Colors for output
@@ -16,7 +16,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}================================${NC}"
-echo -e "${BLUE}ClassroomIO Docker Hub Publisher${NC}"
+echo -e "${BLUE}ailaeclass Docker Hub Publisher${NC}"
 echo -e "${BLUE}================================${NC}"
 echo ""
 

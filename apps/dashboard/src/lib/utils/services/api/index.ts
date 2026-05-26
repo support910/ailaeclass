@@ -184,7 +184,7 @@ class ApiClient {
 export const apiClient = new ApiClient();
 
 // RPC client using the new fetch wrapper
-export const classroomio = hcWithType(env.PUBLIC_SERVER_URL, {
+export const appApi = hcWithType(env.PUBLIC_SERVER_URL, {
   fetch: async (input: RequestInfo | URL, requestInit?: RequestInit) => {
     return apiClient.request(input, requestInit);
   }

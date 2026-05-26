@@ -45,14 +45,14 @@
         open = !open;
       }}
     >
-        <img src="/logo-512.png" alt={$currentOrg.name} class="w-7 h-7 rounded-md object-contain" />
+        <img src="/logo-512.png" alt={$currentOrg.name || 'Organization'} class="w-7 h-7 rounded-md object-contain" />
       <div class="flex items-center cursor-pointer max-w-[219px] justify-between w-full">
         <div class="flex flex-col items-start">
           <p class="dark:text-white text-sm font-medium whitespace-nowrap truncate mb-1">
-            {$currentOrg.name}
+            {$currentOrg.name || 'Organization'}
           </p>
 
-          <Plan name={$currentOrgPlan ? PLAN_NAMES[$currentOrgPlan.plan_name] : PLAN_NAMES.BASIC} />
+          <Plan name={$currentOrgPlan ? (PLAN_NAMES[$currentOrgPlan.plan_name] || PLAN_NAMES.BASIC) : PLAN_NAMES.BASIC} />
         </div>
         <ChevronSort size={16} />
       </div>

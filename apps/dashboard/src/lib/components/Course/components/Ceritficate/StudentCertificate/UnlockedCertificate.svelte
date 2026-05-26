@@ -13,7 +13,7 @@
   import { fetchProfileCourseProgress } from '$lib/utils/services/courses';
   import type { ProfileCourseProgress } from '$lib/utils/types';
   import { snackbar } from '$lib/components/Snackbar/store';
-  import { classroomio } from '$lib/utils/services/api';
+  import { appApi } from '$lib/utils/services/api';
 
   let isLoading = false;
   let isCourseComplete = false;
@@ -24,7 +24,7 @@
 
     isLoading = true;
     try {
-      const response = await classroomio.course.download.certificate.$post({
+      const response = await appApi.course.download.certificate.$post({
         json: {
           theme: `${$course.certificate_theme}`,
           studentName: `${$profile.fullname}`,

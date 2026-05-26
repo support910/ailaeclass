@@ -1,4 +1,4 @@
-import { classroomio } from '$lib/utils/services/api';
+import { appApi } from '$lib/utils/services/api';
 
 const sendEmail = (sFetch: typeof fetch) => {
   return async (
@@ -12,7 +12,7 @@ const sendEmail = (sFetch: typeof fetch) => {
     }[]
   ) => {
     try {
-      const response = await classroomio.mail.send.$post(
+      const response = await appApi.mail.send.$post(
         { json: emailDataArray },
         { fetch: sFetch }
       );

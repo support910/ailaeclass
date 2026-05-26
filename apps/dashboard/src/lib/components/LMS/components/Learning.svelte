@@ -11,6 +11,11 @@
     goto(`/courses/${id}/lessons?next=true`);
   };
 
+  const gotoExams = (id: string | undefined) => {
+    if (!id) return;
+    goto(`/courses/${id}/exams`);
+  };
+
   $: last3Courses = $courses.length > 0 ? $courses.slice(0, 3) : [];
 </script>
 
@@ -27,7 +32,7 @@
           <div class="p-5">
             <span class="flex flex-col lg:flex-row gap-3 items-start pb-5">
               <img
-                src={course.logo || '/images/classroomio-course-img-template.jpg'}
+                src={course.logo || '/images/ailaeclass-course-img-template.jpg'}
                 alt="course"
                 class="hidden lg:block lg:w-[60px] lg:h-[60px]"
               />
@@ -37,12 +42,20 @@
                   {course.description}
                 </p>
               </div>
-              <PrimaryButton
-                label={$t('dashboard.continue')}
-                variant={VARIANTS.OUTLINED}
-                className="rounded-none text-[#0233BD]"
-                onClick={() => gotoCourse(course.id)}
-              />
+              <div class="flex flex-col gap-2 shrink-0">
+                <PrimaryButton
+                  label={$t('dashboard.continue')}
+                  variant={VARIANTS.OUTLINED}
+                  className="rounded-none text-[#0233BD]"
+                  onClick={() => gotoCourse(course.id)}
+                />
+                <PrimaryButton
+                  label={$t('dashboard.view_exams')}
+                  variant={VARIANTS.CONTAINED}
+                  className="rounded-none"
+                  onClick={() => gotoExams(course.id)}
+                />
+              </div>
             </span>
             <div class="relative bg-[#EAEAEA] w-full h-1">
               <div

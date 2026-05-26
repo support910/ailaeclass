@@ -24,7 +24,7 @@ const config = {
         'default-src': ['self'],
         'script-src': [
           'self',
-          'https://assets.cdn.clsrio.com',
+          'https://assets.cdn.ailaeclass.com',
           'https://cdnjs.cloudflare.com',
           'https://*.i.posthog.com',
           'https://*.senja.io',
@@ -36,16 +36,14 @@ const config = {
           'unsafe-inline',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
-          'https://assets.cdn.clsrio.com/carbon-all.css',
-          'https://assets.cdn.clsrio.com/eqneditor_1.css'
+          'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
         ],
         'style-src-elem': [
           'self',
           'unsafe-inline',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
-					'https://assets.cdn.clsrio.com/carbon-all.css',
-          'https://assets.cdn.clsrio.com/eqneditor_1.css'
+          'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
         ],
         'font-src': ['self', 'https://fonts.gstatic.com', 'https://cdn.plyr.io'],
         'img-src': ['self', 'data:', 'https:'],
@@ -55,7 +53,7 @@ const config = {
           'self',
           'https://*.supabase.co',
           'https://*.ailaeclass.com',
-          'https://assets.cdn.clsrio.com',
+          'https://assets.cdn.ailaeclass.com',
           'https://cdn.plyr.io',
           'https://*.i.posthog.com',
           'https://umami.hz.oncws.com',
@@ -77,7 +75,7 @@ const config = {
         'default-src': ['self'],
         'script-src': [
           'self',
-          'https://assets.cdn.clsrio.com',
+          'https://assets.cdn.ailaeclass.com',
           'https://cdnjs.cloudflare.com',
           'https://*.i.posthog.com',
           'https://*.senja.io',
@@ -89,14 +87,14 @@ const config = {
           'unsafe-inline',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
-          'https://assets.cdn.clsrio.com/eqneditor_1.css'
+          'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
         ],
         'style-src-elem': [
           'self',
           'unsafe-inline',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
-          'https://assets.cdn.clsrio.com/eqneditor_1.css'
+          'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
         ],
         'font-src': ['self', 'https://fonts.gstatic.com', 'https://cdn.plyr.io'],
         'img-src': ['self', 'data:', 'https:'],
@@ -107,7 +105,7 @@ const config = {
           'https://*.supabase.co',
           'https://pgrest.ailaeclass.com',
           'https://api.ailaeclass.com',
-          'https://assets.cdn.clsrio.com',
+          'https://assets.cdn.ailaeclass.com',
           'https://cdn.plyr.io',
           'https://*.i.posthog.com',
           'https://umami.hz.oncws.com',

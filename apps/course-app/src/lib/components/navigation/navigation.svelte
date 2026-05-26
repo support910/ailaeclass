@@ -16,10 +16,10 @@
   <p class="bg-blue-700 py-1.5 text-center text-sm font-medium text-white">
     brought to you by
     <a
-      href="https://classroomio.com"
+      href="https://ailaeclass.com"
       target="_blank"
       class="inline-flex items-center font-semibold underline-offset-2 hover:underline"
-      >classroomio.com
+      >ailaeclass.com
       <svg
         width="24"
         height="24"
@@ -64,7 +64,7 @@
           NPM <ArrowUpRight class="h-4 w-4" />
         </a>{' '}
         <!-- <a
-					href="https://github.com/classroomio/classroomio"
+					href="https://github.com/ailaeclass/ailaeclass"
 					class="hover:text-foreground/80 text-foreground/60 transition-colors"
 				>
 					Github
@@ -75,7 +75,7 @@
     <div class="flex flex-1 items-center justify-end space-x-2">
       <nav class="flex items-center">
         <a
-          href="https://github.com/classroomio/classroomio/tree/main/packages/course-app#readme"
+          href="https://github.com/ailaeclass/ailaeclass/tree/main/packages/course-app#readme"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -91,7 +91,7 @@
             <span class="sr-only" data-svelte-h="svelte-11yow7k"> GitHub </span>
           </div>
         </a>{' '}
-        <a href="https://twitter.com/classroomio" target="_blank" rel="noreferrer">
+        <a href="https://twitter.com/ailaeclass" target="_blank" rel="noreferrer">
           <div
             class="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground inline-flex h-8 w-8 items-center justify-center whitespace-nowrap rounded-md px-0 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
           >

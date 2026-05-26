@@ -7,11 +7,11 @@ export const addMathPlugin = (tinymce: any) => {
   tinymce.PluginManager.add('eqneditor', function (editor, url) {
     // Load necessary javascript for editor from CodeCogs
     var sl = new tinymce.dom.ScriptLoader();
-    sl.add('https://assets.cdn.clsrio.com/eqneditor.api.min.js');
+    sl.add('https://assets.cdn.ailaeclass.com/eqneditor.api.min.js');
     var loaded = sl.loadQueue();
 
     // Load custom CSS
-    tinymce.DOM.loadCSS('https://assets.cdn.clsrio.com/eqneditor_1.css');
+    tinymce.DOM.loadCSS('https://assets.cdn.ailaeclass.com/eqneditor_1.css');
 
     editor.ui.registry.addIcon(
       'logo',

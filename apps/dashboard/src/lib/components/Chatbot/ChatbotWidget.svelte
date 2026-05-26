@@ -7,6 +7,7 @@
   import MaximizeIcon from 'carbon-icons-svelte/lib/Maximize.svelte';
   import MinimizeIcon from 'carbon-icons-svelte/lib/Minimize.svelte';
   import UserAvatar from 'carbon-icons-svelte/lib/UserAvatar.svelte';
+  import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
 
   let isOpen = false;
@@ -16,6 +17,7 @@
   let isLoading = false;
   let chatContainer: HTMLDivElement;
   let inputRef: HTMLInputElement;
+  $: isLandingPage = $page.url.pathname === '/';
 
   const welcomeMessage = {
     role: 'bot' as const,
@@ -49,11 +51,31 @@
         body: JSON.stringify({ message: text })
       });
 
-      const data = await response.json();
-      console.log('Chat API response:', data);
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = { error: 'Invalid response from server' };
+      }
 
-      if (data.error) {
-        messages = [...messages, { role: 'bot', text: `Error: ${data.error}` }];
+      console.log('Chat API response:', { status: response.status, data });
+
+      if (!response.ok || data.error) {
+        const status = response.status;
+        const code = data.code;
+        let friendly = 'Sorry, the AI service is temporarily unavailable. Please try again later.';
+
+        if (status === 503 && code === 'missing_deepseek_key') {
+          friendly = 'AI assistant is not configured. Please set PRIVATE_DEEPSEEK_API_KEY and restart the server.';
+        } else if (status === 502 && code === 'upstream_error') {
+          friendly = 'AI service is temporarily unavailable.';
+        } else if (status === 400) {
+          friendly = data.error || 'Invalid request. Please try again.';
+        } else if (data.error) {
+          friendly = data.error;
+        }
+
+        messages = [...messages, { role: 'bot', text: friendly }];
       } else if (data.reply) {
         messages = [...messages, { role: 'bot', text: data.reply }];
       } else {
@@ -61,11 +83,12 @@
           ...messages,
           {
             role: 'bot',
-            text: 'Sorry, the AI service is temporarily unavailable. Please try again later.'
+            text: 'Sorry, the AI service returned an unexpected response. Please try again later.'
           }
         ];
       }
     } catch (err) {
+      console.error('Chat request failed:', err);
       messages = [...messages, { role: 'bot', text: 'Sorry, the AI service is temporarily unavailable. Please try again later.' }];
     } finally {
       isLoading = false;
@@ -97,7 +120,8 @@
 {#if !isOpen}
   <button
     on:click={toggleOpen}
-    class="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95"
+    class="chat-toggle fixed right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95"
+    class:landing-chat-position={isLandingPage}
     style="background: linear-gradient(135deg, #0E7372 0%, #00D4FF 100%);"
     aria-label="Open chat"
     in:fade={{ duration: 200 }}
@@ -109,7 +133,8 @@
 <!-- Chat Widget -->
 {#if isOpen}
   <div
-    class="fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
+    class="chat-panel fixed right-6 z-50 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
+    class:landing-chat-position={isLandingPage}
     class:w-96={!isExpanded}
     class:h-[28rem]={!isExpanded}
     class:w-[32rem]={isExpanded}
@@ -127,7 +152,7 @@
         </div>
         <div>
           <h3 class="text-sm font-semibold text-white">ailaeclass AI</h3>
-          <p class="text-xs text-white/80">Powered by DeepSeek</p>
+          <p class="text-xs text-white/80">AI Assistant</p>
         </div>
       </div>
       <div class="flex items-center gap-1">
@@ -235,11 +260,46 @@
 {/if}
 
 <style>
+  .chat-toggle,
+  .chat-panel {
+    bottom: 1.5rem;
+  }
+
+  .landing-chat-position {
+    top: 1.5rem;
+    bottom: auto;
+  }
+
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
   }
   .animate-bounce {
     animation: bounce 1s infinite;
+  }
+
+  @media (min-width: 769px) {
+    .chat-toggle.landing-chat-position,
+    .chat-panel.landing-chat-position {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .chat-toggle.landing-chat-position {
+      top: auto;
+      right: 1rem;
+      bottom: 5.25rem;
+    }
+
+    .chat-panel,
+    .chat-panel.landing-chat-position {
+      top: auto;
+      right: 1rem;
+      bottom: 5.25rem;
+      left: 1rem;
+      width: auto;
+      height: min(28rem, calc(100svh - 7rem));
+    }
   }
 </style>

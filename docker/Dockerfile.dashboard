@@ -29,6 +29,7 @@ RUN ls -la
 # Set required public env vars for the build (SvelteKit $env/static/public)
 # Railway passes Variables as Docker build-args automatically.
 ARG PUBLIC_SINGLE_ORG_SITE_NAME
+ARG PUBLIC_IS_SELFHOSTED
 ARG PUBLIC_SUPABASE_URL
 ARG PUBLIC_SUPABASE_ANON_KEY
 ARG PRIVATE_SUPABASE_SERVICE_ROLE
@@ -37,7 +38,8 @@ ARG PRIVATE_APP_HOST
 ARG PRIVATE_APP_SUBDOMAINS
 
 ENV PUBLIC_SINGLE_ORG_SITE_NAME=${PUBLIC_SINGLE_ORG_SITE_NAME:-""}
-ENV PUBLIC_SUPABASE_URL=${PUBLIC_SUPABASE_URL:-https://ijaetqisttjhbjfgdusp.supabase.co}
+ENV PUBLIC_IS_SELFHOSTED=${PUBLIC_IS_SELFHOSTED:-true}
+ENV PUBLIC_SUPABASE_URL=${PUBLIC_SUPABASE_URL:-https://kiqzanfkpivkuvlvxqsp.supabase.co}
 ENV PUBLIC_SUPABASE_ANON_KEY=${PUBLIC_SUPABASE_ANON_KEY}
 ENV PRIVATE_SUPABASE_SERVICE_ROLE=${PRIVATE_SUPABASE_SERVICE_ROLE}
 ENV PRIVATE_DEEPSEEK_API_KEY=${PRIVATE_DEEPSEEK_API_KEY}
@@ -54,6 +56,15 @@ RUN NODE_OPTIONS="--max-old-space-size=3072" PUBLIC_IS_SELFHOSTED=true pnpm buil
 FROM node:20.19.3-alpine AS runner
 
 WORKDIR /app
+
+# Re-declare build args so they are available in this stage for ENV defaults
+ARG PUBLIC_SINGLE_ORG_SITE_NAME
+ARG PUBLIC_SUPABASE_URL
+ARG PUBLIC_SUPABASE_ANON_KEY
+ARG PRIVATE_SUPABASE_SERVICE_ROLE
+ARG PRIVATE_DEEPSEEK_API_KEY
+ARG PRIVATE_APP_HOST
+ARG PRIVATE_APP_SUBDOMAINS
 
 # Install pnpm and turbo before switching to non-root user
 RUN npm install -g pnpm@8.15.9 turbo@1.10.16
@@ -76,9 +87,17 @@ COPY --from=builder --chown=cio-user:nodejs ./cio/pnpm-workspace.yaml ./pnpm-wor
 EXPOSE 3082
 
 # Set environment variables for production
+# PUBLIC_ vars must be available at runtime because the app uses $env/dynamic/public
 ENV PORT=3082 \
     NODE_ENV=production \
     PUBLIC_IS_SELFHOSTED=true \
+    PUBLIC_SUPABASE_URL=${PUBLIC_SUPABASE_URL:-https://kiqzanfkpivkuvlvxqsp.supabase.co} \
+    PUBLIC_SUPABASE_ANON_KEY=${PUBLIC_SUPABASE_ANON_KEY} \
+    PRIVATE_SUPABASE_SERVICE_ROLE=${PRIVATE_SUPABASE_SERVICE_ROLE} \
+    PRIVATE_DEEPSEEK_API_KEY=${PRIVATE_DEEPSEEK_API_KEY} \
+    PRIVATE_APP_HOST=${PRIVATE_APP_HOST:-5gnumultimedia.com} \
+    PRIVATE_APP_SUBDOMAINS=${PRIVATE_APP_SUBDOMAINS:-app} \
+    PUBLIC_SINGLE_ORG_SITE_NAME=${PUBLIC_SINGLE_ORG_SITE_NAME:-""} \
     NODE_OPTIONS="--max-old-space-size=2048"
 
 # Start the app

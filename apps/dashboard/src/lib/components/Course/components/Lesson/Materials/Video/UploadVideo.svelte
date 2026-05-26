@@ -6,7 +6,6 @@
     cancelVideoUpload
   } from '$lib/components/Course/components/Lesson/store/lessons';
   import { ProgressBar } from 'carbon-components-svelte';
-  import { isFreePlan } from '$lib/utils/store/org';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import { t } from '$lib/utils/functions/translations';
 
@@ -27,17 +26,6 @@
 
   async function onUpload() {
     if (!fileInput) return;
-
-    // Prevent free plan users from bypassing UI restrictions
-    if ($isFreePlan) {
-      formRes = {
-        type: 'AUTHORIZATION_ERROR', 
-        status: 403,
-        message: $t('upgrade.required')
-      };
-      isLoaded = true;
-      return;
-    }
 
     videoUploader.initUpload();
 
@@ -120,7 +108,7 @@
 
   $: helperText = $lessonVideoUpload.uploadProgress + '%  of ' + Math.round(fileSize) + 'MB';
 
-  $: isDisabled = $lessonVideoUpload.isUploading || $isFreePlan;
+  $: isDisabled = $lessonVideoUpload.isUploading;
 </script>
 
 {#if !isLoaded}

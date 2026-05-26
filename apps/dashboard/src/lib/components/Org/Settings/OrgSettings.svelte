@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { Column, Grid, Row } from 'carbon-components-svelte';
-  import FlashFilled from 'carbon-icons-svelte/lib/FlashFilled.svelte';
   import debounce from 'lodash/debounce';
   import ColorPicker from 'svelte-awesome-color-picker';
 
@@ -10,7 +9,7 @@
   import { injectCustomTheme, setCustomTheme, setTheme } from '$lib/utils/functions/theme';
   import { t } from '$lib/utils/functions/translations';
   import { updateOrgNameValidation } from '$lib/utils/functions/validator';
-  import { currentOrg, currentOrgPath, isFreePlan } from '$lib/utils/store/org';
+  import { currentOrg, currentOrgPath } from '$lib/utils/store/org';
 
   import TextField from '$lib/components/Form/TextField.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
@@ -303,9 +302,6 @@
         variant={VARIANTS.OUTLINED}
         onClick={() => gotoSettings('/domains')}
       >
-        {#if $isFreePlan}
-          <FlashFilled size={16} class="text-blue-700" />
-        {/if}
         {$t('settings.organization.organization_profile.custom_domain.button')}
       </PrimaryButton>
     </Column>
@@ -327,9 +323,6 @@
         variant={VARIANTS.OUTLINED}
         onClick={() => gotoSettings('/teams')}
       >
-        {#if $isFreePlan}
-          <FlashFilled size={16} class="text-blue-700" />
-        {/if}
         {$t('settings.organization.organization_profile.team.button')}
       </PrimaryButton>
     </Column>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { CurrentOrg } from '$lib/utils/types/org.ts';
   import type { Course } from '$lib/utils/types/index.ts';
-  import { isFreePlan } from '$lib/utils/store/org';
   import { BRAND } from '$lib/utils/config/brand';
   import { qrInviteNodeStore } from './store';
 
@@ -27,10 +26,8 @@
       <p class="mt-1 font-semibold text-lg text-black">{currentOrg.name}</p>
     </div>
   </div>
-  {#if $isFreePlan}
-    <div class="bg-white flex items-center gap-x-2 px-4 py-2 rounded-md relative top-16">
-      <img src={BRAND.logo} alt="logo" class="w-6" />
-      <span class="font-bold text-base">{BRAND.name}</span>
-    </div>
-  {/if}
+  <div class="bg-white flex items-center gap-x-2 px-4 py-2 rounded-md relative top-16">
+    <img src={BRAND.logo} alt="logo" class="w-6" />
+    <span class="font-bold text-base">{BRAND.name}</span>
+  </div>
 </div>

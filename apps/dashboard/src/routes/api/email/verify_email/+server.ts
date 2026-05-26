@@ -63,7 +63,7 @@ export async function POST({ fetch, request }) {
 
   const emailData = [
     {
-      from: `"New Account" <notify@mail.classroomio.com>`,
+      from: `"New Account" <notify@mail.5gnumultimedia.com>`,
       to,
       subject: 'Action Required: Confirm your email',
       content: `

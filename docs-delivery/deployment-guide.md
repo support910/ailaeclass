@@ -15,7 +15,7 @@
 
 ## 部署架構概述
 
-ClassroomIO 採用前後端分離架構，由三個核心組件組成：
+ailaeclass 採用前後端分離架構，由三個核心組件組成：
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -86,7 +86,7 @@ pnpm add -g supabase
 supabase login
 
 # 連結到雲端項目
-cd classroomio-main
+cd ailaeclass-main
 supabase link --project-ref <your-project-ref>
 
 # 執行所有遷移
@@ -187,7 +187,7 @@ PORT=3000 node build
 pnpm add -g pm2
 
 # 啟動應用
-pm2 start ecosystem.config.cjs --name classroomio-dashboard
+pm2 start ecosystem.config.cjs --name ailaeclass-dashboard
 
 # 設定開機自啟
 pm2 startup
@@ -199,9 +199,9 @@ PM2 配置檔 `ecosystem.config.cjs`：
 ```javascript
 module.exports = {
   apps: [{
-    name: 'classroomio-dashboard',
+    name: 'ailaeclass-dashboard',
     script: 'build/index.js',
-    cwd: '/path/to/classroomio-main/apps/dashboard',
+    cwd: '/path/to/ailaeclass-main/apps/dashboard',
     env: {
       PORT: 3000,
       NODE_ENV: 'production'
@@ -230,14 +230,14 @@ module.exports = {
 cd apps/api
 
 # 構建映像
-docker build -t classroomio-api .
+docker build -t ailaeclass-api .
 
 # 運行容器
 docker run -d \
-  --name classroomio-api \
+  --name ailaeclass-api \
   -p 3001:3001 \
   --env-file .env \
-  classroomio-api
+  ailaeclass-api
 ```
 
 ### 方案 C：Node.js 自建部署

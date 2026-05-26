@@ -1,9 +1,10 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { getServerSupabase } from '$lib/utils/functions/supabase.server';
+import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
+import { ROLE } from '$lib/utils/constants/roles';
 
 export const GET: RequestHandler = async ({ request, url }) => {
-  const userId = request.headers.get('user_id');
+  const userId = await getUserIdFromRequest(request);
   const orgId = url.searchParams.get('orgId');
 
   if (!orgId) {
@@ -11,26 +12,27 @@ export const GET: RequestHandler = async ({ request, url }) => {
   }
 
   if (!userId) {
-    return json({ success: false, message: 'User ID is required' }, { status: 401 });
+    return json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const supabase = getServerSupabase();
 
-    // Check if user has access to this organization
+    // Check if user is a verified admin or tutor of this organization
     const { data: orgMember } = await supabase
       .from('organizationmember')
       .select('role_id')
       .eq('organization_id', orgId)
       .eq('profile_id', userId)
-      .in('role_id', [1, 2]) // Admin or Member roles
+      .in('role_id', [ROLE.ADMIN, ROLE.TUTOR])
+      .eq('verified', true)
       .single();
 
     if (!orgMember) {
       return json(
         {
           success: false,
-          message: 'Access denied. User is not a member of this organization.'
+          message: 'Access denied. User is not a verified member of this organization.'
         },
         { status: 403 }
       );

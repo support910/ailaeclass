@@ -17,43 +17,43 @@
       name: 'Bootcamps',
       image: 'https://cdn.courseapp.oncws.com/templates/bootcamp-template.png',
       url: 'https://bootcamp.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     },
     {
       name: 'Cal',
       image: 'https://cdn.courseapp.oncws.com/templates/cal-template.png',
       url: 'https://cal.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     },
     {
       name: 'Classic',
       image: 'https://cdn.courseapp.oncws.com/templates/classic-template.png',
       url: 'https://classic.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     },
     {
       name: 'Examprep',
       image: 'https://cdn.courseapp.oncws.com/templates/examprep-template.png',
       url: 'https://examprep.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     },
     {
       name: 'Minimal',
       image: 'https://cdn.courseapp.oncws.com/templates/minimal-template.png',
       url: 'https://minimal.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     },
     {
       name: 'PostHog',
       image: 'https://cdn.courseapp.oncws.com/templates/posthog-template.png',
       url: 'https://posthog.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     },
     {
       name: 'Webflow',
       image: 'https://cdn.courseapp.oncws.com/templates/webflow-template.png',
       url: 'https://webflow.courseapp.oncws.com',
-      github: 'https://github.com/classroomio/classroomio'
+      github: 'https://github.com/ailaeclass/ailaeclass'
     }
   ];
 
@@ -145,7 +145,7 @@
             animationStyle="from-right"
             videoSrc="https://www.youtube.com/embed/P2I2HoyrjVo"
             thumbnailSrc="https://cdn.courseapp.oncws.com/courseapp-og.png"
-            thumbnailAlt="Courseapp by ClassroomIO – Create your SAAS Academy in Minutes"
+            thumbnailAlt="Courseapp by ailaeclass – Create your SAAS Academy in Minutes"
           />
         </div>
       </section>
