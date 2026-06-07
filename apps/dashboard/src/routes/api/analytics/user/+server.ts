@@ -10,8 +10,6 @@ import { calcPercentageWithRounding } from '$lib/utils/functions/number';
 import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 import { json } from '@sveltejs/kit';
 
-const supabase = getServerSupabase();
-
 const CACHE_DURATION = 60 * 5; // 5 minutes
 
 export async function POST({ setHeaders, request }) {
@@ -44,6 +42,7 @@ function sumArrObject<T>(arr: T[], key: keyof T) {
 }
 
 async function getLastLogin(userId: string): Promise<string | undefined> {
+  const supabase = getServerSupabase();
   try {
     const { data, error } = await supabase
       .from('analytics_login_events')
@@ -60,6 +59,7 @@ async function getLastLogin(userId: string): Promise<string | undefined> {
 }
 
 async function getAudienceData(userId: string, orgId: string): Promise<UserAnalytics> {
+  const supabase = getServerSupabase();
   const audienceAnalytics: UserAnalytics = {
     user: {
       id: userId,
@@ -138,6 +138,7 @@ async function getStudentAnalyticsData(
   userId: string,
   courseId: string
 ): Promise<UserCourseAnalytics> {
+  const supabase = getServerSupabase();
   const userCourseAnalytics: UserCourseAnalytics = {
     user: {
       id: userId,
@@ -203,6 +204,7 @@ async function fetchUserExercisesStats(
   courseId: string,
   userId: string
 ): Promise<UserExercisesStats[] | undefined> {
+  const supabase = getServerSupabase();
   try {
     const { data: courseData, error: queryError } = await supabase
       .from('course')
@@ -253,6 +255,7 @@ async function fetchUserExercisesStats(
 }
 
 async function fetchLessonsWithCompletion(courseId, userId) {
+  const supabase = getServerSupabase();
   try {
     const { data: lessons, error: lessonsError } = await supabase
       .from('lesson')

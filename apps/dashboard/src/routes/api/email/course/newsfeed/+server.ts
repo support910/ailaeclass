@@ -3,14 +3,13 @@ import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 import { json } from '@sveltejs/kit';
 import sendEmail from '$mail/sendEmail';
 
-const supabase = getServerSupabase();
-
 const sendEmailNotification = async (
   sFetch: typeof fetch,
   feedId: string,
   authorId: string,
   comment?: string
 ) => {
+  const supabase = getServerSupabase();
   const feed = await getFeedForNotification({
     supabase,
     feedId,

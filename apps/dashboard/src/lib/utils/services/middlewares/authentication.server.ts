@@ -1,8 +1,7 @@
 import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 
-const supabase = getServerSupabase();
-
 export const validateUser = async (accessToken: string) => {
+  const supabase = getServerSupabase();
   let user;
 
   try {

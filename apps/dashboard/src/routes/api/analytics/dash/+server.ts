@@ -2,8 +2,6 @@ import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 import type { OrganisationAnalytics } from '$lib/utils/types/analytics';
 import { json } from '@sveltejs/kit';
 
-const supabase = getServerSupabase();
-
 const CACHE_DURATION = 60 * 5; // 5 minutes
 
 export async function POST({ setHeaders, request }) {
@@ -28,6 +26,7 @@ export async function POST({ setHeaders, request }) {
 }
 
 async function getOrganisationAnalytics(orgId: string): Promise<OrganisationAnalytics> {
+  const supabase = getServerSupabase();
   const analytics: OrganisationAnalytics = {
     revenue: 0,
     numberOfCourses: 0,
