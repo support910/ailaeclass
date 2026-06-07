@@ -5,8 +5,42 @@ import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 import { ROLE } from '$lib/utils/constants/roles';
 import { isUUID } from '$lib/utils/functions/isUUID';
 
-function isNew(id: string | undefined) {
-  return !id || id.startsWith('new_') || !isUUID(id);
+function isNew(id: unknown) {
+  if (id === undefined || id === null || id === '') return true;
+
+  const value = String(id);
+  return value.startsWith('new_') || (!isUUID(value) && Number.isNaN(Number(value)));
+}
+
+function getOptionImageKey(option: any) {
+  return option?.value ? String(option.value) : option?.id ? String(option.id) : '';
+}
+
+function mergeOptionImagesIntoQuestionMetadata(metadata: Record<string, any> | undefined, optionImages: Record<string, any>) {
+  const nextMetadata = { ...(metadata || {}) };
+
+  if (Object.keys(optionImages).length) {
+    nextMetadata.optionImages = optionImages;
+  } else {
+    delete nextMetadata.optionImages;
+  }
+
+  return nextMetadata;
+}
+
+function mergeOptionImagesIntoOptions(options: any[], optionImages: Record<string, any>) {
+  return (options || []).map((option) => {
+    const key = getOptionImageKey(option);
+    const sidecarImage = key ? optionImages[key] : null;
+
+    return {
+      ...option,
+      metadata: {
+        ...(option.metadata || {}),
+        ...(sidecarImage && !option.metadata?.image ? { image: sidecarImage } : {})
+      }
+    };
+  });
 }
 
 /**
@@ -120,11 +154,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
       const newQuestion = {
         id: isNew(id) ? undefined : id,
         name: isNew(id) ? undefined : name,
-        title: qTitle,
+        title: qTitle || '',
         points,
         order,
         question_type_id: question_type?.id,
-        exercise_id: exerciseId
+        exercise_id: exerciseId,
+        metadata: question.metadata || {}
       };
       let questionRes;
 
@@ -148,6 +183,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
         const TEXTAREA_TYPE_ID = 3;
         if (question_type?.id !== TEXTAREA_TYPE_ID) { // skip options for TEXTAREA
+          const optionImages: Record<string, any> = {};
+
           for (const option of options || []) {
             if (option.deleted_at) {
               if (!isNew(option.id)) {
@@ -158,25 +195,72 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
             const newOption = {
               ...option,
+              label: option.label || '',
               is_dirty: undefined,
               id: isNew(option.id) ? undefined : option.id,
               value: isUUID(option.value) ? option.value : undefined,
-              question_id: savedQuestion.id
+              question_id: savedQuestion.id,
+              metadata: option.metadata || {}
             };
 
             if (option.is_dirty || isNew(option.id)) {
-              const { data, error: optionError } = await supabase.from('option').upsert(newOption).select();
-              if (optionError) {
-                console.error('Upsert option error:', optionError);
+              let optionRes = await supabase.from('option').upsert(newOption).select();
+              // If metadata column is missing (remote schema not migrated), retry without metadata
+              if (optionRes.error) {
+                const errMsg = optionRes.error.message || '';
+                const isMetadataIssue =
+                  errMsg.includes('metadata') ||
+                  errMsg.includes('column') ||
+                  errMsg.includes('schema') ||
+                  (optionRes.error as any).code === '42703'; // undefined_column
+                if (isMetadataIssue) {
+                  console.warn(
+                    `Option upsert with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
+                    errMsg
+                  );
+                  const { id, value, label, question_id, is_correct } = newOption;
+                  const fallbackOption = { id, value, label, question_id, is_correct };
+                  optionRes = await supabase.from('option').upsert(fallbackOption).select();
+                }
+              }
+              if (optionRes.error) {
+                console.error('Upsert option error:', optionRes.error);
                 return json({ success: false, message: 'Failed to save option' }, { status: 500 });
               }
-              if (Array.isArray(data)) {
-                savedQuestion.options.push(data[0]);
+              if (Array.isArray(optionRes.data)) {
+                const savedOption = optionRes.data[0];
+                const optionImageKey = getOptionImageKey(savedOption);
+                if (option.metadata?.image && optionImageKey) {
+                  optionImages[optionImageKey] = option.metadata.image;
+                }
+                savedQuestion.options.push(savedOption);
               }
             } else {
+              const optionImageKey = getOptionImageKey(newOption);
+              if (option.metadata?.image && optionImageKey) {
+                optionImages[optionImageKey] = option.metadata.image;
+              }
               savedQuestion.options.push(newOption);
             }
           }
+
+          const mergedMetadata = mergeOptionImagesIntoQuestionMetadata(
+            savedQuestion.metadata || question.metadata,
+            optionImages
+          );
+
+          const { error: metadataUpdateError } = await supabase
+            .from('question')
+            .update({ metadata: mergedMetadata })
+            .eq('id', savedQuestion.id);
+
+          if (metadataUpdateError) {
+            console.error('Update question option image metadata error:', metadataUpdateError);
+            return json({ success: false, message: 'Failed to save option images' }, { status: 500 });
+          }
+
+          savedQuestion.metadata = mergedMetadata;
+          savedQuestion.options = mergeOptionImagesIntoOptions(savedQuestion.options, optionImages);
         }
 
         updatedQuestions.push(savedQuestion);

@@ -150,6 +150,16 @@ export async function getProfile({
     return goto('/login?redirect=/' + path + queryParam);
   }
 
+  if (!authUser) {
+    user.update((_user) => ({
+      ..._user,
+      fetchingUser: false,
+      isLoggedIn: false,
+      currentSession: null
+    }));
+    return;
+  }
+
   if (authUser?.email?.endsWith('@test.com') && !dev) {
     // This is a test email, auto logout
     window.location.href = '/logout';

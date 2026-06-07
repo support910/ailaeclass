@@ -144,7 +144,8 @@
       .filter((o) => !o.deleted_at)
       .map((o) => ({
         value: o.value,
-        label: o.label
+        label: o.label,
+        metadata: o.metadata || {}
       }));
 
     const isLast = index === totalQuestions - 1;
@@ -154,6 +155,7 @@
       index: index + 1,
       name: question.name,
       options: activeOptions,
+      metadata: question.metadata || {},
       onSubmit: handleQuestionSubmit,
       onPrevious: goToPrevious,
       defaultValue: getDefaultValue(question),
@@ -284,7 +286,7 @@
           >
             <WarningIcon size={18} class="carbon-icon flex-shrink-0" />
             <span class="text-sm">
-              {$t('components.exam.runner.unanswered_count').replace('{count}', String(totalQuestions - answeredCount))}
+              {$t('components.exam.runner.unanswered_count', { count: String(totalQuestions - answeredCount) })}
             </span>
           </div>
         {/if}

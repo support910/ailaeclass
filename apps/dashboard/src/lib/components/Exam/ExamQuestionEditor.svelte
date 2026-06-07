@@ -16,6 +16,7 @@
   import CheckmarkOutlineIcon from 'carbon-icons-svelte/lib/CheckmarkOutline.svelte';
   import { isUUID } from '$lib/utils/functions/isUUID';
   import ImportQuestionsModal from './ImportQuestionsModal.svelte';
+  import QuestionImageUpload from './QuestionImageUpload.svelte';
 
   export let questions: any[] = [];
   export let onQuestionsChange: (questions: any[]) => void = () => {};
@@ -211,6 +212,11 @@
             isRequired={true}
             onChange={() => handleQuestionFieldChange(question.id, 'title', question.title)}
           />
+          <QuestionImageUpload
+            image={question.metadata?.image || null}
+            onChange={(img) => handleQuestionFieldChange(question.id, 'metadata', { ...question.metadata, image: img })}
+            label="Question image (optional)"
+          />
         </div>
         <Select
           size="xl"
@@ -237,61 +243,107 @@
         <div class="flex flex-col mt-2 gap-2">
           {#each question.options.filter((o) => !o.deleted_at) as option (option.id)}
             {#if question.question_type?.id === QUESTION_TYPE.CHECKBOX}
-              <Checkbox
-                isEditable={true}
-                name={`checkbox-${question.id}`}
-                bind:label={option.label}
-                onChange={handleOptionLabelChange(question.id, option.id)}
-              >
-                <div slot="iconbutton" class="flex items-center gap-1">
-                  <IconButton
-                    value={option.id}
-                    onClick={handleRemoveOption(question.id, option.id)}
+              <div class="flex items-start gap-2">
+                <div class="flex-1">
+                  <Checkbox
+                    isEditable={true}
+                    name={`checkbox-${question.id}`}
+                    bind:label={option.label}
+                    onChange={handleOptionLabelChange(question.id, option.id)}
                   >
-                    <TrashCanIcon size={20} class="carbon-icon dark:text-white" />
-                  </IconButton>
-                  <IconButton
-                    value={option.id}
-                    onClick={handleAnswerSelect(question.id, option.id)}
-                    buttonClassName={option.is_correct ? 'success' : ''}
-                  >
-                    {#if option.is_correct}
-                      <CheckmarkFilledIcon size={20} class="carbon-icon dark:text-white" />
-                    {:else}
-                      <CheckmarkOutlineIcon size={20} class="carbon-icon dark:text-white" />
-                    {/if}
-                  </IconButton>
+                    <div slot="iconbutton" class="flex items-center gap-1">
+                      <IconButton
+                        value={option.id}
+                        onClick={handleRemoveOption(question.id, option.id)}
+                      >
+                        <TrashCanIcon size={20} class="carbon-icon dark:text-white" />
+                      </IconButton>
+                      <IconButton
+                        value={option.id}
+                        onClick={handleAnswerSelect(question.id, option.id)}
+                        buttonClassName={option.is_correct ? 'success' : ''}
+                      >
+                        {#if option.is_correct}
+                          <CheckmarkFilledIcon size={20} class="carbon-icon dark:text-white" />
+                        {:else}
+                          <CheckmarkOutlineIcon size={20} class="carbon-icon dark:text-white" />
+                        {/if}
+                      </IconButton>
+                    </div>
+                  </Checkbox>
+                  <QuestionImageUpload
+                    image={option.metadata?.image || null}
+                    onChange={(img) => {
+                      onQuestionsChange(
+                        questions.map((q) => {
+                          if (q.id !== question.id) return q;
+                          return {
+                            ...q,
+                            options: q.options.map((o) => {
+                              if (o.id !== option.id) return o;
+                              return { ...o, metadata: { ...o.metadata, image: img }, is_dirty: true };
+                            }),
+                            is_dirty: true
+                          };
+                        })
+                      );
+                    }}
+                    label=""
+                  />
                 </div>
-              </Checkbox>
+              </div>
             {:else}
-              <RadioItem
-                isEditable={true}
-                name={`radio-${question.id}`}
-                bind:label={option.label}
-                onChange={handleOptionLabelChange(question.id, option.id)}
-              >
-                <div slot="iconbutton" class="flex items-center gap-1">
-                  {#if question.question_type?.id !== QUESTION_TYPE.TRUE_FALSE}
-                    <IconButton
-                      value={option.id}
-                      onClick={handleRemoveOption(question.id, option.id)}
-                    >
-                      <TrashCanIcon size={20} class="carbon-icon dark:text-white" />
-                    </IconButton>
-                  {/if}
-                  <IconButton
-                    value={option.id}
-                    onClick={handleAnswerSelect(question.id, option.id)}
-                    buttonClassName={option.is_correct ? 'success' : ''}
+              <div class="flex items-start gap-2">
+                <div class="flex-1">
+                  <RadioItem
+                    isEditable={true}
+                    name={`radio-${question.id}`}
+                    bind:label={option.label}
+                    onChange={handleOptionLabelChange(question.id, option.id)}
                   >
-                    {#if option.is_correct}
-                      <CheckmarkFilledIcon size={20} class="carbon-icon dark:text-white" />
-                    {:else}
-                      <CheckmarkOutlineIcon size={20} class="carbon-icon dark:text-white" />
-                    {/if}
-                  </IconButton>
+                    <div slot="iconbutton" class="flex items-center gap-1">
+                      {#if question.question_type?.id !== QUESTION_TYPE.TRUE_FALSE}
+                        <IconButton
+                          value={option.id}
+                          onClick={handleRemoveOption(question.id, option.id)}
+                        >
+                          <TrashCanIcon size={20} class="carbon-icon dark:text-white" />
+                        </IconButton>
+                      {/if}
+                      <IconButton
+                        value={option.id}
+                        onClick={handleAnswerSelect(question.id, option.id)}
+                        buttonClassName={option.is_correct ? 'success' : ''}
+                      >
+                        {#if option.is_correct}
+                          <CheckmarkFilledIcon size={20} class="carbon-icon dark:text-white" />
+                        {:else}
+                          <CheckmarkOutlineIcon size={20} class="carbon-icon dark:text-white" />
+                        {/if}
+                      </IconButton>
+                    </div>
+                  </RadioItem>
+                  <QuestionImageUpload
+                    image={option.metadata?.image || null}
+                    onChange={(img) => {
+                      onQuestionsChange(
+                        questions.map((q) => {
+                          if (q.id !== question.id) return q;
+                          return {
+                            ...q,
+                            options: q.options.map((o) => {
+                              if (o.id !== option.id) return o;
+                              return { ...o, metadata: { ...o.metadata, image: img }, is_dirty: true };
+                            }),
+                            is_dirty: true
+                          };
+                        })
+                      );
+                    }}
+                    label=""
+                  />
                 </div>
-              </RadioItem>
+              </div>
             {/if}
           {/each}
         </div>

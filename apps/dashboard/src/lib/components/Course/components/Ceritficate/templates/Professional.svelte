@@ -1,6 +1,7 @@
 <script>
   import { course } from '$lib/components/Course/store';
   import { currentOrg } from '$lib/utils/store/org';
+  import { BRAND } from '$lib/utils/config/brand';
 
   export let studentName = '';
   const borderwidth = 'border-l-8';
@@ -39,7 +40,7 @@
           alt="logo"
           class="w-10 h-10 rounded-md"
         />
-        <p class="font-semibold capitalize dark:text-black">{$currentOrg.name}</p>
+        <p class="font-semibold dark:text-black">{BRAND.name}</p>
       </div>
     </div>
   </div>

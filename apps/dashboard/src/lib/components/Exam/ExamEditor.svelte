@@ -74,6 +74,14 @@
     return (question.options || []).filter((o) => !o.deleted_at);
   }
 
+  function hasQuestionContent(question: any) {
+    return Boolean((question.title || '').trim() || question.metadata?.image?.url);
+  }
+
+  function hasOptionContent(option: any) {
+    return Boolean((option.label || '').trim() || option.metadata?.image?.url);
+  }
+
   function validateSettings(): string | null {
     if (exam.attempts_allowed !== undefined && exam.attempts_allowed !== null) {
       const val = Number(exam.attempts_allowed);
@@ -114,8 +122,7 @@
     }
 
     for (const q of active) {
-      const title = (q.title || '').trim();
-      if (!title) {
+      if (!hasQuestionContent(q)) {
         return $t('components.exam.error_publish_empty_title');
       }
     }
@@ -125,8 +132,8 @@
       const typeId = q.question_type?.id;
       if (typeId === QUESTION_TYPE.CHECKBOX || objectiveTypes.includes(typeId)) {
         const activeOptions = getActiveOptions(q);
-        const nonEmptyOptions = activeOptions.filter((o) => (o.label || '').trim());
-        if (nonEmptyOptions.length < 2) {
+        const contentOptions = activeOptions.filter(hasOptionContent);
+        if (contentOptions.length < 2) {
           return $t('components.exam.error_publish_not_enough_options').replace('{title}', q.title || $t('components.exam.unnamed_question'));
         }
 
@@ -145,6 +152,43 @@
     }
 
     return null;
+  }
+
+  async function saveExamDraft() {
+    const { error: saveError } = await updateExamSettings(examId, {
+      title: exam.title,
+      description: exam.description,
+      duration_minutes: exam.duration_minutes,
+      attempts_allowed: exam.attempts_allowed,
+      passing_score: exam.passing_score,
+      show_result_policy: exam.show_result_policy,
+      available_from: exam.available_from,
+      available_until: exam.available_until,
+      shuffle_questions: exam.shuffle_questions,
+      shuffle_options: exam.shuffle_options
+    });
+
+    if (saveError) {
+      throw saveError;
+    }
+    settingsDirty = false;
+
+    const questionnaire = {
+      questions: mapTrueFalseToRadio(questions),
+      title: exam.title,
+      description: exam.description,
+      due_by: null,
+      is_title_dirty: false,
+      is_description_dirty: false,
+      is_due_by_dirty: false
+    };
+
+    const updatedQuestions = await upsertExercise(questionnaire, examId);
+    if (Array.isArray(updatedQuestions)) {
+      questions = detectTrueFalse(updatedQuestions);
+    } else {
+      throw new Error('Failed to save questions');
+    }
   }
 
   async function loadExam() {
@@ -181,52 +225,11 @@
 
     isSaving = true;
 
-    // Save all exam metadata (including title/description) through updateExamSettings
-    // so that assessment_type='exam' guard is enforced.
-    const { error: saveError } = await updateExamSettings(examId, {
-      title: exam.title,
-      description: exam.description,
-      duration_minutes: exam.duration_minutes,
-      attempts_allowed: exam.attempts_allowed,
-      passing_score: exam.passing_score,
-      show_result_policy: exam.show_result_policy,
-      available_from: exam.available_from,
-      available_until: exam.available_until,
-      shuffle_questions: exam.shuffle_questions,
-      shuffle_options: exam.shuffle_options
-    });
-
-    if (saveError) {
-      console.error('updateExamSettings error', saveError);
-      snackbar.error($t('components.exam.save_error'));
-      isSaving = false;
-      return;
-    }
-    settingsDirty = false;
-
-    // Save questions via upsertExercise.
-    // Do NOT mark title/description dirty so upsertExercise won't touch
-    // the exercise row without the assessment_type guard.
-    const questionnaire = {
-      questions: mapTrueFalseToRadio(questions),
-      title: exam.title,
-      description: exam.description,
-      due_by: null,
-      is_title_dirty: false,
-      is_description_dirty: false,
-      is_due_by_dirty: false
-    };
-
     try {
-      const updatedQuestions = await upsertExercise(questionnaire, examId);
-      if (Array.isArray(updatedQuestions)) {
-        questions = detectTrueFalse(updatedQuestions);
-        snackbar.success($t('components.exam.save_success'));
-      } else {
-        snackbar.error($t('components.exam.save_error'));
-      }
+      await saveExamDraft();
+      snackbar.success($t('components.exam.save_success'));
     } catch (err) {
-      console.error('upsertExercise error', err);
+      console.error('saveExamDraft error', err);
       snackbar.error($t('components.exam.save_error'));
     }
 
@@ -249,6 +252,16 @@
     }
 
     isPublishing = true;
+
+    try {
+      await saveExamDraft();
+    } catch (err) {
+      console.error('save before publish error', err);
+      snackbar.error($t('components.exam.save_error'));
+      isPublishing = false;
+      return;
+    }
+
     const { error } = await publishExam(examId);
     if (error) {
       console.error('publishExam error', error);

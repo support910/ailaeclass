@@ -1,6 +1,7 @@
 <script>
   import { course } from '$lib/components/Course/store';
   import { currentOrg } from '$lib/utils/store/org';
+  import { BRAND } from '$lib/utils/config/brand';
 
   export let studentName = '';
   const logo = '/logo-512.png';
@@ -13,7 +14,7 @@
     <div class="w-[80%] pl-3">
       <header class="flex justify-start items-center gap-1 text-sm font-bold">
         <img src={$currentOrg.avatar_url ? $currentOrg.avatar_url : logo} alt="logo" class="w-5" />
-        <h1 class="text-sm">{$currentOrg.name}</h1>
+        <h1 class="text-sm">{BRAND.name}</h1>
       </header>
 
       <div class="font-bold mt-7">

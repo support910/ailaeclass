@@ -26,6 +26,12 @@ yarn-error.log*
 playwright-report/
 test-results/
 screenshots/
+hermes-logs/
+dashboard-deploy/
+HERMES_*.txt
+run-hermes-*.ps1
+docker/docker-compose.local.yaml
+docker/run-local.sh
 
 # local env files
 .env

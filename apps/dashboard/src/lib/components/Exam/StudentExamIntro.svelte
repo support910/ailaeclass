@@ -90,7 +90,7 @@
       {/if}
       {#if attemptsAllowed !== undefined && attemptsAllowed !== null}
         <li>
-          {$t('components.exam.intro.rule_attempts').replace('{count}', String(attemptsAllowed))}
+          {$t('components.exam.intro.rule_attempts', { count: String(attemptsAllowed) })}
         </li>
       {/if}
       <li>{$t('components.exam.intro.rule_submit')}</li>

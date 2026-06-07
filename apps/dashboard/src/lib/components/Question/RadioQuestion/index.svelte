@@ -13,7 +13,8 @@
   export let index = 1;
   export let code = '';
   export let name = '';
-  export let options: { value: string; label: string; is_correct: boolean }[] = [];
+  export let options: { value: string; label: string; is_correct: boolean; metadata?: any }[] = [];
+  export let metadata: any = null;
   export let onSubmit = (a: string, b: string[]) => {};
   export let onPrevious = () => {};
   export let defaultValue = '';
@@ -39,10 +40,11 @@
   function getRadioVal(form, name): string {
     let val;
     const radios = form.elements[name];
+    const elements = radios instanceof RadioNodeList ? Array.from(radios) : radios ? [radios] : [];
 
-    for (let i = 0, len = radios.length; i < len; i++) {
-      if (radios[i].checked) {
-        val = radios[i].value;
+    for (let i = 0, len = elements.length; i < len; i++) {
+      if (elements[i].checked) {
+        val = elements[i].value;
         break;
       }
     }
@@ -88,7 +90,7 @@
   <div class="flex items-center justify-between">
     <HtmlRender className="mt-4 {typeof grade === 'number' && 'w-4/5'}" disableMaxWidth>
       <svelte:fragment slot="content">
-        <QuestionTitle {index} {title} />
+        <QuestionTitle {index} {title} image={metadata?.image || null} />
       </svelte:fragment>
     </HtmlRender>
     {#if !hideGrading}
@@ -108,11 +110,18 @@
         )}"
         type="button"
       >
+        {#if option.metadata?.image?.url}
+          <img
+            src={option.metadata.image.url}
+            alt={option.metadata.image.alt || 'Option image'}
+            class="max-h-32 rounded-md mx-2 mt-2 object-contain"
+          />
+        {/if}
         <RadioItem
           className="p-2"
           {name}
           value={option.value}
-          checked={defaultValue.includes(option.value) && option.is_correct}
+          checked={defaultValue === option.value && option.is_correct}
           label={option.label || option.value}
           {disabled}
         />

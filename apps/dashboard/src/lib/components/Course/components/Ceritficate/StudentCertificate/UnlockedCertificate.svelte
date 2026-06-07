@@ -4,7 +4,7 @@
 
   import { env } from '$env/dynamic/public';
   import { course } from '$lib/components/Course/store';
-  import { currentOrg, currentOrgDomain } from '$lib/utils/store/org';
+  import { currentOrgDomain } from '$lib/utils/store/org';
   import { profile } from '$lib/utils/store/user';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
@@ -14,6 +14,8 @@
   import type { ProfileCourseProgress } from '$lib/utils/types';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { appApi } from '$lib/utils/services/api';
+  import { BRAND } from '$lib/utils/config/brand';
+  import CertificatePreview from './CertificatePreview.svelte';
 
   let isLoading = false;
   let isCourseComplete = false;
@@ -30,8 +32,8 @@
           studentName: `${$profile.fullname}`,
           courseName: `${$course.title}`,
           courseDescription: `${$course.description}`,
-          orgLogoUrl: $currentOrg.avatar_url || `${$currentOrgDomain}/logo-512.png`,
-          orgName: `${$currentOrg.name}`
+          orgLogoUrl: `${$currentOrgDomain}${BRAND.logoLarge}`,
+          orgName: BRAND.name
         }
       });
 
@@ -42,7 +44,7 @@
 
       let a = document.createElement('a');
       document.body.append(a);
-      a.download = 'Certificate of Completion - ' + $currentOrg.name;
+      a.download = 'Certificate of Completion - ' + BRAND.name;
       a.href = fileURL;
       a.click();
       a.remove();
@@ -83,7 +85,7 @@
 
 <Box>
   <div class="flex h-full w-max flex-col items-center justify-center gap-5">
-    <img src="/images/student-certificate-preview.png" alt="Certificate" class="max-w-[218px]" />
+    <CertificatePreview />
     <p class="text-center text-xl font-normal">
       {$t(title)}
     </p>

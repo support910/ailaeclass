@@ -142,7 +142,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
       .from('submission')
       .select('*', { count: 'exact', head: true })
       .eq('exercise_id', examId)
-      .eq('submitted_by', groupMemberId);
+      .eq('submitted_by', groupMemberId)
+      .eq('course_id', courseId);
 
     const attemptsAllowed = examRow.attempts_allowed ?? 1;
     if ((attemptCount || 0) >= attemptsAllowed) {
@@ -151,12 +152,14 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     // 6. Create new submission
     const startedAt = new Date().toISOString();
+    const nextAttemptNo = (attemptCount || 0) + 1;
     const payload: Record<string, any> = {
       submitted_by: groupMemberId,
       exercise_id: examId,
       course_id: courseId,
       status_id: SUBMISSION_STATUS.IN_PROGRESS,
-      started_at: startedAt
+      started_at: startedAt,
+      attempt_no: nextAttemptNo
     };
 
     if (examRow.duration_minutes && examRow.duration_minutes > 0) {

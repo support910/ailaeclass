@@ -10,6 +10,17 @@ const SUBMISSION_STATUS = {
   GRADED: 3
 };
 
+function getOptionMetadata(question: any, option: any) {
+  const optionImages = question?.metadata?.optionImages || {};
+  const key = option?.value ? String(option.value) : option?.id ? String(option.id) : '';
+  const sidecarImage = key ? optionImages[key] : null;
+
+  return {
+    ...(option.metadata || {}),
+    ...(sidecarImage && !option.metadata?.image ? { image: sidecarImage } : {})
+  };
+}
+
 /**
  * GET /api/exams/[examId]?courseId=xxx
  *
@@ -64,7 +75,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
     // Fetch questions separately to avoid PostgREST nested FK issues
     const { data: questionsData, error: questionsError } = await supabase
       .from('question')
-      .select('id, name, title, question_type_id, points, order, exercise_id')
+      .select('id, name, title, question_type_id, points, order, exercise_id, metadata')
       .eq('exercise_id', examId);
 
     if (questionsError) {
@@ -76,10 +87,34 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
     // Fetch options separately
     let optionsMap: Record<string, any[]> = {};
     if (questionIds.length > 0) {
-      const { data: optionsData, error: optionsError } = await supabase
+      let optionsData: any[] | null = null;
+      let optionsError: any = null;
+
+      const res1 = await supabase
         .from('option')
-        .select('id, value, label, question_id')
+        .select('id, value, label, question_id, metadata')
         .in('question_id', questionIds);
+      optionsData = res1.data;
+      optionsError = res1.error;
+
+      // Retry without metadata if remote schema lacks the column
+      if (optionsError) {
+        const errMsg = optionsError.message || '';
+        const isMetadataIssue =
+          errMsg.includes('metadata') ||
+          errMsg.includes('column') ||
+          errMsg.includes('schema') ||
+          (optionsError as any).code === '42703';
+        if (isMetadataIssue) {
+          console.warn('Option select with metadata failed, retrying without metadata. Error:', errMsg);
+          const res2 = await supabase
+            .from('option')
+            .select('id, value, label, question_id')
+            .in('question_id', questionIds);
+          optionsData = res2.data;
+          optionsError = res2.error;
+        }
+      }
 
       if (optionsError) {
         console.error('GET /api/exams/[examId] options fetch error:', optionsError);
@@ -111,6 +146,12 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
     // Verify published
     if (!examRow.published_at) {
       return json({ success: false, message: 'Exam not published' }, { status: 403 });
+    }
+
+    // Guard: reject empty exams for everyone (prevent student from starting an exam with no questions)
+    const totalQuestions = (questionsData || []).length;
+    if (totalQuestions === 0) {
+      return json({ success: false, message: 'This exam has no questions' }, { status: 400 });
     }
 
     // 2. Resolve course -> group -> membership
@@ -146,7 +187,8 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
           .map((o: any) => ({
             id: o.id,
             value: o.value,
-            label: o.label
+            label: o.label,
+            metadata: getOptionMetadata(q, o)
           }));
         return {
           id: q.id,
@@ -156,6 +198,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
           question_type: { id: q.question_type_id },
           points: q.points,
           order: q.order,
+          metadata: q.metadata || {},
           options: opts
         };
       });
@@ -187,7 +230,8 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
         .from('submission')
         .select('*', { count: 'exact', head: true })
         .eq('exercise_id', examId)
-        .eq('submitted_by', groupMemberId);
+        .eq('submitted_by', groupMemberId)
+        .eq('course_id', courseId);
 
       attemptCount = count || 0;
 
@@ -361,30 +405,28 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Only teachers can delete exams' }, { status: 403 });
     }
 
-    const { count: submissionCount, error: submissionCountError } = await supabase
+    const { data: submissions, error: submissionsError } = await supabase
       .from('submission')
-      .select('*', { count: 'exact', head: true })
+      .select('id')
       .eq('exercise_id', examId);
 
-    if (submissionCountError) {
-      console.error('deleteExam submission count error:', submissionCountError);
-      return json({ success: false, message: submissionCountError.message }, { status: 500 });
-    }
-
-    if ((submissionCount || 0) > 0) {
-      return json(
-        { success: false, message: 'This exam has submissions and cannot be deleted as a draft.' },
-        { status: 409 }
-      );
+    if (submissionsError) {
+      console.error('deleteExam submissions fetch error:', submissionsError);
+      return json({ success: false, message: submissionsError.message }, { status: 500 });
     }
 
     // 3. Delete in correct order: options -> question answers -> questions -> exercise
+    const submissionIds = submissions?.map((s) => s.id) || [];
     const { data: questions } = await supabase
       .from('question')
       .select('id')
       .eq('exercise_id', examId);
 
     const questionIds = questions?.map((q) => q.id) || [];
+
+    if (submissionIds.length > 0) {
+      await supabase.from('question_answer').delete().in('submission_id', submissionIds);
+    }
 
     if (questionIds.length > 0) {
       await supabase.from('option').delete().in('question_id', questionIds);

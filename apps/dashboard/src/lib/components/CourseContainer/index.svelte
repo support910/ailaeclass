@@ -63,9 +63,14 @@
         $globalStore.isStudent = viewer.isStudent === true;
         filterPollsByStatus($globalStore.isStudent);
         isPermitted = true;
+      } else if (viewer === undefined) {
+        // Fallback: API didn't return viewer info (legacy or error), default to permitted
+        // Downstream components (e.g. exam page) will enforce their own access checks
+        $globalStore.isStudent = undefined;
+        isPermitted = true;
       } else {
         isPermitted = false;
-        $globalStore.isStudent = true;
+        $globalStore.isStudent = false;
       }
       membershipResolved = true;
       hasLoadedCourse = true;

@@ -193,8 +193,17 @@ export const POST: RequestHandler = async ({ params, request }) => {
     let totalScore = 0;
     let hasUngraded = false;
 
+    // Defensive: if a question has no name, log it but don't crash
+    const questionsWithName = questions.filter((q: any) => q.name);
+    if (questionsWithName.length !== questions.length) {
+      console.warn(
+        'submit: some questions have no name; answers may not match. total=', questions.length,
+        'withName=', questionsWithName.length
+      );
+    }
+
     for (const q of questions) {
-      const value = answers ? answers[q.name] : undefined;
+      const value = answers && q.name ? answers[q.name] : undefined;
       const typeId = q.question_type_id;
       const points = parseFloat(q.points) || 0;
 
@@ -263,11 +272,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
         submitted_at: new Date().toISOString(),
         total: totalScore
       })
-      .match({
-        id: submissionId,
-        submitted_by: groupMemberId,
-        status_id: SUBMISSION_STATUS.IN_PROGRESS
-      });
+      .eq('id', submissionId)
+      .eq('submitted_by', groupMemberId)
+      .eq('status_id', SUBMISSION_STATUS.IN_PROGRESS);
 
     if (updateError) {
       console.error('submit update submission error:', updateError);
@@ -309,7 +316,7 @@ function calculateQuestionScore(
 
   if (typeId === QUESTION_TYPE.RADIO || typeId === QUESTION_TYPE.TRUE_FALSE) {
     const selectedValue = Array.isArray(answerValue) ? answerValue[0] : answerValue;
-    const isCorrect = correctValues.length === 1 && selectedValue === correctValues[0];
+    const isCorrect = correctValues.length === 1 && selectedValue !== undefined && selectedValue === correctValues[0];
     return {
       point: isCorrect ? points : 0,
       is_correct: isCorrect,
@@ -319,7 +326,8 @@ function calculateQuestionScore(
 
   if (typeId === QUESTION_TYPE.CHECKBOX) {
     const selectedValues = Array.isArray(answerValue) ? answerValue : [];
-    const isCorrect = arraysEqual(selectedValues, correctValues);
+    const isCorrect =
+      correctValues.length > 0 && selectedValues.length > 0 && arraysEqual(selectedValues, correctValues);
     return {
       point: isCorrect ? points : 0,
       is_correct: isCorrect,

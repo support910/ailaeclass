@@ -13,7 +13,8 @@
   export let index = 1;
   export let code;
   export let name = '';
-  export let options: { value: string; label: string }[] = [];
+  export let options: { value: string; label: string; metadata?: any }[] = [];
+  export let metadata: any = null;
   export let onSubmit = (a: string, b: string[]) => {};
   export let onPrevious = () => {};
   export let defaultValue: string[] = [];
@@ -38,10 +39,11 @@
   function getVal(form, name) {
     let values: string[] = [];
     const checkboxEl = form.elements[name];
+    const elements = checkboxEl instanceof RadioNodeList ? Array.from(checkboxEl) : checkboxEl ? [checkboxEl] : [];
 
-    for (let i = 0, len = checkboxEl.length; i < len; i++) {
-      if (checkboxEl[i].checked) {
-        values.push(checkboxEl[i].value);
+    for (let i = 0, len = elements.length; i < len; i++) {
+      if (elements[i].checked) {
+        values.push(elements[i].value);
       }
     }
 
@@ -87,7 +89,7 @@
   <div class="flex items-center justify-between">
     <HtmlRender className="mt-4 {typeof grade === 'number' && 'w-4/5'}" disableMaxWidth>
       <svelte:fragment slot="content">
-        <QuestionTitle {index} {title} />
+        <QuestionTitle {index} {title} image={metadata?.image || null} />
       </svelte:fragment>
     </HtmlRender>
     {#if !hideGrading}
@@ -107,6 +109,13 @@
         )}"
         type="button"
       >
+        {#if option.metadata?.image?.url}
+          <img
+            src={option.metadata.image.url}
+            alt={option.metadata.image.alt || 'Option image'}
+            class="max-h-32 rounded-md mx-2 mt-2 object-contain"
+          />
+        {/if}
         <Checkbox
           {name}
           className="p-2"

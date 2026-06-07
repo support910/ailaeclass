@@ -4,6 +4,23 @@ import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/su
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 import { ROLE } from '$lib/utils/constants/roles';
 
+function mergeOptionImagesFromQuestionMetadata(question: any) {
+  const optionImages = question?.metadata?.optionImages || {};
+
+  question.options = (question.options || []).map((option: any) => {
+    const key = option?.value ? String(option.value) : option?.id ? String(option.id) : '';
+    const sidecarImage = key ? optionImages[key] : null;
+
+    return {
+      ...option,
+      metadata: {
+        ...(option.metadata || {}),
+        ...(sidecarImage && !option.metadata?.image ? { image: sidecarImage } : {})
+      }
+    };
+  });
+}
+
 /**
  * GET /api/exams/[examId]/detail
  *
@@ -83,6 +100,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
         if (q.question_type) {
           q.question_type_id = q.question_type.id;
         }
+        mergeOptionImagesFromQuestionMetadata(q);
       });
       examRow.questions = examRow.questions.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
     } else {

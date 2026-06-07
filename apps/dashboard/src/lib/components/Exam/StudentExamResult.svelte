@@ -80,7 +80,7 @@
       </p>
       {#if passingScore > 0}
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          {$t('components.exam.result.passing_score')}: {passingScore}
+          {$t('components.exam.passing_score')}: {passingScore}
         </p>
       {/if}
     {:else if isSubmitted}

@@ -66,7 +66,10 @@ export const GET: RequestHandler = async ({ params, request }) => {
     const { data: exams, error: examError } = await supabase
       .from('exercise')
       .select(
-        'id, title, description, lesson_id, assessment_type, published_at, available_from, available_until, duration_minutes, attempts_allowed, passing_score, show_result_policy, shuffle_questions, shuffle_options'
+        `
+        id, title, description, lesson_id, assessment_type, published_at, available_from, available_until, duration_minutes, attempts_allowed, passing_score, show_result_policy, shuffle_questions, shuffle_options,
+        questions:question(count)
+      `
       )
       .in('lesson_id', lessonIds)
       .eq('assessment_type', 'exam')
@@ -80,7 +83,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
     const now = Date.now();
 
     // 5. Filter based on role
-    const filtered = (exams || []).filter((exam) => {
+    const filtered = (exams || []).filter((exam: any) => {
       if (!isStudent) return true; // teachers/admins see all
 
       // Students: must be published and within availability window
@@ -90,7 +93,11 @@ export const GET: RequestHandler = async ({ params, request }) => {
         (!exam.available_from || new Date(exam.available_from).getTime() <= now) &&
         (!exam.available_until || new Date(exam.available_until).getTime() > now);
 
-      return inWindow;
+      if (!inWindow) return false;
+
+      // Students: skip published exams that have no questions (avoid empty exam entry)
+      const qCount = exam.questions?.[0]?.count ?? 0;
+      return qCount > 0;
     });
 
     return json({ success: true, exams: filtered });

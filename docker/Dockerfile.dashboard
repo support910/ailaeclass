@@ -47,10 +47,10 @@ ENV PRIVATE_APP_HOST=${PRIVATE_APP_HOST:-5gnumultimedia.com}
 ENV PRIVATE_APP_SUBDOMAINS=${PRIVATE_APP_SUBDOMAINS:-app}
 
 # Build API first (dashboard depends on @cio/api/rpc-types)
-RUN NODE_OPTIONS="--max-old-space-size=3072" pnpm build --filter @cio/api
+RUN NODE_OPTIONS="--max-old-space-size=3072" pnpm --filter @cio/api build
 
-# Build the dashboard app
-RUN NODE_OPTIONS="--max-old-space-size=3072" PUBLIC_IS_SELFHOSTED=true pnpm build --filter @cio/dashboard
+# Build the dashboard app (bypass turbo so env vars flow directly to vite)
+RUN NODE_OPTIONS="--max-old-space-size=3072" PUBLIC_IS_SELFHOSTED=true pnpm --filter @cio/dashboard build
 
 # ----------- Production Stage -----------
 FROM node:20.19.3-alpine AS runner

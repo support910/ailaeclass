@@ -8,6 +8,7 @@ import axios from 'axios';
 import { appApi } from '$lib/utils/services/api';
 import { getAccessToken, getSupabase } from '$lib/utils/functions/supabase';
 import { DOCUMENT_UPLOAD_BUCKET } from '$lib/utils/constants/documentUpload';
+import { IMAGE_UPLOAD_BUCKET } from '$lib/utils/constants/imageUpload';
 
 export type UploadType = 'document' | 'video' | 'generic';
 
@@ -189,6 +190,85 @@ export class DocumentUploader extends GenericUploader {
     const { error } = await getSupabase()
       .storage
       .from(DOCUMENT_UPLOAD_BUCKET)
+      .uploadToSignedUrl(this.signedUpload.path, this.signedUpload.token, params.file, {
+        contentType: params.file.type
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    this.uploadStore.update((state) => ({
+      ...state,
+      uploadProgress: 100
+    }));
+  }
+}
+
+export class ImageUploader extends GenericUploader {
+  private signedUpload: { path: string; token: string } | null = null;
+
+  constructor() {
+    super('document');
+  }
+
+  async getDownloadPresignedUrl(keys: string[]) {
+    const token = await getAccessToken();
+    const response = await fetch('/api/images/presign/download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ keys })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Unable to prepare image download');
+    }
+
+    return response.json();
+  }
+
+  async getPresignedUrl(file: File) {
+    const token = await getAccessToken();
+    const response = await fetch('/api/images/presign/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        fileName: file?.name,
+        fileType: file?.type,
+        fileSize: file?.size
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Unable to prepare image upload');
+    }
+
+    const data = await response.json();
+    this.signedUpload = { path: data.path, token: data.token };
+    return data;
+  }
+
+  async uploadFile(params: { url: string; file: File }) {
+    if (!this.signedUpload) {
+      throw new Error('Missing signed upload token');
+    }
+
+    this.uploadStore.update((state) => ({
+      ...state,
+      uploadProgress: 10
+    }));
+
+    const { error } = await getSupabase()
+      .storage
+      .from(IMAGE_UPLOAD_BUCKET)
       .uploadToSignedUrl(this.signedUpload.path, this.signedUpload.token, params.file, {
         contentType: params.file.type
       });
