@@ -3,6 +3,7 @@
   import HelpIcon from 'carbon-icons-svelte/lib/Help.svelte';
   import LicenseDraft from 'carbon-icons-svelte/lib/LicenseDraft.svelte';
   import Explore from 'carbon-icons-svelte/lib/Explore.svelte';
+  import Chat from 'carbon-icons-svelte/lib/Chat.svelte';
   import HomeIcon from '$lib/components/Icons/HomeIcon.svelte';
   import CourseIcon from '$lib/components/Icons/CourseIcon.svelte';
   import CommunityIcon from '$lib/components/Icons/CommunityIcon.svelte';
@@ -62,6 +63,16 @@
       show() {
         return $currentOrg?.customization?.dashboard?.community;
       }
+    },
+    {
+      name: $t('lms_navigation.ai_tools'),
+      icon: Chat,
+      link: '/lms/ai-tools'
+    },
+    {
+      name: $t('lms_navigation.agent'),
+      icon: Chat,
+      link: '/lms/agent'
     },
     {
       name: $t('lms_navigation.explore'),

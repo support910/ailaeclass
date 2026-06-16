@@ -14,6 +14,7 @@
   import { ChevronRight, SettingsAdjust } from 'carbon-icons-svelte';
   import ForumIcon from 'carbon-icons-svelte/lib/Forum.svelte';
   import HelpIcon from 'carbon-icons-svelte/lib/Help.svelte';
+  import Chat from 'carbon-icons-svelte/lib/Chat.svelte';
 
   import ProfileMenu from '$lib/components/Org/ProfileMenu/index.svelte';
   import { NavClasses } from '$lib/utils/constants/reusableClass';
@@ -82,6 +83,18 @@
       show: true
     },
     {
+      path: '/ai-tools',
+      label: $t('org_navigation.ai_tools'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/ai-tools`),
+      show: true
+    },
+    {
+      path: '/agent',
+      label: $t('org_navigation.agent'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/agent`),
+      show: true
+    },
+    {
       path: '/audience',
       label: $t('org_navigation.audience'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/audience`),
@@ -141,6 +154,10 @@
                     <SiteSettingsIcon />
                   {:else if menuItem.path === '/community'}
                     <ForumIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                  {:else if menuItem.path === '/ai-tools'}
+                    <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                  {:else if menuItem.path === '/agent'}
+                    <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/quiz'}
                     <QuizIcon />
                   {:else if menuItem.path === '/exams'}

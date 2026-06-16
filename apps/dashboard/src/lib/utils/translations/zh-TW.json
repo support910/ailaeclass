@@ -316,7 +316,9 @@
     "settings": "設置",
     "early_adopter": "成為早期用戶",
     "unlock": "解鎖無限功能並投資我們的未來",
-    "upgrade": "立即升級"
+    "upgrade": "立即升級",
+    "ai_tools": "AI工具",
+    "agent": "ailaeclass Agent"
   },
   "pricing": {
     "plan_names": {
@@ -1549,7 +1551,9 @@
     "community": "社區",
     "explore": "探索",
     "help": "幫助",
-    "settings": "設置"
+    "settings": "設置",
+    "ai_tools": "AI工具",
+    "agent": "ailaeclass Agent"
   },
   "my_learning": {
     "heading": "我的學習",
@@ -1891,5 +1895,44 @@
   "support": {
     "help_title": "幫助與支援",
     "help_text": "需要幫助？請聯絡我們的支援團隊。"
+  },
+  "ai_tools": {
+    "title": "AI工具",
+    "socratic_title": "AI學習助手",
+    "socratic_description": "輸入學習問題或主題。逐步提示會像老師一樣追問、糾錯並講清關鍵知識點；直接解釋會直接給出完整思路。",
+    "guided_mode": "逐步提示",
+    "direct_mode": "直接解釋",
+    "input_placeholder": "輸入問題、主題或學生提示...",
+    "send": "發送",
+    "clear": "清空",
+    "phase1_notice": "第一階段預覽：介面已準備就緒。AI回應將在下一階段連接。",
+    "welcome_message": "把題目或想學的主題發給我。逐步提示會陪你一步步想：如果答錯了，我會先講清錯在哪裡，再給你一個更容易繼續的問題。",
+    "loading": "思考中...",
+    "login_required_error": "請重新登入以使用AI工具。",
+    "not_configured_error": "AI工具尚未配置。請聯繫支援團隊。",
+    "service_unavailable_error": "AI服務暫時不可用。請稍後再試。",
+    "invalid_message_error": "請檢查您的問題並重試。",
+    "unexpected_error": "出了點問題。請重試。"
+  },
+  "agent": {
+    "subtitle": "面向教師和學生的無人機航空知識助手。",
+    "chat_title": "ailaeclass Agent",
+    "chat_description": "詢問有關無人機法規、飛行操作、空域規則、安全程序和航空理論的問題。",
+    "input_placeholder": "提出無人機航空問題...",
+    "send": "發送",
+    "clear": "清空",
+    "welcome_message": "你好！我是ailaeclass Agent。請向我諮詢有關無人機法規、飛行操作、空域規則、安全程序或航空理論的任何問題。",
+    "loading": "思考中...",
+    "login_required_error": "請重新登入以使用Agent。",
+    "not_configured_error": "Agent尚未配置。請聯繫支援團隊。",
+    "service_unavailable_error": "Agent服務暫時不可用。請稍後再試。",
+    "invalid_message_error": "請檢查您的問題並重試。",
+    "unexpected_error": "出了點問題。請重試。",
+    "show_sources": "來源",
+    "hide_sources": "隱藏來源",
+    "knowledge_sources": "知識庫來源",
+    "web_sources": "網路來源",
+    "web_label": "網路",
+    "page": "頁"
   }
 }

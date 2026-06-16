@@ -188,7 +188,9 @@
     "community": "Cộng đồng",
     "help": "Giúp đỡ",
     "settings": "Cài đặt",
-    "explore": "Khám phá"
+    "explore": "Khám phá",
+    "ai_tools": "AI Tools",
+    "agent": "ailaeclass Agent"
   },
   "upgrade": {
     "certificate": "Nâng cấp gói của bạn để tạo chứng chỉ",
@@ -1411,7 +1413,9 @@
     "settings": "Cài đặt",
     "early_adopter": "Trở thành người áp dụng sớm",
     "unlock": "Mở khóa các tính năng không giới hạn và đầu tư vào tương lai của chúng tôi",
-    "upgrade": "Nâng cấp ngay bây giờ"
+    "upgrade": "Nâng cấp ngay bây giờ",
+    "ai_tools": "AI Tools",
+    "agent": "ailaeclass Agent"
   },
   "settings": {
     "heading": "Cài đặt",
@@ -1916,5 +1920,44 @@
   "support": {
     "help_title": "Help & Support",
     "help_text": "Need help? Contact our support team."
+  },
+  "ai_tools": {
+    "title": "AI Tools",
+    "socratic_title": "AI Learning Assistant",
+    "socratic_description": "Enter a question, topic, or student prompt, then choose step-by-step hints or a direct explanation.",
+    "guided_mode": "Step-by-step hints",
+    "direct_mode": "Direct explanation",
+    "input_placeholder": "Enter a question, topic, or student prompt...",
+    "send": "Send",
+    "clear": "Clear",
+    "phase1_notice": "Phase 1 preview: the interface shell is ready. AI responses will be connected in the next phase.",
+    "welcome_message": "Send a study question or topic. Step-by-step hints will ask key questions first; direct explanation will give the answer, reasoning, and common mistake warning.",
+    "loading": "Thinking...",
+    "login_required_error": "Please log in again to use AI Tools.",
+    "not_configured_error": "AI Tools is not configured yet. Please contact support.",
+    "service_unavailable_error": "AI service is temporarily unavailable. Please try again later.",
+    "invalid_message_error": "Please check your question and try again.",
+    "unexpected_error": "Something went wrong. Please try again."
+  },
+  "agent": {
+    "subtitle": "Drone aviation knowledge assistant for teachers and students.",
+    "chat_title": "ailaeclass Agent",
+    "chat_description": "Ask questions about drone regulations, flight operations, airspace rules, safety procedures, and aviation theory.",
+    "input_placeholder": "Ask a drone aviation question...",
+    "send": "Send",
+    "clear": "Clear",
+    "welcome_message": "Hello! I am the ailaeclass Agent. Ask me anything about drone regulations, flight operations, airspace rules, safety procedures, or aviation theory.",
+    "loading": "Thinking...",
+    "login_required_error": "Please log in again to use the Agent.",
+    "not_configured_error": "The Agent is not configured yet. Please contact support.",
+    "service_unavailable_error": "Agent service is temporarily unavailable. Please try again later.",
+    "invalid_message_error": "Please check your question and try again.",
+    "unexpected_error": "Something went wrong. Please try again.",
+    "show_sources": "Sources",
+    "hide_sources": "Hide sources",
+    "knowledge_sources": "Knowledge base sources",
+    "web_sources": "Web sources",
+    "web_label": "Web",
+    "page": "Page"
   }
 }

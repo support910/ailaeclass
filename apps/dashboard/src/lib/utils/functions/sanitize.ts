@@ -73,6 +73,12 @@ export function sanitizeHtml(html: string): string {
       'blockquote',
       'pre',
       'code',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
       'a',
       'img',
       ...mathTags
