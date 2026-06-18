@@ -89,12 +89,6 @@
 
         if (error) throw error;
 
-        const newUser = signUpData.user;
-        if (!newUser) {
-          throw new Error('Registration failed. Please try again.');
-        }
-        authUser = newUser;
-
         // If email confirmation is required, show success and wait for verification.
         // Profile & membership will be created automatically after verification
         // in getProfile() using the role stored in user_metadata.
@@ -103,6 +97,12 @@
           loading = false;
           return;
         }
+
+        const newUser = signUpData.user;
+        if (!newUser) {
+          throw new Error('Registration failed. Please try again.');
+        }
+        authUser = newUser;
       }
 
       const [regexUsernameMatch] = [...(authUser.email?.matchAll(/(.*)@/g) || [])];
