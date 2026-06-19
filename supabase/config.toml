@@ -96,7 +96,7 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = true
+enable_confirmations = false
 max_frequency = "1m0s"
 otp_length = 8
 otp_expiry = 3600
