@@ -89,20 +89,33 @@
 
         if (error) throw error;
 
-        // If email confirmation is required, show success and wait for verification.
-        // Profile & membership will be created automatically after verification
-        // in getProfile() using the role stored in user_metadata.
         if (!signUpData.session) {
-          success = true;
-          loading = false;
-          return;
-        }
+          const isEmailConfirmed =
+            !!(signUpData.user as any)?.email_confirmed_at || !!(signUpData.user as any)?.confirmed_at;
 
-        const newUser = signUpData.user;
-        if (!newUser) {
-          throw new Error('Registration failed. Please try again.');
+          if (isEmailConfirmed) {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: fields.email,
+              password: fields.password
+            });
+
+            if (signInError) throw signInError;
+            authUser = signInData.user || signUpData.user;
+          } else {
+            // If email confirmation is required, show success and wait for verification.
+            // Profile & membership will be created automatically after verification
+            // in getProfile() using the role stored in user_metadata.
+            success = true;
+            loading = false;
+            return;
+          }
+        } else {
+          const newUser = signUpData.user;
+          if (!newUser) {
+            throw new Error('Registration failed. Please try again.');
+          }
+          authUser = newUser;
         }
-        authUser = newUser;
       }
 
       const [regexUsernameMatch] = [...(authUser.email?.matchAll(/(.*)@/g) || [])];
