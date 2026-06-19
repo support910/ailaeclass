@@ -61,7 +61,7 @@ async function autoJoinOrgFromMetadata(
   }
 
   const roleId = signUpRole === 'teacher' ? ROLE.TUTOR : ROLE.STUDENT;
-  const isVerified = signUpRole === 'teacher' ? false : true;
+  const isVerified = true;
 
   // Resolve org to join
   let orgIdToJoin = get(currentOrg).id;
@@ -119,7 +119,7 @@ async function autoJoinOrgFromMetadata(
     });
   }
 
-  return signUpRole === 'student' ? '/lms' : '/teacher-pending';
+  return signUpRole === 'student' ? '/lms' : joinedOrg?.siteName ? `/org/${joinedOrg.siteName}` : '/';
 }
 
 export async function getProfile({

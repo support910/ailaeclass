@@ -142,11 +142,13 @@
 
       // Resolve org for single-org mode
       let orgIdToJoin = $currentOrg.id;
+      let orgSiteNameToJoin = $currentOrg.siteName;
       if (isSingleOrgMode() && !orgIdToJoin) {
         const siteName = getSingleOrgSiteName();
         if (siteName) {
           const orgData = await getCurrentOrg(siteName, true);
           orgIdToJoin = orgData?.id || '';
+          orgSiteNameToJoin = orgData?.siteName || orgSiteNameToJoin;
           if (orgData?.id) {
             currentOrg.update((o) => ({ ...o, id: orgData.id, siteName: orgData.siteName, name: orgData.name }));
           }
@@ -166,6 +168,7 @@
         }
 
         orgIdToJoin = firstOrg.id;
+        orgSiteNameToJoin = firstOrg.siteName;
         currentOrg.update((o) => ({
           ...o,
           id: firstOrg.id,
@@ -176,8 +179,9 @@
 
       // Determine role and redirect based on selection
       const roleId = selectedRole === 'teacher' ? ROLE.TUTOR : ROLE.STUDENT;
-      const targetRoute = selectedRole === 'teacher' ? '/teacher-pending' : '/lms';
-      const isVerified = selectedRole === 'teacher' ? false : true;
+      const targetRoute =
+        selectedRole === 'teacher' && orgSiteNameToJoin ? `/org/${orgSiteNameToJoin}` : '/lms';
+      const isVerified = true;
 
       // Auto-join the org with selected role (upsert in case user already has a membership)
       const { error: memberError } = await supabase
