@@ -20,11 +20,27 @@ export const GET: RequestHandler = async ({ request, url }) => {
   try {
     const supabase = getServerSupabase();
 
+    let studentGroupMemberId: string | null = null;
+
     // If courseId is provided, check permissions
     if (courseId) {
-      const hasPermission = await checkUserCoursePermissions(supabase, userId, courseId);
+      const { data: courseRow } = await supabase
+        .from('course')
+        .select('group_id')
+        .eq('id', courseId)
+        .single();
 
-      if (!hasPermission) {
+      if (!courseRow?.group_id) {
+        return json({ success: false, message: 'Course not found' }, { status: 404 });
+      }
+
+      const { hasAccess, isStudent, userMembership } = await checkUserCoursePermissions(
+        supabase,
+        userId,
+        courseRow.group_id
+      );
+
+      if (!hasAccess) {
         return json(
           {
             success: false,
@@ -32,6 +48,21 @@ export const GET: RequestHandler = async ({ request, url }) => {
           },
           { status: 403 }
         );
+      }
+
+      if (isStudent) {
+        if (!userMembership?.id) {
+          return json({ success: false, message: 'Student membership not found' }, { status: 403 });
+        }
+
+        if (submittedBy && submittedBy !== userMembership.id) {
+          return json(
+            { success: false, message: 'Students can only access their own submissions.' },
+            { status: 403 }
+          );
+        }
+
+        studentGroupMemberId = userMembership.id;
       }
     }
 
@@ -47,7 +78,9 @@ export const GET: RequestHandler = async ({ request, url }) => {
     if (courseId) {
       query.course_id = courseId;
     }
-    if (submittedBy) {
+    if (studentGroupMemberId) {
+      query.submitted_by = studentGroupMemberId;
+    } else if (submittedBy) {
       query.submitted_by = submittedBy;
     }
 

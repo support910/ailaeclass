@@ -1,12 +1,13 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
+import { ROLE } from '$lib/utils/constants/roles';
 
 /**
  * POST /api/courses/join-request
  * Body: { courseId: string }
  *
- * Student submits a request to join a course.
+ * Student joins a course by course code lookup.
  */
 export const POST: RequestHandler = async ({ request }) => {
   const userId = await getUserIdFromRequest(request);
@@ -47,56 +48,52 @@ export const POST: RequestHandler = async ({ request }) => {
       .select('id')
       .eq('group_id', course.group_id)
       .eq('profile_id', userId)
-      .single();
+      .maybeSingle();
 
     if (existingMember) {
-      return json({ success: false, message: 'Already a member of this course' }, { status: 409 });
+      return json({
+        success: true,
+        member: existingMember,
+        message: 'Already joined this course'
+      });
     }
 
-    // 3. Check if user already has a pending/approved request for this course
+    // 3. Keep any legacy join request in sync, but do not require teacher approval for code joins.
     const { data: existingRequest } = await supabase
       .from('course_join_request')
       .select('id, status')
       .eq('course_id', courseId)
       .eq('profile_id', userId)
       .in('status', ['pending', 'approved'])
-      .single();
+      .maybeSingle();
 
-    if (existingRequest) {
-      if (existingRequest.status === 'pending') {
-        return json(
-          { success: false, message: 'You already have a pending application for this course' },
-          { status: 409 }
-        );
-      }
-      if (existingRequest.status === 'approved') {
-        return json(
-          { success: false, message: 'Your application has already been approved' },
-          { status: 409 }
-        );
-      }
-    }
-
-    // 4. Insert join request
-    const { data: joinRequest, error: insertError } = await supabase
-      .from('course_join_request')
+    // 4. Add student directly to the course group.
+    const { data: member, error: memberError } = await supabase
+      .from('groupmember')
       .insert({
-        course_id: courseId,
         profile_id: userId,
-        status: 'pending'
+        group_id: course.group_id,
+        role_id: ROLE.STUDENT
       })
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Insert join request error:', insertError);
-      return json({ success: false, message: 'Failed to submit application' }, { status: 500 });
+    if (memberError) {
+      console.error('Create groupmember from course code error:', memberError);
+      return json({ success: false, message: 'Failed to join course' }, { status: 500 });
+    }
+
+    if (existingRequest?.id) {
+      await supabase
+        .from('course_join_request')
+        .update({ status: 'approved' })
+        .eq('id', existingRequest.id);
     }
 
     return json({
       success: true,
-      request: joinRequest,
-      message: 'Application submitted successfully'
+      member,
+      message: 'Joined course successfully'
     });
   } catch (err) {
     console.error('POST /api/courses/join-request error:', err);

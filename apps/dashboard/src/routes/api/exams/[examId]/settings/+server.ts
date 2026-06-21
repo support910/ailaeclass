@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 /**
  * PATCH /api/exams/[examId]/settings
@@ -34,7 +33,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
     // 1. Verify exam exists
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
-      .select('lesson_id')
+      .select('lesson_id, settings')
       .eq('id', examId)
       .eq('assessment_type', 'exam')
       .single();
@@ -60,7 +59,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, isOrgAdmin, userMembership } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -70,16 +69,16 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isTeacher = isOrgAdmin || userMembership?.role_id === ROLE.TUTOR || userMembership?.role_id === ROLE.ADMIN;
+    const isTeacher = !isStudent;
     if (!isTeacher) {
       return json({ success: false, message: 'Only teachers can update exam settings' }, { status: 403 });
     }
 
     // 3. Build update payload
     const allowedFields = [
-      'title', 'description', 'duration_minutes', 'attempts_allowed',
+      'title', 'description', 'duration_minutes',
       'passing_score', 'show_result_policy', 'shuffle_questions',
-      'shuffle_options', 'available_from', 'available_until', 'settings'
+      'shuffle_options', 'available_from', 'available_until'
     ];
 
     const payload: Record<string, any> = {};
@@ -87,6 +86,31 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
       if (body[key] !== undefined) {
         payload[key] = body[key];
       }
+    }
+
+    const existingSettings =
+      examRow.settings && typeof examRow.settings === 'object' && !Array.isArray(examRow.settings)
+        ? examRow.settings
+        : {};
+    const incomingSettings =
+      body.settings && typeof body.settings === 'object' && !Array.isArray(body.settings)
+        ? body.settings
+        : {};
+    const mergedSettings = { ...existingSettings, ...incomingSettings };
+
+    if (body.attempts_allowed !== undefined) {
+      const rawAttempts = body.attempts_allowed;
+      const attemptsUnlimited = rawAttempts === null || rawAttempts === '';
+      const parsedAttempts = attemptsUnlimited ? 1 : Number(rawAttempts);
+      if (!Number.isFinite(parsedAttempts) || parsedAttempts < 1) {
+        return json({ success: false, message: 'Attempts must be at least 1 or empty for unlimited' }, { status: 400 });
+      }
+      payload.attempts_allowed = parsedAttempts;
+      mergedSettings.attempts_unlimited = attemptsUnlimited;
+    }
+
+    if (body.settings !== undefined || body.attempts_allowed !== undefined) {
+      payload.settings = mergedSettings;
     }
 
     if (Object.keys(payload).length === 0) {

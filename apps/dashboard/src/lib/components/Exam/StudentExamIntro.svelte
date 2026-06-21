@@ -10,8 +10,9 @@
 
   export let exam: Partial<Exercise>;
   export let attemptCount = 0;
-  export let attemptsAllowed: number | undefined = undefined;
+  export let attemptsAllowed: number | null | undefined = undefined;
   export let onStart: () => void;
+  export let onStartShuffled: (() => void) | null = null;
   export let isStarting = false;
 
   $: remainingAttempts =
@@ -120,13 +121,22 @@
     </div>
   {/if}
 
-  <div class="flex justify-end">
+  <div class="flex flex-col sm:flex-row justify-end gap-3">
+    {#if attemptCount > 0 && onStartShuffled}
+      <PrimaryButton
+        variant={VARIANTS.OUTLINED}
+        onClick={onStartShuffled}
+        isLoading={isStarting}
+        isDisabled={startDisabled}
+        label={$t('components.exam.intro.restart_shuffled_button')}
+      />
+    {/if}
     <PrimaryButton
       variant={VARIANTS.CONTAINED}
       onClick={onStart}
       isLoading={isStarting}
       isDisabled={startDisabled}
-      label={$t('components.exam.intro.start_button')}
+      label={attemptCount > 0 ? $t('components.exam.intro.restart_button') : $t('components.exam.intro.start_button')}
     />
   </div>
 </div>

@@ -82,6 +82,15 @@
     return 'bg-gray-200 text-gray-800 dark:bg-neutral-700 dark:text-gray-200';
   }
 
+  function getExamMode(exam: Exercise) {
+    return (exam as any).settings?.exam_mode === 'quick_practice'
+      ? 'quick_practice'
+      : 'traditional';
+  }
+
+  $: traditionalExams = $examsStore.filter((exam) => getExamMode(exam) === 'traditional');
+  $: quickPracticeExams = $examsStore.filter((exam) => getExamMode(exam) === 'quick_practice');
+
   async function handleDelete(exam: Exercise) {
     if (!exam?.id) return;
     if (exam.published_at) {
@@ -143,58 +152,88 @@
         <p class="dark:text-white w-1/3 text-center">{$t('components.exam.create_first')}</p>
       </Box>
     {:else}
-      <div class="space-y-4">
-        {#each $examsStore as exam}
-          <div
-            class="w-full border hover:shadow-xl transition ease-in-out rounded-lg bg-gray-100 dark:bg-neutral-900 mb-4 relative flex flex-col lg:flex-row p-4"
-          >
-            <div class="flex flex-col justify-between w-full">
-              <div class="flex justify-between items-start">
-                <div>
-                  <h4 class="dark:text-white text-lg font-bold capitalize">
-                    <a href="{$currentOrgPath}/exams/{exam.id}/edit">{exam.title}</a>
-                  </h4>
-                  {#if exam.lesson}
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                      {exam.lesson.course?.title || ''} / {exam.lesson.title || ''}
-                    </p>
-                  {/if}
-                </div>
-                <span class="px-2 py-1 rounded-md text-xs font-medium {getStatusClass(exam)}">
-                  {getStatusLabel(exam)}
-                </span>
-              </div>
-
-              <div class="flex flex-wrap gap-4 mt-3 text-sm text-gray-700 dark:text-gray-300">
-                {#if exam.duration_minutes}
-                  <span>{$t('components.exam.duration')}: {exam.duration_minutes} {$t('components.exam.duration_minutes_suffix')}</span>
-                {/if}
-                {#if exam.attempts_allowed}
-                  <span>{$t('components.exam.attempts')}: {exam.attempts_allowed}</span>
-                {/if}
-                {#if exam.passing_score !== undefined && exam.passing_score !== null}
-                  <span>{$t('components.exam.passing_score')}: {exam.passing_score}</span>
-                {/if}
-                <span>{$t('components.exam.updated')}: {calDateDiff(exam.updated_at || exam.created_at)}</span>
-                <a
-                  href="{$currentOrgPath}/exams/{exam.id}/submissions"
-                  class="text-primary-700 hover:underline font-medium"
-                >
-                  {$t('components.exam.grading.submissions')}
-                </a>
-                {#if $isOrgTeacher}
-                  {#if !exam.published_at}
-                    <button
-                      class="text-red-600 hover:underline font-medium"
-                      on:click={() => handleDelete(exam)}
-                    >
-                      {$t('components.exam.delete_draft')}
-                    </button>
-                  {/if}
-                {/if}
-              </div>
+      <div class="space-y-8">
+        {#each [
+          { mode: 'traditional', exams: traditionalExams },
+          { mode: 'quick_practice', exams: quickPracticeExams }
+        ] as section}
+          <section>
+            <div class="mb-3">
+              <h2 class="text-lg font-bold text-black dark:text-white">
+                {section.mode === 'quick_practice'
+                  ? $t('components.exam.mode_quick_practice')
+                  : $t('components.exam.mode_traditional')}
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {section.mode === 'quick_practice'
+                  ? $t('components.exam.mode_quick_practice_hint')
+                  : $t('components.exam.mode_traditional_hint')}
+              </p>
             </div>
-          </div>
+
+            {#if section.exams.length === 0}
+              <div
+                class="rounded-md border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-400"
+              >
+                {$t('components.exam.no_exams')}
+              </div>
+            {:else}
+              <div class="space-y-4">
+                {#each section.exams as exam}
+                  <div
+                    class="w-full border hover:shadow-xl transition ease-in-out rounded-lg bg-gray-100 dark:bg-neutral-900 mb-4 relative flex flex-col lg:flex-row p-4"
+                  >
+                    <div class="flex flex-col justify-between w-full">
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <h4 class="dark:text-white text-lg font-bold capitalize">
+                            <a href="{$currentOrgPath}/exams/{exam.id}/edit">{exam.title}</a>
+                          </h4>
+                          {#if exam.lesson}
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                              {exam.lesson.course?.title || ''} / {exam.lesson.title || ''}
+                            </p>
+                          {/if}
+                        </div>
+                        <span class="px-2 py-1 rounded-md text-xs font-medium {getStatusClass(exam)}">
+                          {getStatusLabel(exam)}
+                        </span>
+                      </div>
+
+                      <div class="flex flex-wrap gap-4 mt-3 text-sm text-gray-700 dark:text-gray-300">
+                        {#if exam.duration_minutes}
+                          <span>{$t('components.exam.duration')}: {exam.duration_minutes} {$t('components.exam.duration_minutes_suffix')}</span>
+                        {/if}
+                        {#if exam.attempts_allowed}
+                          <span>{$t('components.exam.attempts')}: {exam.attempts_allowed}</span>
+                        {/if}
+                        {#if exam.passing_score !== undefined && exam.passing_score !== null}
+                          <span>{$t('components.exam.passing_score')}: {exam.passing_score}</span>
+                        {/if}
+                        <span>{$t('components.exam.updated')}: {calDateDiff(exam.updated_at || exam.created_at)}</span>
+                        <a
+                          href="{$currentOrgPath}/exams/{exam.id}/submissions"
+                          class="text-primary-700 hover:underline font-medium"
+                        >
+                          {$t('components.exam.grading.submissions')}
+                        </a>
+                        {#if $isOrgTeacher}
+                          {#if !exam.published_at}
+                            <button
+                              class="text-red-600 hover:underline font-medium"
+                              on:click={() => handleDelete(exam)}
+                            >
+                              {$t('components.exam.delete_draft')}
+                            </button>
+                          {/if}
+                        {/if}
+                      </div>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            {/if}
+          </section>
         {/each}
       </div>
     {/if}

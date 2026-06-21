@@ -15,8 +15,9 @@
   $: backUrl = $page.url.searchParams.get('back');
 
   const handleClick = () => {
-    const url = $page.url.href + '?add=true';
-    goto(url);
+    const url = new URL($page.url);
+    url.searchParams.set('add', 'true');
+    goto(`${url.pathname}${url.search}`);
   };
 
   const handleBackNavigation = () => {

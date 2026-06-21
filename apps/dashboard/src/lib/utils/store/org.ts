@@ -162,9 +162,10 @@ export const createExamModal = writable({
   courseId: '',
   lessonId: '',
   durationMinutes: 60,
-  attemptsAllowed: 1,
+  attemptsAllowed: 1 as number | string | null,
   passingScore: 60,
   showResultPolicy: 'after_grade',
+  examMode: 'traditional',
   isLoading: false
 });
 

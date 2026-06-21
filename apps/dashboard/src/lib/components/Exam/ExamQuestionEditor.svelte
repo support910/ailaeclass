@@ -183,10 +183,26 @@
     );
   }
 
+  function handleQuestionMetadataChange(questionId: string, metadata: Record<string, any>) {
+    onQuestionsChange(
+      questions.map((q) => {
+        if (q.id !== questionId) return q;
+        return { ...q, metadata: { ...(q.metadata || {}), ...metadata }, is_dirty: true };
+      })
+    );
+  }
+
   function handleImport(newQuestions: any[]) {
     onQuestionsChange([...questions, ...newQuestions]);
   }
 
+  $: questions.forEach((q) => {
+    q.metadata = q.metadata || {};
+    q.options = (q.options || []).map((o) => {
+      o.metadata = o.metadata || {};
+      return o;
+    });
+  });
   $: activeQuestions = questions.filter((q) => !q.deleted_at);
 </script>
 
@@ -214,8 +230,19 @@
           />
           <QuestionImageUpload
             image={question.metadata?.image || null}
-            onChange={(img) => handleQuestionFieldChange(question.id, 'metadata', { ...question.metadata, image: img })}
+            onChange={(img) => handleQuestionMetadataChange(question.id, { image: img })}
             label="Question image (optional)"
+          />
+          <TextArea
+            label={$t('components.exam.explanation_label')}
+            bind:value={question.metadata.explanation}
+            placeholder={$t('components.exam.explanation_placeholder')}
+            rows={3}
+            className="mt-3"
+            onChange={() =>
+              handleQuestionMetadataChange(question.id, {
+                explanation: question.metadata?.explanation || ''
+              })}
           />
         </div>
         <Select

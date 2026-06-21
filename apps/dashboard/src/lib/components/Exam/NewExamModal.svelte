@@ -34,6 +34,11 @@
     { id: 'manual', text: $t('components.exam.policy_manual') }
   ];
 
+  const examModeOptions = [
+    { id: 'traditional', text: $t('components.exam.mode_traditional') },
+    { id: 'quick_practice', text: $t('components.exam.mode_quick_practice') }
+  ];
+
   function handleClose() {
     $createExamModal.open = false;
     $createExamModal.title = '';
@@ -44,6 +49,7 @@
     $createExamModal.attemptsAllowed = 1;
     $createExamModal.passingScore = 60;
     $createExamModal.showResultPolicy = 'after_grade';
+    $createExamModal.examMode = 'traditional';
     selectedCourseId = '';
     selectedLessonId = '';
     availableFrom = '';
@@ -112,9 +118,12 @@
     if (!selectedLessonId) {
       errors.lesson = $t('components.exam.error_lesson_required');
     }
-    const attempts = Number($createExamModal.attemptsAllowed);
-    if (isNaN(attempts) || attempts < 1) {
-      errors.attempts = $t('components.exam.error_attempts_min');
+    const attemptsRaw = $createExamModal.attemptsAllowed;
+    if (attemptsRaw !== '' && attemptsRaw !== null && attemptsRaw !== undefined) {
+      const attempts = Number(attemptsRaw);
+      if (isNaN(attempts) || attempts < 1) {
+        errors.attempts = $t('components.exam.error_attempts_min');
+      }
     }
     const duration = Number($createExamModal.durationMinutes);
     if ($createExamModal.durationMinutes !== '' && $createExamModal.durationMinutes !== null && $createExamModal.durationMinutes !== undefined) {
@@ -147,11 +156,19 @@
         lesson_id: selectedLessonId,
         course_id: selectedCourseId,
         duration_minutes: $createExamModal.durationMinutes ? Number($createExamModal.durationMinutes) : undefined,
-        attempts_allowed: Number($createExamModal.attemptsAllowed) || 1,
+        attempts_allowed:
+          $createExamModal.attemptsAllowed === '' ||
+          $createExamModal.attemptsAllowed === null ||
+          $createExamModal.attemptsAllowed === undefined
+            ? null
+            : Number($createExamModal.attemptsAllowed),
         passing_score: $createExamModal.passingScore !== '' && $createExamModal.passingScore !== null && $createExamModal.passingScore !== undefined ? Number($createExamModal.passingScore) : undefined,
         show_result_policy: $createExamModal.showResultPolicy || 'after_grade',
         available_from: availableFrom || undefined,
-        available_until: availableUntil || undefined
+        available_until: availableUntil || undefined,
+        settings: {
+          exam_mode: $createExamModal.examMode || 'traditional'
+        }
       });
 
       if (error || !data || data.length === 0) {
@@ -220,6 +237,20 @@
     />
 
     <div>
+      <p class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.mode_label')}</p>
+      <Dropdown
+        class="w-full bg-gray-100 dark:bg-neutral-800"
+        bind:selectedId={$createExamModal.examMode}
+        items={examModeOptions}
+      />
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        {$createExamModal.examMode === 'quick_practice'
+          ? $t('components.exam.mode_quick_practice_hint')
+          : $t('components.exam.mode_traditional_hint')}
+      </p>
+    </div>
+
+    <div>
       <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.course')}</label>
       <Dropdown
         class="w-full bg-gray-100 dark:bg-neutral-800"
@@ -268,6 +299,7 @@
           type="number"
           bind:value={$createExamModal.attemptsAllowed}
           min={1}
+          helperMessage={$t('components.exam.attempts_unlimited_hint')}
           errorMessage={errors.attempts || ''}
         />
       </div>

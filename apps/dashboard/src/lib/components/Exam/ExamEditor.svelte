@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import ExamSettingsPanel from './ExamSettingsPanel.svelte';
   import ExamQuestionEditor from './ExamQuestionEditor.svelte';
@@ -32,6 +33,7 @@
   let isSaving = false;
   let isPublishing = false;
   let settingsDirty = false;
+  let localDraftTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Defense-in-depth: redirect students away
   $: if ($currentOrg.role_id === ROLE.STUDENT && $currentOrg.id) {
@@ -83,7 +85,7 @@
   }
 
   function validateSettings(): string | null {
-    if (exam.attempts_allowed !== undefined && exam.attempts_allowed !== null) {
+    if (exam.attempts_allowed !== undefined && exam.attempts_allowed !== null && exam.attempts_allowed !== '') {
       const val = Number(exam.attempts_allowed);
       if (isNaN(val) || val < 1) {
         return $t('components.exam.error_attempts_min');
@@ -113,6 +115,51 @@
     }
 
     return null;
+  }
+
+  function getLocalDraftKey() {
+    return `ailaeclass:exam-editor-draft:${examId}`;
+  }
+
+  function clearLocalDraft() {
+    if (!browser || !examId) return;
+    localStorage.removeItem(getLocalDraftKey());
+  }
+
+  function scheduleLocalDraftSave() {
+    if (!browser || isLoading || !examId) return;
+    if (localDraftTimer) clearTimeout(localDraftTimer);
+    localDraftTimer = setTimeout(() => {
+      localStorage.setItem(
+        getLocalDraftKey(),
+        JSON.stringify({
+          savedAt: new Date().toISOString(),
+          exam,
+          questions
+        })
+      );
+    }, 500);
+  }
+
+  function restoreLocalDraftIfAvailable() {
+    if (!browser || !examId) return;
+
+    const raw = localStorage.getItem(getLocalDraftKey());
+    if (!raw) return;
+
+    try {
+      const draft = JSON.parse(raw);
+      const confirmed = window.confirm($t('components.exam.draft_restore_confirm'));
+      if (!confirmed) return;
+
+      exam = draft.exam || exam;
+      questions = detectTrueFalse(draft.questions || questions);
+      settingsDirty = true;
+      snackbar.success($t('components.exam.draft_restored'));
+    } catch (err) {
+      console.warn('Unable to restore exam draft:', err);
+      clearLocalDraft();
+    }
   }
 
   function validateBeforePublish(allQuestions: any[]): string | null {
@@ -159,7 +206,10 @@
       title: exam.title,
       description: exam.description,
       duration_minutes: exam.duration_minutes,
-      attempts_allowed: exam.attempts_allowed,
+      attempts_allowed:
+        exam.attempts_allowed === '' || exam.attempts_allowed === undefined
+          ? null
+          : exam.attempts_allowed,
       passing_score: exam.passing_score,
       show_result_policy: exam.show_result_policy,
       available_from: exam.available_from,
@@ -189,6 +239,8 @@
     } else {
       throw new Error('Failed to save questions');
     }
+
+    clearLocalDraft();
   }
 
   async function loadExam() {
@@ -204,14 +256,17 @@
     exam = data;
     questions = detectTrueFalse(data.questions || []);
     isLoading = false;
+    restoreLocalDraftIfAvailable();
   }
 
   function handleSettingsChange() {
     settingsDirty = true;
+    scheduleLocalDraftSave();
   }
 
   function handleQuestionsChange(newQuestions: any[]) {
     questions = newQuestions;
+    scheduleLocalDraftSave();
   }
 
   async function handleSave() {
@@ -265,7 +320,7 @@
     const { error } = await publishExam(examId);
     if (error) {
       console.error('publishExam error', error);
-      snackbar.error($t('components.exam.publish_error'));
+      snackbar.error(error.message || $t('components.exam.publish_error'));
     } else {
       exam.published_at = new Date().toISOString();
       snackbar.success($t('components.exam.publish_success'));
@@ -280,7 +335,7 @@
     const { error } = await unpublishExam(examId);
     if (error) {
       console.error('unpublishExam error', error);
-      snackbar.error($t('components.exam.unpublish_error'));
+      snackbar.error(error.message || $t('components.exam.unpublish_error'));
     } else {
       exam.published_at = null;
       snackbar.success($t('components.exam.unpublish_success'));
@@ -290,6 +345,10 @@
 
   onMount(() => {
     loadExam();
+  });
+
+  onDestroy(() => {
+    if (localDraftTimer) clearTimeout(localDraftTimer);
   });
 </script>
 

@@ -437,6 +437,11 @@
     "exam": {
       "title": "Exams",
       "create_exam": "Create Exam",
+      "mode_label": "Exam Type",
+      "mode_traditional": "Traditional Exam",
+      "mode_traditional_hint": "Students answer the full exam before submitting. Best for formal tests and grading.",
+      "mode_quick_practice": "Quick Practice",
+      "mode_quick_practice_hint": "Students see correctness and explanation after each answer. Best for class practice and review.",
       "exam_title": "Exam Title",
       "placeholder": "Enter exam title",
       "description": "Description",
@@ -446,6 +451,7 @@
       "select_lesson": "Select a lesson",
       "duration": "Duration (minutes)",
       "attempts": "Attempts Allowed",
+      "attempts_unlimited_hint": "Leave empty for unlimited retakes.",
       "passing_score": "Passing Score",
       "show_result_policy": "Show Result",
       "policy_after_grade": "After grading",
@@ -490,6 +496,10 @@
       "shuffle_questions": "Shuffle questions",
       "shuffle_options": "Shuffle options",
       "question_placeholder": "Enter question",
+      "explanation_label": "Standard Explanation",
+      "explanation_placeholder": "Write the explanation students see after answering",
+      "draft_restore_confirm": "An unsaved local draft was found for this exam. Restore it?",
+      "draft_restored": "Local draft restored",
       "textarea_hint": "Students will provide a written answer.",
       "add_option": "Add option",
       "add_question": "Add question",
@@ -526,7 +536,9 @@
         "not_yet_available": "This exam is not yet available.",
         "no_longer_available": "This exam is no longer available.",
         "no_attempts_left": "You have no remaining attempts for this exam.",
-        "start_button": "Start Exam"
+        "start_button": "Start Exam",
+        "restart_button": "Retake Exam",
+        "restart_shuffled_button": "Retake with shuffled order"
       },
       "runner": {
         "progress": "Question",
@@ -542,8 +554,28 @@
         "unanswered_warning": "You have unanswered questions. Are you sure you want to submit?",
         "submit_failed": "Submission failed. Your answers are still saved.",
         "retry_submit": "Retry",
+        "shuffle": "Shuffle",
+        "shuffled": "Questions and options shuffled",
         "no_questions": "This exam has no questions.",
         "contact_teacher": "Please contact your teacher."
+      },
+      "quick": {
+        "answer_required": "Please answer before checking the explanation.",
+        "write_answer": "Write your answer",
+        "check_answer": "Check answer",
+        "correct": "Correct",
+        "incorrect": "Incorrect",
+        "reference": "Reference answer",
+        "correct_answer": "Correct answer",
+        "explanation": "Explanation",
+        "no_explanation": "No explanation has been added yet.",
+        "save_progress": "Save progress",
+        "progress_saved": "Progress saved",
+        "save_failed": "Failed to save progress",
+        "save_before_exit": "Save your current progress before leaving?",
+        "discard_exit_confirm": "Leave without saving?",
+        "exit": "Exit",
+        "finish": "Finish practice"
       },
       "result": {
         "passed": "Passed",
@@ -560,7 +592,8 @@
         "incorrect": "Incorrect",
         "no_answer": "No answer",
         "result_hidden": "Results are not yet available for this exam.",
-        "back": "Back to Exam"
+        "back": "Back to Exam",
+        "restart_shuffled": "Restart with shuffled order"
       },
       "grading": {
         "title": "Grade Exam",
@@ -1355,7 +1388,8 @@
           "discount": "Discount",
           "enroll": "Enroll Now",
           "buy": "Buy Now",
-          "bird": "Early bird offer. Buy ASAP"
+          "bird": "Early bird offer. Buy ASAP",
+          "contact_teacher_to_join": "Please contact the teacher for a course code or invite link before joining this course."
         },
         "course_content": "Course content",
         "modules": "modules",
@@ -1450,19 +1484,22 @@
     "join": {
       "join_course": "Join Course",
       "title": "Join a Course",
-      "description": "Enter a course code to find and apply to join a course.",
+        "description": "Enter a course code to find and join a course.",
       "search_placeholder": "Enter course code (e.g. A1B2C3)",
       "search_button": "Search",
       "code_label": "Course Code",
-      "apply": "Apply to Join",
-      "pending": "Application Pending",
-      "already_member": "Already Joined",
-      "submitted": "Application Submitted",
-      "login_required": "Please log in to apply for this course.",
-      "error_empty": "Please enter a course code.",
-      "error_not_found": "Course not found. Please check the code and try again.",
-      "error_submit": "Failed to submit application. Please try again.",
-      "success_submit": "Application submitted successfully. Please wait for teacher approval."
+        "apply": "Join Course",
+        "pending": "Application Pending",
+        "already_member": "Already Joined",
+        "submitted": "Application Submitted",
+        "joined": "Joined Course",
+        "login_required": "Please log in to join this course.",
+        "go_back": "Back",
+        "code_hint": "Students can enter this course code in Join Course to join.",
+        "error_empty": "Please enter a course code.",
+        "error_not_found": "Course not found. Please check the code and try again.",
+        "error_submit": "Failed to join course. Please try again.",
+        "success_submit": "Joined course successfully."
     },
     "people": {
       "join_requests": "Join Requests",

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { get } from 'svelte/store';
   import { Moon } from 'svelte-loading-spinners';
   import { browser } from '$app/environment';
   import { BRAND } from '$lib/utils/config/brand';
@@ -15,6 +16,7 @@
   import { t } from '$lib/utils/functions/translations';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { isOrgTeacher, currentOrgPath } from '$lib/utils/store/org';
+  import { profile } from '$lib/utils/store/user';
 
   export let courseId = '';
   export let path = '';
@@ -31,6 +33,27 @@
   async function onCourseIdChange(courseId = '') {
     if (!courseId || !browser) return;
     if (prevCourseId === courseId && hasLoadedCourse && membershipResolved) return;
+
+    const cachedCourse = get(course);
+    const cachedViewer = cachedCourse?.viewer;
+    const cacheBelongsToCurrentUser =
+      cachedViewer?.profile_id && $profile.id && cachedViewer.profile_id === $profile.id;
+    if (cachedCourse?.id === courseId && cacheBelongsToCurrentUser) {
+      const viewer = cachedCourse.viewer;
+      if (viewer?.hasAccess) {
+        $globalStore.isStudent = viewer.isStudent === true;
+        filterPollsByStatus($globalStore.isStudent);
+        isPermitted = true;
+      } else {
+        $globalStore.isStudent = true;
+        isPermitted = false;
+      }
+      isFetching = false;
+      membershipResolved = true;
+      hasLoadedCourse = true;
+      prevCourseId = courseId;
+      return;
+    }
 
     isFetching = true;
     membershipResolved = false;

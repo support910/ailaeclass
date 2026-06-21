@@ -7,9 +7,20 @@ if (!supabase) {
   getSupabase();
 }
 
+function decodeCourseInviteHash(hash: string) {
+  const binary = atob(decodeURIComponent(hash));
+
+  try {
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return binary;
+  }
+}
+
 export const load = async ({ params = { hash: '' } }) => {
   try {
-    const courseHashData = atob(decodeURIComponent(params.hash));
+    const courseHashData = decodeCourseInviteHash(params.hash);
     console.log('courseHashData', courseHashData);
 
     const { id, name, description, orgSiteName } = JSON.parse(courseHashData);

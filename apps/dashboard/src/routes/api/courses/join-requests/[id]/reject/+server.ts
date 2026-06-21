@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 /**
  * POST /api/courses/join-requests/[id]/reject
@@ -50,7 +49,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     // 3. Check permissions (teacher/admin only)
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -60,7 +59,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
     if (isStudent) {
       return json({ success: false, message: 'Students cannot reject requests' }, { status: 403 });
     }

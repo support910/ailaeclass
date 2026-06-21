@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     // 3. Check permissions (teacher/admin only)
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -61,7 +61,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
     if (isStudent) {
       return json({ success: false, message: 'Students cannot approve requests' }, { status: 403 });
     }

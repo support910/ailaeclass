@@ -295,6 +295,52 @@ export async function getProfile({
 
     const orgRes = await getOrganizations(profileData.id, isOrgSite, orgSiteName);
 
+    if (isSingleOrgMode() && !orgRes.currentOrg?.id) {
+      const siteName = getSingleOrgSiteName();
+      const singleOrg = siteName ? await getCurrentOrg(siteName, true) : null;
+      const existingRole = orgRes.orgs?.[0]?.role_id;
+      const metadataRole = authUser.user_metadata?.role;
+      const roleId =
+        existingRole ||
+        (metadataRole === 'teacher'
+          ? ROLE.TUTOR
+          : metadataRole === 'student'
+            ? ROLE.STUDENT
+            : ROLE.STUDENT);
+
+      if (singleOrg?.id) {
+        const { data: memberData, error: memberError } = await supabase
+          .from('organizationmember')
+          .upsert(
+            {
+              organization_id: singleOrg.id,
+              profile_id: profileData.id,
+              role_id: roleId,
+              verified: true
+            },
+            { onConflict: 'organization_id,profile_id' }
+          )
+          .select();
+
+        if (memberError) {
+          console.error('Error adding user to single organization', memberError);
+        } else {
+          const memberId = memberData?.[0]?.id || '';
+          const singleCurrentOrg = {
+            ...singleOrg,
+            memberId,
+            role_id: roleId,
+            verified: true,
+            shortName: singleOrg.name?.substring(0, 2)?.toUpperCase() || ''
+          };
+
+          orgRes.orgs = [...orgRes.orgs, singleCurrentOrg];
+          orgRes.currentOrg = singleCurrentOrg;
+          currentOrg.set(singleCurrentOrg);
+        }
+      }
+    }
+
     const hasMembership = !!orgRes.currentOrg?.id;
     const roleInOrg = orgRes.currentOrg?.role_id;
     const isVerified = orgRes.currentOrg?.verified !== false;
@@ -316,10 +362,12 @@ export async function getProfile({
     } else if (hasMembership) {
       if (isStudentAccount) {
         console.log('Student logged into dashboard');
-        if (dev || !currentOrgDomainStore || currentOrgDomainStore.includes('localhost')) {
-          goto('/lms');
-        } else {
-          window.location.replace(`${currentOrgDomainStore}/lms`);
+        if (shouldRedirectOnAuth(path)) {
+          if (dev || !currentOrgDomainStore || currentOrgDomainStore.includes('localhost')) {
+            goto('/lms');
+          } else {
+            window.location.replace(`${currentOrgDomainStore}/lms`);
+          }
         }
       } else if (isTeacherPending) {
         goto('/teacher-pending');

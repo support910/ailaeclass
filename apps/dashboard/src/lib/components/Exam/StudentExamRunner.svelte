@@ -17,6 +17,7 @@
   export let onSubmit: (answers: Record<string, any>) => void;
   export let isSubmitting = false;
   export let submitFailed = false;
+  export let shuffleOnStart = false;
 
   let answers: Record<string, any> = {};
   let currentQuestionIndex = 0;
@@ -25,13 +26,24 @@
   let timeRemaining = 0;
   let isExpired = false;
   let hasSubmitted = false;
+  let questionOrder: string[] = [];
+  let optionOrders: Record<string, string[]> = {};
+  let orderReadyForExamId = '';
+  let baseQuestions: any[] = [];
+  let questions: any[] = [];
 
   // Reset local guard when parent signals a failure so user can retry
   $: if (submitFailed) {
     hasSubmitted = false;
   }
 
-  $: questions = (exam.questions || []).filter((q) => !q.deleted_at);
+  $: baseQuestions = Array.isArray(exam?.questions)
+    ? exam.questions.filter((q: any) => !q.deleted_at)
+    : [];
+  $: if (exam?.id && baseQuestions.length > 0 && orderReadyForExamId !== exam.id) {
+    initializeDisplayOrder();
+  }
+  $: questions = orderByValues(baseQuestions, questionOrder, (q: any) => q.name);
   $: totalQuestions = questions.length;
   $: currentQuestion = questions[currentQuestionIndex];
   $: progressValue = totalQuestions > 0 ? Math.round((currentQuestionIndex / totalQuestions) * 100) : 0;
@@ -82,6 +94,50 @@
       return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  function getActiveOptions(question: any) {
+    return (question.options || []).filter((o) => !o.deleted_at);
+  }
+
+  function shuffleArray<T>(items: T[]) {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function orderByValues<T>(items: T[], order: string[], getValue: (item: T) => string) {
+    if (!order?.length) return items;
+    const itemMap = new Map(items.map((item) => [getValue(item), item]));
+    const ordered = order.map((value) => itemMap.get(value)).filter(Boolean) as T[];
+    const missing = items.filter((item) => !order.includes(getValue(item)));
+    return [...ordered, ...missing];
+  }
+
+  function initializeDisplayOrder() {
+    questionOrder = shuffleOnStart
+      ? shuffleArray(baseQuestions.map((q) => q.name))
+      : baseQuestions.map((q) => q.name);
+    optionOrders = Object.fromEntries(
+      baseQuestions.map((q) => {
+        const optionValues = getActiveOptions(q).map((o) => String(o.value));
+        return [q.name, shuffleOnStart ? shuffleArray(optionValues) : optionValues];
+      })
+    );
+    orderReadyForExamId = exam?.id || '';
+    currentQuestionIndex = 0;
+    isReviewing = false;
+  }
+
+  function getDisplayOptions(question: any) {
+    return orderByValues(
+      getActiveOptions(question),
+      optionOrders[question.name] || [],
+      (option) => String(option.value)
+    );
   }
 
   function handleQuestionSubmit(name: string, value: any) {
@@ -140,8 +196,7 @@
   }
 
   function getQuestionProps(question: any, index: number) {
-    const activeOptions = (question.options || [])
-      .filter((o) => !o.deleted_at)
+    const activeOptions = getDisplayOptions(question)
       .map((o) => ({
         value: o.value,
         label: o.label,
@@ -182,16 +237,18 @@
   <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
     <h2 class="dark:text-white text-xl font-bold">{exam.title}</h2>
 
-    {#if submission?.expires_at}
-      <div
-        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium {timeRemaining < 60000
-          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
-          : 'bg-gray-100 text-gray-800 dark:bg-neutral-700 dark:text-gray-200'}"
-      >
-        <TimerIcon size={16} class="carbon-icon" />
-        <span>{formatTime(timeRemaining)}</span>
-      </div>
-    {/if}
+    <div class="flex items-center gap-2 flex-wrap">
+      {#if submission?.expires_at}
+        <div
+          class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium {timeRemaining < 60000
+            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+            : 'bg-gray-100 text-gray-800 dark:bg-neutral-700 dark:text-gray-200'}"
+        >
+          <TimerIcon size={16} class="carbon-icon" />
+          <span>{formatTime(timeRemaining)}</span>
+        </div>
+      {/if}
+    </div>
   </div>
 
   <!-- Expired overlay -->

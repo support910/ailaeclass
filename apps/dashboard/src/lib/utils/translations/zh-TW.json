@@ -437,6 +437,11 @@
     "exam": {
       "title": "考試",
       "create_exam": "創建考試",
+      "mode_label": "考試類型",
+      "mode_traditional": "傳統考試",
+      "mode_traditional_hint": "完整作答後統一提交，適合正式測驗和評分。",
+      "mode_quick_practice": "速解訓練",
+      "mode_quick_practice_hint": "每答一題立即查看正誤和解析，適合課堂訓練和複習。",
       "exam_title": "考試標題",
       "placeholder": "輸入考試標題",
       "description": "描述",
@@ -446,6 +451,7 @@
       "select_lesson": "選擇課時",
       "duration": "時長（分鐘）",
       "attempts": "允許嘗試次數",
+      "attempts_unlimited_hint": "留空表示不限制次數，可反覆重新測試。",
       "passing_score": "及格分數",
       "show_result_policy": "成績顯示",
       "policy_after_grade": "批改後",
@@ -490,6 +496,10 @@
       "shuffle_questions": "隨機排列題目",
       "shuffle_options": "隨機排列選項",
       "question_placeholder": "輸入題目",
+      "explanation_label": "標準解析",
+      "explanation_placeholder": "填寫學生作答後看到的答案解析",
+      "draft_restore_confirm": "檢測到這份考試有未保存的本地草稿，是否恢復？",
+      "draft_restored": "已恢復本地草稿",
       "textarea_hint": "學生將提供書面答案。",
       "add_option": "添加選項",
       "add_question": "添加題目",
@@ -526,7 +536,9 @@
         "not_yet_available": "此考試尚未開始。",
         "no_longer_available": "此考試已結束。",
         "no_attempts_left": "您沒有剩餘的考試次數。",
-        "start_button": "開始考試"
+        "start_button": "開始考試",
+        "restart_button": "重新測試",
+        "restart_shuffled_button": "打亂順序重新測試"
       },
       "runner": {
         "progress": "題目",
@@ -542,8 +554,28 @@
         "unanswered_warning": "您還有未作答的題目，確定要提交嗎？",
         "submit_failed": "提交失敗，您的答案仍保留在本地。",
         "retry_submit": "重試",
+        "shuffle": "打亂順序",
+        "shuffled": "題目和選項順序已打亂",
         "no_questions": "本次考試沒有題目。",
         "contact_teacher": "請聯絡您的老師。"
+      },
+      "quick": {
+        "answer_required": "請先作答，再查看解析。",
+        "write_answer": "寫下你的答案",
+        "check_answer": "查看答案解析",
+        "correct": "回答正確",
+        "incorrect": "回答錯誤",
+        "reference": "參考作答",
+        "correct_answer": "正確答案",
+        "explanation": "解析",
+        "no_explanation": "老師暫未填寫解析。",
+        "save_progress": "保存進度",
+        "progress_saved": "做題進度已保存",
+        "save_failed": "保存進度失敗",
+        "save_before_exit": "是否保存當前做題記錄後離開？",
+        "discard_exit_confirm": "不保存並直接離開嗎？",
+        "exit": "退出",
+        "finish": "完成訓練"
       },
       "result": {
         "passed": "通過",
@@ -560,7 +592,8 @@
         "incorrect": "錯誤",
         "no_answer": "未作答",
         "result_hidden": "本次考試成績尚未公佈。",
-        "back": "返回考試"
+        "back": "返回考試",
+        "restart_shuffled": "打亂順序重新開始"
       },
       "grading": {
         "title": "批改考試",
@@ -1361,7 +1394,8 @@
           "discount": "折扣",
           "enroll": "立即註冊",
           "buy": "立即購買",
-          "bird": "早鳥優惠。儘快購買"
+          "bird": "早鳥優惠。儘快購買",
+          "contact_teacher_to_join": "請先聯繫教師取得課程碼或邀請連結後再加入課程。"
         },
         "course_content": "課程內容",
         "modules": "模塊",
@@ -1449,6 +1483,37 @@
       "header": "無權限",
       "body": "很遺憾，您沒有訪問此課程的權限。",
       "button": "返回首頁"
+    },
+    "loading_membership": "正在載入課程成員資訊...",
+    "load_error": "載入課程失敗",
+    "load_error_button": "返回我的學習",
+    "join": {
+      "join_course": "加入課程",
+      "title": "加入課程",
+        "description": "輸入課程碼以查找並加入課程。",
+      "search_placeholder": "輸入課程碼（例如 A1B2C3）",
+      "search_button": "搜尋",
+      "code_label": "課程碼",
+        "apply": "加入課程",
+        "pending": "申請審核中",
+        "already_member": "已加入",
+        "submitted": "申請已提交",
+        "joined": "已加入課程",
+        "login_required": "請登入後再加入此課程。",
+        "go_back": "返回",
+        "code_hint": "學生可在「加入課程」中輸入此課程碼加入。",
+        "error_empty": "請輸入課程碼。",
+        "error_not_found": "未找到課程，請檢查課程碼後重試。",
+        "error_submit": "加入課程失敗，請重試。",
+        "success_submit": "已成功加入課程。"
+    },
+    "people": {
+      "join_requests": "加入申請",
+      "approve": "通過",
+      "reject": "拒絕",
+      "no_requests": "暫無待處理的加入申請",
+      "course_code": "課程碼",
+      "course_code_desc": "將此代碼分享給學生，讓他們加入課程"
     }
   },
   "community": {

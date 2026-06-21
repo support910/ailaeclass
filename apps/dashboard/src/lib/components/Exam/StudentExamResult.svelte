@@ -10,6 +10,8 @@
   export let exam: any;
   export let submission: any;
   export let onBack: () => void;
+  export let onRestartShuffled: (() => void) | null = null;
+  export let backLabel = '';
 
   $: questions = (exam.questions || []).filter((q) => !q.deleted_at);
   $: totalPossible = questions.reduce((sum, q) => sum + (parseFloat(q.points) || 0), 0);
@@ -151,7 +153,18 @@
     </div>
   {/if}
 
-  <div class="flex justify-center">
-    <PrimaryButton variant={VARIANTS.OUTLINED} onClick={onBack} label={$t('components.exam.result.back')} />
+  <div class="flex flex-col sm:flex-row justify-center gap-3">
+    {#if onRestartShuffled}
+      <PrimaryButton
+        variant={VARIANTS.OUTLINED}
+        onClick={onRestartShuffled}
+        label={$t('components.exam.result.restart_shuffled')}
+      />
+    {/if}
+    <PrimaryButton
+      variant={onRestartShuffled ? VARIANTS.CONTAINED : VARIANTS.OUTLINED}
+      onClick={onBack}
+      label={backLabel || $t('components.exam.result.back')}
+    />
   </div>
 </div>

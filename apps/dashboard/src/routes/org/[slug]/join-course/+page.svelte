@@ -8,12 +8,13 @@
   import { profile } from '$lib/utils/store/user';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { t } from '$lib/utils/functions/translations';
+  import ArrowLeft from 'carbon-icons-svelte/lib/ArrowLeft.svelte';
   let searchCode = '';
   let isSearching = false;
   let isSubmitting = false;
   let foundCourse: any = null;
   let searchError = '';
-  let applicationStatus: 'idle' | 'pending' | 'already_member' | 'submitted' = 'idle';
+  let applicationStatus: 'idle' | 'already_member' | 'joined' = 'idle';
 
   const supabase = getSupabase();
 
@@ -39,31 +40,17 @@
 
     foundCourse = data;
 
-    // Check if already a member or already applied
+    // Check if already a member. Course-code joins are direct, so pending requests do not block joining.
     if ($profile?.id && foundCourse?.group_id) {
       const { data: memberData } = await supabase
         .from('groupmember')
         .select('id')
         .eq('group_id', foundCourse.group_id)
         .eq('profile_id', $profile.id)
-        .single();
+        .maybeSingle();
 
       if (memberData) {
         applicationStatus = 'already_member';
-        isSearching = false;
-        return;
-      }
-
-      const { data: requestData } = await supabase
-        .from('course_join_request')
-        .select('status')
-        .eq('course_id', foundCourse.id)
-        .eq('profile_id', $profile.id)
-        .in('status', ['pending', 'approved'])
-        .single();
-
-      if (requestData) {
-        applicationStatus = requestData.status === 'approved' ? 'already_member' : 'pending';
         isSearching = false;
         return;
       }
@@ -88,9 +75,19 @@
       return;
     }
 
-    applicationStatus = 'submitted';
+    applicationStatus = 'joined';
     snackbar.success($t('course.join.success_submit'));
     isSubmitting = false;
+    goto('/lms/mylearning');
+  }
+
+  function handleBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    goto('/lms/mylearning');
   }
 
   onMount(async () => {
@@ -106,6 +103,15 @@
 </svelte:head>
 
 <section class="mx-auto max-w-xl px-4 py-10">
+  <button
+    type="button"
+    class="mb-6 inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+    on:click={handleBack}
+  >
+    <ArrowLeft size={16} />
+    {$t('course.join.go_back')}
+  </button>
+
   <h1 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
     {$t('course.join.title')}
   </h1>
@@ -167,13 +173,9 @@
           <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
             {$t('course.join.already_member')}
           </span>
-        {:else if applicationStatus === 'pending'}
-          <span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300">
-            {$t('course.join.pending')}
-          </span>
-        {:else if applicationStatus === 'submitted'}
+        {:else if applicationStatus === 'joined'}
           <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            {$t('course.join.submitted')}
+            {$t('course.join.joined')}
           </span>
         {:else}
           <PrimaryButton

@@ -144,6 +144,7 @@ export const POST: RequestHandler = async ({ request }) => {
         hasAccess,
         isStudent,
         isOrgAdmin,
+        profile_id: userId,
         role_id: userMembership?.role_id ?? null,
         group_member_id: userMembership?.id ?? null
       }

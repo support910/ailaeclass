@@ -91,7 +91,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, userMembership, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -101,7 +101,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
     const groupMemberId = userMembership?.id || null;
 
     if (!isStudent || !groupMemberId) {

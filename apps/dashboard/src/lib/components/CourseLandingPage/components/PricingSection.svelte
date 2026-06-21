@@ -4,17 +4,12 @@
   import getCurrencyFormatter from '$lib/utils/functions/getCurrencyFormatter';
   import {
     isCourseFree,
-    getStudentInviteLink,
     calcCourseDiscount
   } from '$lib/utils/functions/course';
-  import { currentOrg, currentOrgDomain } from '$lib/utils/store/org';
-  import { goto } from '$app/navigation';
   import HtmlRender from '$lib/components/HTMLRender/HTMLRender.svelte';
-  import PaymentModal from './PaymentModal.svelte';
   import type { Course } from '$lib/utils/types';
-  import { ROLE } from '$lib/utils/constants/roles';
-  import { capturePosthogEvent } from '$lib/utils/services/posthog';
   import { t } from '$lib/utils/functions/translations';
+  import { snackbar } from '$lib/components/Snackbar/store';
 
   export let className = '';
   export let editMode = false;
@@ -22,7 +17,6 @@
   export let startCoursePayment = false;
   export let mobile = false;
 
-  let openModal = false;
   let calculatedCost = 0;
   let discount = 0;
   let formatter: Intl.NumberFormat | undefined;
@@ -31,33 +25,13 @@
   function handleJoinCourse() {
     if (editMode) return;
 
-    capturePosthogEvent('join_course', {
-      course_id: courseData.id,
-      course_title: courseData.title,
-      course_cost: courseData.cost,
-      course_free: isFree
-    });
-
-    if (isFree) {
-      const link = getStudentInviteLink(courseData, $currentOrg.siteName, $currentOrgDomain);
-
-      goto(link);
-    } else {
-      openModal = true;
-    }
-
+    snackbar.info('course.navItem.landing_page.pricing_section.contact_teacher_to_join');
     startCoursePayment = false;
   }
 
   function setFormatter(currency: string | undefined) {
     if (!currency) return;
     formatter = getCurrencyFormatter(currency);
-  }
-
-  function getTeacherEmail(group: Course['group']) {
-    const firstTutor = group?.members?.find((m) => m.role_id === ROLE.TUTOR);
-
-    return firstTutor?.profile?.email || '';
   }
 
   $: setFormatter(courseData.currency);
@@ -71,13 +45,6 @@
   $: isFree = isCourseFree(calculatedCost);
   $: startCoursePayment && handleJoinCourse();
 </script>
-
-<PaymentModal
-  bind:open={openModal}
-  paymentLink={get(courseData, 'metadata.paymentLink', '')}
-  courseName={courseData.title}
-  teacherEmail={getTeacherEmail(courseData.group)}
-/>
 
 <!-- Pricing Details -->
 {#if mobile}
@@ -124,7 +91,6 @@
               : $t('course.navItem.landing_page.pricing_section.buy')}
             className="w-full sm:w-full h-[40px]"
             onClick={handleJoinCourse}
-            isDisabled={!courseData.metadata.allowNewStudent}
           />
         </div>
       </div>
@@ -171,7 +137,6 @@
             : $t('course.navItem.landing_page.pricing_section.buy')}
           className="w-full sm:w-full py-3 mb-3"
           onClick={handleJoinCourse}
-          isDisabled={!courseData.metadata.allowNewStudent}
         />
         {#if courseData?.metadata?.showDiscount && courseData.metadata.allowNewStudent}
           <p class="text-sm font-light text-gray-500 dark:text-white">

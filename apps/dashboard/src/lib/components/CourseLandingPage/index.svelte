@@ -3,8 +3,10 @@
   import get from 'lodash/get';
   import pluralize from 'pluralize';
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import { onMount, onDestroy } from 'svelte';
   import PlayFilled from 'carbon-icons-svelte/lib/PlayFilled.svelte';
+  import ArrowLeft from 'carbon-icons-svelte/lib/ArrowLeft.svelte';
   import { ImageLoader, InlineLoading } from 'carbon-components-svelte';
 
   import { getLectureNo } from '../Course/function';
@@ -49,7 +51,7 @@
   let isVisible = false;
   let observer: { destroy: () => void };
   let certificate: Course['metadata']['certificate'] = {
-    templateUrl: '/images/certificate-template.svg'
+    templateUrl: '/images/ailaeclass-certificate-template.svg'
   };
 
   let expandDescription = Array(reviews.length).fill(false);
@@ -78,6 +80,23 @@
     expandDescription[id] = !expandDescription[id];
   }
 
+  function handleBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    goto('/lms/explore');
+  }
+
+  function getCertificateTemplateUrl(templateUrl?: string) {
+    if (!templateUrl || templateUrl === '/images/certificate-template.svg') {
+      return '/images/ailaeclass-certificate-template.svg';
+    }
+
+    return templateUrl;
+  }
+
   onMount(() => {
     window.onhashchange = locationHashChanged;
     const targetNode = document.querySelector('.target-component');
@@ -100,6 +119,7 @@
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   $: instructor = get(courseData, 'metadata.instructor') || {};
   $: certificate = get(courseData, 'metadata.certificate', certificate);
+  $: certificateTemplateUrl = getCertificateTemplateUrl(certificate?.templateUrl);
 
   $: navItems = filterNavItems(courseData, reviews);
   $: navItemKeys = navItems.map((item) => item.key);
@@ -112,6 +132,19 @@
 </script>
 
 <div class="flex w-full flex-col items-center bg-white dark:bg-black">
+  {#if !editMode}
+    <div class="w-full px-4 pt-4 md:px-8">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+        on:click={handleBack}
+      >
+        <ArrowLeft size={16} />
+        {$t('course.join.go_back')}
+      </button>
+    </div>
+  {/if}
+
   <!-- Header Section -->
   <header id="header" class="banner p- flex w-full items-center justify-center">
     <div class="flex w-full flex-col-reverse items-center justify-between md:w-5/6 md:flex-row">
@@ -134,7 +167,6 @@
             if (editMode) return;
             startCoursePayment = true;
           }}
-          isDisabled={!allowNewStudent}
         />
         {#if $handleOpenWidget.open}
           <UploadWidget bind:imageURL={$course.logo} />
@@ -276,7 +308,7 @@
 
             <ImageLoader
               class="certificate-img max-h-[215px]"
-              src={certificate?.templateUrl}
+              src={certificateTemplateUrl}
               alt="certificate template"
             >
               <svelte:fragment slot="loading">

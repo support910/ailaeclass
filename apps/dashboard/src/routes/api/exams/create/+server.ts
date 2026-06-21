@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 /**
  * POST /api/exams/create
@@ -24,6 +23,7 @@ import { ROLE } from '$lib/utils/constants/roles';
  *   show_result_policy?: string;
  *   available_from?: string;
  *   available_until?: string;
+ *   settings?: Record<string, any>;
  * }
  *
  * Response: { success: boolean; exam?: any; message?: string }
@@ -47,11 +47,12 @@ export const POST: RequestHandler = async ({ request }) => {
     lesson_id,
     course_id,
     duration_minutes,
-    attempts_allowed = 1,
+    attempts_allowed,
     passing_score,
     show_result_policy = 'after_grade',
     available_from,
-    available_until
+    available_until,
+    settings = {}
   } = body;
 
   if (!title || typeof title !== 'string' || title.trim().length < 2) {
@@ -93,7 +94,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 3. Verify user has access and is tutor/admin or org admin
-    const { hasAccess, isOrgAdmin, userMembership } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       groupId
@@ -103,7 +104,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ success: false, message: 'You do not have access to this course' }, { status: 403 });
     }
 
-    const canCreate = isOrgAdmin || userMembership?.role_id === ROLE.TUTOR || userMembership?.role_id === ROLE.ADMIN;
+    const canCreate = !isStudent;
     if (!canCreate) {
       return json(
         { success: false, message: 'Only teachers or admins can create exams' },
@@ -112,18 +113,32 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 4. Insert exam exercise
+    const safeSettings =
+      settings && typeof settings === 'object' && !Array.isArray(settings) ? settings : {};
+    const examMode =
+      safeSettings.exam_mode === 'quick_practice' ? 'quick_practice' : 'traditional';
+    const rawAttempts = attempts_allowed === undefined ? 1 : attempts_allowed;
+    const attemptsUnlimited = rawAttempts === null || rawAttempts === '';
+    const parsedAttempts = attemptsUnlimited ? 1 : Number(rawAttempts);
+    if (!Number.isFinite(parsedAttempts) || parsedAttempts < 1) {
+      return json({ success: false, message: 'Attempts must be at least 1 or empty for unlimited' }, { status: 400 });
+    }
     const payload = {
       title: title.trim(),
       description,
       lesson_id,
       assessment_type: 'exam',
       duration_minutes: duration_minutes ? Number(duration_minutes) : null,
-      attempts_allowed: Number(attempts_allowed) || 1,
+      attempts_allowed: parsedAttempts,
       passing_score: passing_score !== undefined && passing_score !== null ? Number(passing_score) : null,
       show_result_policy,
       available_from: available_from || null,
       available_until: available_until || null,
-      settings: {}
+      settings: {
+        ...safeSettings,
+        exam_mode: examMode,
+        attempts_unlimited: attemptsUnlimited
+      }
     };
 
     const { data: examData, error: examError } = await supabase

@@ -29,7 +29,11 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess } = await checkUserCoursePermissions(supabase, userId, course.group_id);
+    const { hasAccess, isStudent, userMembership } = await checkUserCoursePermissions(
+      supabase,
+      userId,
+      course.group_id
+    );
 
     if (!hasAccess) {
       return json(
@@ -41,7 +45,16 @@ export const POST: RequestHandler = async ({ request }) => {
       );
     }
 
-    const { data: marks, error } = await supabase.rpc('get_marks').eq('course_id', courseId);
+    if (isStudent && !userMembership?.id) {
+      return json({ success: false, message: 'Student membership not found' }, { status: 403 });
+    }
+
+    let marksQuery = supabase.rpc('get_marks').eq('course_id', courseId);
+    if (isStudent) {
+      marksQuery = marksQuery.eq('groupmember_id', userMembership.id);
+    }
+
+    const { data: marks, error } = await marksQuery;
 
     if (error) {
       console.log('error', error);

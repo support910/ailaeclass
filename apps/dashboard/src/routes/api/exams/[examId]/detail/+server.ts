@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 function mergeOptionImagesFromQuestionMetadata(question: any) {
   const optionImages = question?.metadata?.optionImages || {};
@@ -79,7 +78,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, isOrgAdmin, userMembership } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -89,7 +88,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isTeacher = isOrgAdmin || userMembership?.role_id === ROLE.TUTOR || userMembership?.role_id === ROLE.ADMIN;
+    const isTeacher = !isStudent;
     if (!isTeacher) {
       return json({ success: false, message: 'Only teachers can view exam details' }, { status: 403 });
     }

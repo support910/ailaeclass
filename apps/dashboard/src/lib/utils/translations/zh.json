@@ -437,6 +437,11 @@
     "exam": {
       "title": "考试",
       "create_exam": "创建考试",
+      "mode_label": "考试类型",
+      "mode_traditional": "传统考试",
+      "mode_traditional_hint": "完整作答后统一提交，适合正式测验和评分。",
+      "mode_quick_practice": "速解训练",
+      "mode_quick_practice_hint": "每答一题立即查看正误和解析，适合课堂训练和复习。",
       "exam_title": "考试标题",
       "placeholder": "输入考试标题",
       "description": "描述",
@@ -446,6 +451,7 @@
       "select_lesson": "选择课时",
       "duration": "时长（分钟）",
       "attempts": "允许尝试次数",
+      "attempts_unlimited_hint": "留空表示不限制次数，可反复重新测试。",
       "passing_score": "及格分数",
       "show_result_policy": "成绩显示",
       "policy_after_grade": "批改后",
@@ -490,6 +496,10 @@
       "shuffle_questions": "随机排列题目",
       "shuffle_options": "随机排列选项",
       "question_placeholder": "输入题目",
+      "explanation_label": "标准解析",
+      "explanation_placeholder": "填写学生作答后看到的答案解析",
+      "draft_restore_confirm": "检测到这份考试有未保存的本地草稿，是否恢复？",
+      "draft_restored": "已恢复本地草稿",
       "textarea_hint": "学生将提供书面答案。",
       "add_option": "添加选项",
       "add_question": "添加题目",
@@ -526,7 +536,9 @@
         "not_yet_available": "此考试尚未开始。",
         "no_longer_available": "此考试已结束。",
         "no_attempts_left": "您没有剩余的考试次数。",
-        "start_button": "开始考试"
+        "start_button": "开始考试",
+        "restart_button": "重新测试",
+        "restart_shuffled_button": "打乱顺序重新测试"
       },
       "runner": {
         "progress": "题目",
@@ -542,8 +554,28 @@
         "unanswered_warning": "您还有未作答的题目，确定要提交吗？",
         "submit_failed": "提交失败，您的答案仍保留在本地。",
         "retry_submit": "重试",
+        "shuffle": "打乱顺序",
+        "shuffled": "题目和选项顺序已打乱",
         "no_questions": "本次考试没有题目。",
         "contact_teacher": "请联系您的老师。"
+      },
+      "quick": {
+        "answer_required": "请先作答，再查看解析。",
+        "write_answer": "写下你的答案",
+        "check_answer": "查看答案解析",
+        "correct": "回答正确",
+        "incorrect": "回答错误",
+        "reference": "参考作答",
+        "correct_answer": "正确答案",
+        "explanation": "解析",
+        "no_explanation": "老师暂未填写解析。",
+        "save_progress": "保存进度",
+        "progress_saved": "做题进度已保存",
+        "save_failed": "保存进度失败",
+        "save_before_exit": "是否保存当前做题记录后离开？",
+        "discard_exit_confirm": "不保存并直接离开吗？",
+        "exit": "退出",
+        "finish": "完成训练"
       },
       "result": {
         "passed": "通过",
@@ -560,7 +592,8 @@
         "incorrect": "错误",
         "no_answer": "未作答",
         "result_hidden": "本次考试成绩尚未公布。",
-        "back": "返回考试"
+        "back": "返回考试",
+        "restart_shuffled": "打乱顺序重新开始"
       },
       "grading": {
         "title": "批改考试",
@@ -1355,7 +1388,8 @@
           "discount": "折扣",
           "enroll": "立即注册",
           "buy": "立即购买",
-          "bird": "早鸟优惠。尽快购买"
+          "bird": "早鸟优惠。尽快购买",
+          "contact_teacher_to_join": "请先联系教师获取课程码或邀请链接后再加入课程。"
         },
         "course_content": "课程内容",
         "modules": "模块",
@@ -1450,19 +1484,22 @@
     "join": {
       "join_course": "加入课程",
       "title": "加入课程",
-      "description": "输入课程码以查找并申请加入课程。",
+        "description": "输入课程码以查找并加入课程。",
       "search_placeholder": "输入课程码（例如 A1B2C3）",
       "search_button": "搜索",
       "code_label": "课程码",
-      "apply": "申请加入",
-      "pending": "申请审核中",
-      "already_member": "已加入",
-      "submitted": "申请已提交",
-      "login_required": "请登录后再申请加入此课程。",
-      "error_empty": "请输入课程码。",
-      "error_not_found": "未找到课程，请检查课程码后重试。",
-      "error_submit": "提交申请失败，请重试。",
-      "success_submit": "申请提交成功，请等待教师审批。"
+        "apply": "加入课程",
+        "pending": "申请审核中",
+        "already_member": "已加入",
+        "submitted": "申请已提交",
+        "joined": "已加入课程",
+        "login_required": "请登录后再加入此课程。",
+        "go_back": "返回",
+        "code_hint": "学生可在“加入课程”中输入此课程码加入。",
+        "error_empty": "请输入课程码。",
+        "error_not_found": "未找到课程，请检查课程码后重试。",
+        "error_submit": "加入课程失败，请重试。",
+        "success_submit": "已成功加入课程。"
     },
     "people": {
       "join_requests": "加入申请",

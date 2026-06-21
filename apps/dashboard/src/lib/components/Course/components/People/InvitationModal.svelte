@@ -40,6 +40,9 @@
   let copied = false;
   let qrImage = '';
   let isLoadingQRDownload = false;
+  let loadedTutorsOrgId = '';
+  let generatedQrLink = '';
+  let inviteLink = '';
 
   function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
     return value !== null && value !== undefined;
@@ -122,14 +125,12 @@
   }
 
   function copyLink() {
-    if (!$currentOrgDomain) {
+    if (!inviteLink) {
       snackbar.error('snackbar.people.error.missing_data');
-      console.error('snackbar.people.error.no');
       return;
     }
 
-    const link = getStudentInviteLink($course, $currentOrg.siteName, $currentOrgDomain);
-    copy(link);
+    copy(inviteLink);
     copied = true;
     setTimeout(() => {
       copied = false;
@@ -179,8 +180,20 @@
     addPeopleParm = query.get('add');
   }
 
-  $: setTutors($currentOrg.id);
-  $: generateQR(getStudentInviteLink($course, $currentOrg.siteName, $currentOrgDomain));
+  $: inviteLink =
+    $course?.id && $currentOrg.siteName && $currentOrgDomain
+      ? getStudentInviteLink($course, $currentOrg.siteName, $currentOrgDomain)
+      : '';
+
+  $: if (addPeopleParm === 'true' && $currentOrg.id && loadedTutorsOrgId !== $currentOrg.id) {
+    loadedTutorsOrgId = $currentOrg.id;
+    setTutors($currentOrg.id);
+  }
+
+  $: if (addPeopleParm === 'true' && inviteLink && generatedQrLink !== inviteLink) {
+    generatedQrLink = inviteLink;
+    generateQR(inviteLink);
+  }
 </script>
 
 <Modal

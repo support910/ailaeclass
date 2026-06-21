@@ -27,22 +27,32 @@
   import { Grid, Link, SkeletonPlaceholder } from 'carbon-components-svelte';
 
   let dashAnalytics: OrganisationAnalytics;
+  let analyticsOrgId = '';
+  let analyticsLoading = false;
 
   function createCourse() {
     goto(`${$currentOrgPath}/courses?create=true`);
   }
 
   async function fetchDashAnalytics(orgId: string) {
-    if (!orgId) return;
-
-    const accessToken = await getAccessToken();
+    if (!orgId || analyticsLoading || analyticsOrgId === orgId) return;
+    analyticsLoading = true;
 
     try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setTimeout(() => {
+          analyticsLoading = false;
+          fetchDashAnalytics(orgId);
+        }, 300);
+        return;
+      }
+
       const response = await fetch('/api/analytics/dash', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: accessToken
+          Authorization: `Bearer ${accessToken}`
         },
         body: JSON.stringify({ orgId })
       });
@@ -53,8 +63,11 @@
       }
 
       dashAnalytics = (await response.json()) as OrganisationAnalytics;
+      analyticsOrgId = orgId;
     } catch (error) {
       snackbar.error('Failed to fetch analytics data');
+    } finally {
+      analyticsLoading = false;
     }
   }
 

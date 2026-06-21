@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 /**
  * GET /api/courses/[courseId]/exams
@@ -34,7 +33,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
     }
 
     // 2. Verify user has access to this course
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -43,8 +42,6 @@ export const GET: RequestHandler = async ({ params, request }) => {
     if (!hasAccess) {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
-
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
 
     // 3. Fetch all lessons for this course to get their IDs
     const { data: lessons, error: lessonError } = await supabase
@@ -67,7 +64,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
       .from('exercise')
       .select(
         `
-        id, title, description, lesson_id, assessment_type, published_at, available_from, available_until, duration_minutes, attempts_allowed, passing_score, show_result_policy, shuffle_questions, shuffle_options,
+        id, title, description, lesson_id, assessment_type, published_at, available_from, available_until, duration_minutes, attempts_allowed, passing_score, show_result_policy, shuffle_questions, shuffle_options, settings,
         questions:question(count)
       `
       )
@@ -100,7 +97,12 @@ export const GET: RequestHandler = async ({ params, request }) => {
       return qCount > 0;
     });
 
-    return json({ success: true, exams: filtered });
+    const normalized = filtered.map((exam: any) => ({
+      ...exam,
+      attempts_allowed: exam.settings?.attempts_unlimited === true ? null : exam.attempts_allowed
+    }));
+
+    return json({ success: true, exams: normalized });
   } catch (err) {
     console.error('GET /api/courses/[id]/exams error:', err);
     const message = err instanceof Error ? err.message : 'Internal server error';

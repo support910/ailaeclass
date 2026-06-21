@@ -26,6 +26,8 @@
   export let emptyDescription = $t('courses.course_card.empty_description');
   export let isExplore = false;
 
+  $: canManageActions = !isExplore && $globalStore.isStudent === false;
+
   function calcProgressRate(progressRate?: number, totalLessons?: number): number {
     if (!progressRate || !totalLessons) {
       return 0;
@@ -35,7 +37,7 @@
   }
 
   async function handleDeleteCourse() {
-    if (!$deleteCourseModal.id) return;
+    if (!canManageActions || !$deleteCourseModal.id) return;
 
     $deleteCourseModal.isDeleting = true;
 
@@ -60,12 +62,14 @@
   }
 </script>
 
-<CopyCourseModal />
-<DeleteModal 
-  onDelete={handleDeleteCourse} 
-  bind:open={$deleteCourseModal.open}
-  isLoading={$deleteCourseModal.isDeleting}
-/>
+{#if canManageActions}
+  <CopyCourseModal />
+  <DeleteModal
+    onDelete={handleDeleteCourse}
+    bind:open={$deleteCourseModal.open}
+    isLoading={$deleteCourseModal.isDeleting}
+  />
+{/if}
 
 <div class="mx-auto my-4 w-full">
   {#if $courseMetaDeta.isLoading}
@@ -96,19 +100,25 @@
           <StructuredListCell head>
             {$t('courses.course_card.list_view.published')}
           </StructuredListCell>
-          <StructuredListCell head>{''}</StructuredListCell>
+          {#if canManageActions}
+            <StructuredListCell head>{''}</StructuredListCell>
+          {/if}
         </StructuredListRow>
       </StructuredListHead>
       <StructuredListBody>
         {#each courses as courseData}
           <List
             id={courseData.id}
+            slug={courseData.slug}
             title={courseData.title}
             type={$t(`course.navItem.settings.${courseData.type.toLowerCase()}`)}
             description={courseData.description}
             isPublished={courseData.is_published}
             totalLessons={courseData.total_lessons}
             totalStudents={courseData.total_students}
+            isLMS={$globalStore.isOrgSite || isExplore}
+            {isExplore}
+            {canManageActions}
           />
         {/each}
       </StructuredListBody>
@@ -128,8 +138,9 @@
             currency={courseData.currency}
             totalLessons={courseData.total_lessons}
             totalStudents={courseData.total_students}
-            isLMS={$globalStore.isOrgSite}
+            isLMS={$globalStore.isOrgSite || isExplore}
             {isExplore}
+            {canManageActions}
             progressRate={calcProgressRate(courseData.progress_rate, courseData.total_lessons)}
           />
         {/key}

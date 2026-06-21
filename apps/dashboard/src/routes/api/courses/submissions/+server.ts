@@ -28,7 +28,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess } = await checkUserCoursePermissions(supabase, userId, courseRow.group_id);
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(supabase, userId, courseRow.group_id);
 
     if (!hasAccess) {
       return json(
@@ -36,6 +36,13 @@ export const GET: RequestHandler = async ({ request, url }) => {
           success: false,
           message: 'Access denied. User is not a member of this course or organization.'
         },
+        { status: 403 }
+      );
+    }
+
+    if (isStudent) {
+      return json(
+        { success: false, message: 'Students cannot access course submissions.' },
         { status: 403 }
       );
     }

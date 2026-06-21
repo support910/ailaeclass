@@ -631,7 +631,7 @@ interface ExamExerciseInput {
   course_id: string;
   due_by?: string;
   duration_minutes?: number;
-  attempts_allowed?: number;
+  attempts_allowed?: number | null;
   passing_score?: number;
   show_result_policy?: string;
   shuffle_questions?: boolean;
@@ -645,7 +645,7 @@ interface ExamSettingsInput {
   title?: string;
   description?: string;
   duration_minutes?: number;
-  attempts_allowed?: number;
+  attempts_allowed?: number | null;
   passing_score?: number;
   show_result_policy?: string;
   shuffle_questions?: boolean;
@@ -1112,6 +1112,46 @@ export async function submitExamAttempt(
       return { data: null, error: { message: json.message || 'Failed to submit exam' } as PostgrestError };
     }
     return { data: json, error: null };
+  } catch (e) {
+    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+  }
+}
+
+export async function saveExamProgress(
+  exerciseId: Exercise['id'],
+  courseId: Course['id'],
+  submissionId: string,
+  progress: {
+    answers: Record<string, any>;
+    feedbackByQuestion: Record<string, any>;
+    currentQuestionIndex: number;
+    questionOrder?: string[];
+    optionOrders?: Record<string, string[]>;
+  }
+) {
+  if (!exerciseId || !courseId || !submissionId) {
+    return { data: null, error: { message: 'Missing required fields' } as PostgrestError };
+  }
+
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/progress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        courseId,
+        submissionId,
+        ...progress
+      })
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { data: null, error: { message: json.message || 'Failed to save progress' } as PostgrestError };
+    }
+    return { data: json.submission, error: null };
   } catch (e) {
     return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
   }

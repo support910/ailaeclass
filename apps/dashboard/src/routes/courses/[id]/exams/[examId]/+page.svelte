@@ -4,6 +4,7 @@
   import CourseContainer from '$lib/components/CourseContainer/index.svelte';
   import StudentExamIntro from '$lib/components/Exam/StudentExamIntro.svelte';
   import StudentExamRunner from '$lib/components/Exam/StudentExamRunner.svelte';
+  import QuickPracticeRunner from '$lib/components/Exam/QuickPracticeRunner.svelte';
   import StudentExamResult from '$lib/components/Exam/StudentExamResult.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants.js';
@@ -18,7 +19,8 @@
   import {
     fetchStudentExam,
     startExamAttempt,
-    submitExamAttempt
+    submitExamAttempt,
+    saveExamProgress
   } from '$lib/utils/services/courses';
 
   export let data;
@@ -37,14 +39,16 @@
   let view: 'intro' | 'runner' | 'result' | 'hidden_result' = 'intro';
   let isPreview = false;
   let hasGroupLoaded = false;
+  let shuffleNextAttempt = false;
 
-  $: groupMemberId = getGroupMemberId($group.people, $profile.id);
+  $: groupPeople = Array.isArray($group.people) ? $group.people : [];
+  $: groupMemberId = getGroupMemberId(groupPeople, $profile.id);
   $: isEnrolledStudent =
-    $group.people.some((p) => p.profile_id === $profile.id && p.role_id === ROLE.STUDENT);
+    groupPeople.some((p) => p.profile_id === $profile.id && p.role_id === ROLE.STUDENT);
   $: canAccess = isEnrolledStudent || $isOrgTeacher === true || isPreview;
 
   // Wait for CourseContainer to finish loading group membership before rendering access-denied
-  $: if ($group.people.length > 0 || $course.id) {
+  $: if (groupPeople.length > 0 || $course.id) {
     hasGroupLoaded = true;
   }
 
@@ -66,6 +70,12 @@
     }
     if (policy === 'manual') return false;
     return false;
+  }
+
+  function getExamMode(examObj: any) {
+    return examObj?.settings?.exam_mode === 'quick_practice'
+      ? 'quick_practice'
+      : 'traditional';
   }
 
   async function loadExam() {
@@ -106,7 +116,9 @@
     }
   }
 
-  async function handleStart() {
+  async function handleStart(options: { shuffle?: boolean } = {}) {
+    shuffleNextAttempt = options.shuffle === true;
+
     if (isPreview) {
       view = 'runner';
       return;
@@ -138,6 +150,7 @@
       } else {
         snackbar.error($t('components.exam.start_error'));
       }
+      shuffleNextAttempt = false;
       isStarting = false;
       return;
     }
@@ -146,6 +159,11 @@
     attemptCount += 1;
     view = 'runner';
     isStarting = false;
+
+    if (getExamMode(exam) === 'quick_practice') {
+      await loadExam();
+      return;
+    }
 
     // Re-fetch exam questions if empty (creation race or caching issue)
     if (!exam.questions || exam.questions.length === 0) {
@@ -197,9 +215,45 @@
     }
   }
 
+  async function handleSaveProgress(progress: {
+    answers: Record<string, any>;
+    feedbackByQuestion: Record<string, any>;
+    currentQuestionIndex: number;
+    questionOrder?: string[];
+    optionOrders?: Record<string, string[]>;
+  }) {
+    if (isPreview) {
+      return { success: true };
+    }
+
+    if (!submission?.id) {
+      return { success: false, message: 'Missing submission' };
+    }
+
+    const { data, error } = await saveExamProgress(examId, courseId, submission.id, progress);
+    if (error) {
+      console.error('saveExamProgress error', error);
+      return { success: false, message: error.message };
+    }
+
+    submission = { ...submission, metadata: data?.metadata || submission.metadata };
+    return { success: true };
+  }
+
+  function handleExitExam() {
+    goto(`/courses/${courseId}/exams`);
+  }
+
   function handleBackToIntro() {
     view = 'intro';
     submission = null;
+    shuffleNextAttempt = false;
+  }
+
+  async function handleRetakeFromResult(options: { shuffle?: boolean } = {}) {
+    view = 'intro';
+    submission = null;
+    await handleStart(options);
   }
 
   onMount(() => {
@@ -246,18 +300,40 @@
         {attemptCount}
         attemptsAllowed={exam.attempts_allowed}
         onStart={handleStart}
+        onStartShuffled={() => handleStart({ shuffle: true })}
         {isStarting}
       />
     {:else if view === 'runner'}
-      <StudentExamRunner
+      {#if getExamMode(exam) === 'quick_practice'}
+        <QuickPracticeRunner
+          {exam}
+          {submission}
+          onSubmit={handleSubmit}
+          {isSubmitting}
+          {submitFailed}
+          {isPreview}
+          shuffleOnStart={shuffleNextAttempt}
+          onSaveProgress={handleSaveProgress}
+          onExit={handleExitExam}
+        />
+      {:else}
+        <StudentExamRunner
+          {exam}
+          {submission}
+          onSubmit={handleSubmit}
+          {isSubmitting}
+          {submitFailed}
+          shuffleOnStart={shuffleNextAttempt}
+        />
+      {/if}
+    {:else if view === 'result'}
+      <StudentExamResult
         {exam}
         {submission}
-        onSubmit={handleSubmit}
-        {isSubmitting}
-        {submitFailed}
+        onBack={getExamMode(exam) === 'quick_practice' ? handleRetakeFromResult : handleBackToIntro}
+        onRestartShuffled={getExamMode(exam) === 'quick_practice' ? () => handleRetakeFromResult({ shuffle: true }) : null}
+        backLabel={getExamMode(exam) === 'quick_practice' ? $t('components.exam.intro.restart_button') : ''}
       />
-    {:else if view === 'result'}
-      <StudentExamResult {exam} {submission} onBack={handleBackToIntro} />
     {:else if view === 'hidden_result'}
       <!-- Submitted but result hidden by policy -->
       <div class="w-full max-w-3xl mx-auto py-20 px-4 text-center">

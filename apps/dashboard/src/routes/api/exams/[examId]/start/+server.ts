@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       .select(
         `
         id, lesson_id, published_at, available_from, available_until,
-        duration_minutes, attempts_allowed
+        duration_minutes, attempts_allowed, settings
       `
       )
       .eq('id', examId)
@@ -94,7 +94,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, userMembership, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -104,7 +104,6 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
     const groupMemberId = userMembership?.id || null;
 
     if (!isStudent || !groupMemberId) {
@@ -145,8 +144,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
       .eq('submitted_by', groupMemberId)
       .eq('course_id', courseId);
 
-    const attemptsAllowed = examRow.attempts_allowed ?? 1;
-    if ((attemptCount || 0) >= attemptsAllowed) {
+    const attemptsUnlimited = examRow.settings?.attempts_unlimited === true;
+    const attemptsAllowed = examRow.attempts_allowed;
+    if (!attemptsUnlimited && attemptsAllowed !== null && attemptsAllowed !== undefined && (attemptCount || 0) >= attemptsAllowed) {
       return json({ success: false, message: 'No attempts remaining' }, { status: 403 });
     }
 

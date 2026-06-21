@@ -46,6 +46,7 @@
         type="number"
         bind:value={exam.attempts_allowed}
         min={1}
+        helperMessage={$t('components.exam.attempts_unlimited_hint')}
         onChange={onChange}
       />
     </div>

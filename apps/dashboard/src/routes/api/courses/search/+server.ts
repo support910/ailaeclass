@@ -8,8 +8,8 @@ import { getServerSupabase } from '$lib/utils/functions/supabase.server';
  * Search for a course by its join_code.
  * This endpoint is public (no auth required) so students can find courses.
  *
- * Uses JS filtering to bypass PostgREST schema cache issues
- * when the join_code column was recently added.
+ * Uses an indexed join_code lookup with a legacy fallback for environments
+ * whose PostgREST schema cache has not picked up the column yet.
  */
 export const GET: RequestHandler = async ({ url }) => {
   const code = url.searchParams.get('code')?.trim().toUpperCase();
@@ -21,25 +21,36 @@ export const GET: RequestHandler = async ({ url }) => {
   try {
     const supabase = getServerSupabase();
 
-    // Fetch all ACTIVE courses (selecting * so PostgREST doesn't need to know join_code)
-    // In production with many courses this should be replaced by an RPC or cached index.
-    const { data: rows, error } = await supabase
+    const { data: directMatch, error: directError } = await supabase
       .from('course')
-      .select('*')
+      .select('id, title, description, logo, group_id, slug, join_code')
       .eq('status', 'ACTIVE')
-      .limit(200);
+      .eq('join_code', code)
+      .maybeSingle();
 
-    if (error) {
-      console.error('GET /api/courses/search query error:', error);
-      return json(
-        { success: false, message: 'Course not found. Please check the code and try again.' },
-        { status: 404 }
+    let matched = directMatch;
+
+    if (directError) {
+      console.warn('GET /api/courses/search direct join_code lookup failed, using fallback:', directError);
+
+      const { data: rows, error } = await supabase
+        .from('course')
+        .select('*')
+        .eq('status', 'ACTIVE')
+        .limit(200);
+
+      if (error) {
+        console.error('GET /api/courses/search fallback query error:', error);
+        return json(
+          { success: false, message: 'Course not found. Please check the code and try again.' },
+          { status: 404 }
+        );
+      }
+
+      matched = (rows || []).find(
+        (c: any) => c.join_code && String(c.join_code).toUpperCase() === code
       );
     }
-
-    const matched = (rows || []).find(
-      (c: any) => c.join_code && String(c.join_code).toUpperCase() === code
-    );
 
     if (!matched) {
       return json(
@@ -54,7 +65,8 @@ export const GET: RequestHandler = async ({ url }) => {
       description: matched.description,
       logo: matched.logo,
       group_id: matched.group_id,
-      slug: matched.slug
+      slug: matched.slug,
+      join_code: matched.join_code
     };
 
     return json({

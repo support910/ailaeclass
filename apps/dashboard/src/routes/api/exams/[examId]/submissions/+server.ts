@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 const SUBMISSION_STATUS = {
   SUBMITTED: 1,
@@ -64,7 +63,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -74,7 +73,6 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
     if (isStudent) {
       return json({ success: false, message: 'Students cannot access grading data' }, { status: 403 });
     }

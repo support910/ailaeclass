@@ -17,6 +17,7 @@
   import BlueBadgePattern from './templates/BlueBadgePattern.svelte';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { saveCertificateValidation } from '$lib/utils/functions/validator';
+  import { BRAND } from '$lib/utils/config/brand';
 
   const studentNamePlaceholder = 'Name of student';
   const themes = [
@@ -27,6 +28,14 @@
     'purpleBadgePattern',
     'blueBadgePattern'
   ];
+  const themePreviewStyles = {
+    professional: { border: '#0E7372', accent: '#0E7372', background: '#f5f8fe' },
+    plain: { border: '#be185d', accent: '#be185d', background: '#fff7fb' },
+    purpleProfessionalBadge: { border: '#7c3aed', accent: '#7c3aed', background: '#faf7ff' },
+    blueProfessionalBadge: { border: '#1d4ed8', accent: '#1d4ed8', background: '#f5f8ff' },
+    purpleBadgePattern: { border: '#6d28d9', accent: '#a78bfa', background: '#fbf7ff' },
+    blueBadgePattern: { border: '#0369a1', accent: '#38bdf8', background: '#f0f9ff' }
+  };
 
   let isSaving = false;
   let errors = {
@@ -98,13 +107,31 @@
       >
         <div class="flex flex-wrap justify-between gap-y-5">
           {#each themes as theme}
+            {@const preview = themePreviewStyles[theme]}
             <div class="mr-3 flex">
               <RadioButton value={theme} />
-              <img
-                src={`/images/certificate_theme_${theme}.png`}
-                alt="themes"
-                class="h-[82px] w-[110px]"
-              />
+              <div
+                class="theme-preview h-[82px] w-[110px] overflow-hidden rounded border bg-white px-2 py-2"
+                style={`border-color: ${preview.border}; background: ${preview.background};`}
+                aria-label={`${BRAND.name} certificate theme preview`}
+              >
+                <div class="mb-1 flex items-center gap-1">
+                  <img src={BRAND.logoLarge} alt="" class="h-4 w-4 rounded-sm" />
+                  <span class="truncate text-[8px] font-semibold" style={`color: ${preview.border};`}>
+                    {BRAND.name}
+                  </span>
+                </div>
+                <div class="h-px w-full" style={`background: ${preview.accent};`}></div>
+                <p class="mt-1 text-[8px] font-semibold uppercase text-gray-600">
+                  Certificate
+                </p>
+                <p class="mt-1 truncate text-[10px] font-semibold text-gray-900">
+                  {studentNamePlaceholder}
+                </p>
+                <p class="mt-1 line-clamp-2 text-[7px] leading-3 text-gray-600">
+                  {$course.title || 'Course completion'}
+                </p>
+              </div>
             </div>
           {/each}
         </div>

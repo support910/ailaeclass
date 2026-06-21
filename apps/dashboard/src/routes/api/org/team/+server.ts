@@ -16,6 +16,40 @@ async function assertVerifiedAdmin(supabase: any, orgId: string, userId: string)
   return !!orgMember;
 }
 
+async function getProfilesById(supabase: any, profileIds: string[]) {
+  const uniqueProfileIds = [...new Set(profileIds.filter(Boolean))];
+
+  if (uniqueProfileIds.length === 0) {
+    return new Map<string, any>();
+  }
+
+  const { data, error } = await supabase
+    .from('profile')
+    .select('id, fullname, email')
+    .in('id', uniqueProfileIds);
+
+  if (error) {
+    console.error('GET /api/org/team profile query error:', error);
+    return new Map<string, any>();
+  }
+
+  return new Map((data || []).map((profile: any) => [profile.id, profile]));
+}
+
+function serializeTeamMember(teamMember: any, profileById: Map<string, any>) {
+  const memberProfile = teamMember.profile_id ? profileById.get(teamMember.profile_id) : null;
+
+  return {
+    id: teamMember.id,
+    email: memberProfile?.email || teamMember.email,
+    verified: teamMember.verified,
+    profileId: teamMember.profile_id,
+    fullname: memberProfile?.fullname || '',
+    role: ROLE_LABEL[teamMember?.role_id] || '',
+    isAdmin: teamMember?.role_id === ROLE.ADMIN
+  };
+}
+
 export const GET: RequestHandler = async ({ request, url }) => {
   const orgId = url.searchParams.get('orgId');
   const userId = await getUserIdFromRequest(request);
@@ -42,39 +76,23 @@ export const GET: RequestHandler = async ({ request, url }) => {
       );
     }
 
-    // Fetch organization team
     const { data, error } = await supabase
       .from('organizationmember')
-      .select(
-        `
-        id,
-        email,
-        verified,
-        role_id,
-        profile(
-          id,
-          fullname,
-          email
-        )
-      `
-      )
+      .select('id, email, verified, role_id, profile_id')
       .eq('organization_id', orgId)
       .neq('role_id', ROLE.STUDENT)
       .order('id', { ascending: false });
 
     if (error) {
+      console.error('GET /api/org/team member query error:', error);
       throw new Error('Error fetching organization team');
     }
 
-    const team = (data || []).map((teamMember) => ({
-      id: teamMember.id,
-      email: teamMember?.profile?.email || teamMember.email,
-      verified: teamMember.verified,
-      profileId: teamMember?.profile?.id,
-      fullname: teamMember?.profile?.fullname || '',
-      role: ROLE_LABEL[teamMember?.role_id] || '',
-      isAdmin: teamMember?.role_id === ROLE.ADMIN
-    }));
+    const profileById = await getProfilesById(
+      supabase,
+      (data || []).map((teamMember) => teamMember.profile_id)
+    );
+    const team = (data || []).map((teamMember) => serializeTeamMember(teamMember, profileById));
 
     return json({
       success: true,
@@ -157,7 +175,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
       .update({ verified: true })
       .eq('id', memberId)
       .eq('organization_id', orgId)
-      .select('id, email, verified, role_id, profile(id, fullname, email)')
+      .select('id, email, verified, role_id, profile_id')
       .single();
 
     if (updateError || !updated) {
@@ -168,15 +186,8 @@ export const PATCH: RequestHandler = async ({ request }) => {
       );
     }
 
-    const member = {
-      id: updated.id,
-      email: updated?.profile?.email || updated.email,
-      verified: updated.verified,
-      profileId: updated?.profile?.id,
-      fullname: updated?.profile?.fullname || '',
-      role: ROLE_LABEL[updated?.role_id] || '',
-      isAdmin: updated?.role_id === ROLE.ADMIN
-    };
+    const profileById = await getProfilesById(supabase, [updated.profile_id]);
+    const member = serializeTeamMember(updated, profileById);
 
     return json({ success: true, member });
   } catch (error) {

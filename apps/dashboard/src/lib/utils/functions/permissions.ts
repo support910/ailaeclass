@@ -68,9 +68,13 @@ export async function checkUserCoursePermissions(
     }
   }
 
-  // Check if user has access (either is course member or verified org admin)
-  const hasAccess = !!effectiveMembership || isOrgAdmin;
-  const isStudent = effectiveMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
+  // Verified organization teachers/admins can manage courses in their organization.
+  // Students still need direct course membership.
+  const hasAccess = !!effectiveMembership || isVerifiedTeacher;
+  // Course-level role takes precedence inside a course. If a user is a student
+  // member of this course group, the course UI/API must keep student boundaries
+  // even if another org-level membership exists.
+  const isStudent = effectiveMembership?.role_id === ROLE.STUDENT;
 
   return {
     hasAccess,

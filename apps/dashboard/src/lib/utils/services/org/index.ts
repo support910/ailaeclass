@@ -1,6 +1,6 @@
 import type { CurrentOrg, OrgTeamMember } from '$lib/utils/types/org';
 import { ROLE, ROLE_LABEL } from '$lib/utils/constants/roles';
-import { currentOrg, orgAudience, orgTeam, orgs } from '$lib/utils/store/org';
+import { currentOrg, defaultCurrentOrgState, orgAudience, orgTeam, orgs } from '$lib/utils/store/org';
 
 import type { OrganizationPlan } from '$lib/utils/types';
 import type { PostgrestError } from '@supabase/supabase-js';
@@ -16,7 +16,7 @@ export async function getOrgTeam(orgId: string) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: accessToken
+      Authorization: `Bearer ${accessToken}`
     }
   });
 
@@ -113,8 +113,9 @@ export async function getOrganizations(userId: string, isOrgSite?: boolean, orgS
       } else {
         // User is not a member of the configured single org
         console.warn(`Single-org mode: user is not a member of org "${singleOrgSiteName}"`);
-        // Don't fallback to wrong org — leave currentOrg as default
-        // getProfile() will auto-join the user
+        currentOrg.set(defaultCurrentOrgState);
+        localStorage?.removeItem('ailaeclass_org_sitename');
+        // Don't fallback to the wrong org. getProfile() will auto-join the user.
       }
     } else if (isOrgSite && orgSiteName) {
       // If this is a student dashboard

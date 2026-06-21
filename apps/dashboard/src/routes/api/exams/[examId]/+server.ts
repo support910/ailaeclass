@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
-import { ROLE } from '$lib/utils/constants/roles';
 
 const SUBMISSION_STATUS = {
   SUBMITTED: 1,
@@ -60,7 +59,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
         `
         id, title, description, lesson_id, assessment_type, published_at,
         available_from, available_until, due_by, duration_minutes, attempts_allowed,
-        passing_score, show_result_policy, shuffle_questions, shuffle_options
+        passing_score, show_result_policy, shuffle_questions, shuffle_options, settings
       `
       )
       .eq('id', examId)
@@ -92,7 +91,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
 
       const res1 = await supabase
         .from('option')
-        .select('id, value, label, question_id, metadata')
+        .select('id, value, label, question_id, is_correct, metadata')
         .in('question_id', questionIds);
       optionsData = res1.data;
       optionsError = res1.error;
@@ -109,7 +108,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
           console.warn('Option select with metadata failed, retrying without metadata. Error:', errMsg);
           const res2 = await supabase
             .from('option')
-            .select('id, value, label, question_id')
+            .select('id, value, label, question_id, is_correct')
             .in('question_id', questionIds);
           optionsData = res2.data;
           optionsError = res2.error;
@@ -165,7 +164,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, userMembership, isOrgAdmin } = await checkUserCoursePermissions(
+    const { hasAccess, userMembership, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -175,35 +174,12 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isStudent = userMembership?.role_id === ROLE.STUDENT && !isOrgAdmin;
     const groupMemberId = userMembership?.id || null;
     const isPreview = !isStudent;
 
-    // 3. Build questions (always strip is_correct)
-    const allQuestions = (examRow.questions || [])
-      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
-      .map((q: any) => {
-        const opts = (q.options || [])
-          .map((o: any) => ({
-            id: o.id,
-            value: o.value,
-            label: o.label,
-            metadata: getOptionMetadata(q, o)
-          }));
-        return {
-          id: q.id,
-          name: q.name,
-          title: q.title,
-          question_type_id: q.question_type_id,
-          question_type: { id: q.question_type_id },
-          points: q.points,
-          order: q.order,
-          metadata: q.metadata || {},
-          options: opts
-        };
-      });
+    const isQuickPractice = examRow.settings?.exam_mode === 'quick_practice';
 
-    // 4. Student-only: fetch attempt state
+    // 3. Student-only: fetch attempt state
     let attempt: any = null;
     let attemptCount = 0;
     let canStart = false;
@@ -213,7 +189,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       // Latest submission for this exam
       const { data: latestSub, error: subError } = await supabase
         .from('submission')
-        .select('id, status_id, started_at, submitted_at, expires_at, total, answers:question_answer(*)')
+        .select('id, status_id, started_at, submitted_at, expires_at, total, metadata, answers:question_answer(*)')
         .eq('exercise_id', examId)
         .eq('submitted_by', groupMemberId)
         .eq('course_id', courseId)
@@ -252,10 +228,43 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
         (!examRow.available_until || new Date(examRow.available_until).getTime() > now);
 
       const hasInProgress = attempt?.status_id === SUBMISSION_STATUS.IN_PROGRESS;
-      const attemptsAllowed = examRow.attempts_allowed ?? 1;
-      const underLimit = attemptCount < attemptsAllowed;
+      const attemptsUnlimited = examRow.settings?.attempts_unlimited === true;
+      const attemptsAllowed = examRow.attempts_allowed;
+      const underLimit =
+        attemptsUnlimited || attemptsAllowed === null || attemptsAllowed === undefined || attemptCount < attemptsAllowed;
       canStart = inWindow && (hasInProgress || underLimit);
     }
+
+    const hasActiveInProgress =
+      isStudent &&
+      attempt?.status_id === SUBMISSION_STATUS.IN_PROGRESS &&
+      (!attempt.expires_at || new Date(attempt.expires_at).getTime() > Date.now());
+
+    const exposeCorrectAnswers = isQuickPractice && (isPreview || hasActiveInProgress);
+
+    // 4. Build questions. Correct flags are exposed only for authorized quick practice answering.
+    const allQuestions = (examRow.questions || [])
+      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+      .map((q: any) => {
+        const opts = (q.options || []).map((o: any) => ({
+          id: o.id,
+          value: o.value,
+          label: o.label,
+          metadata: getOptionMetadata(q, o),
+          ...(exposeCorrectAnswers ? { is_correct: o.is_correct === true } : {})
+        }));
+        return {
+          id: q.id,
+          name: q.name,
+          title: q.title,
+          question_type_id: q.question_type_id,
+          question_type: { id: q.question_type_id },
+          points: q.points,
+          order: q.order,
+          metadata: q.metadata || {},
+          options: opts
+        };
+      });
 
     // 5. Determine whether to return questions based on role + state
     let returnQuestions = true;
@@ -264,10 +273,6 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       const inWindow =
         (!examRow.available_from || new Date(examRow.available_from).getTime() <= now) &&
         (!examRow.available_until || new Date(examRow.available_until).getTime() > now);
-
-      const hasActiveInProgress =
-        attempt?.status_id === SUBMISSION_STATUS.IN_PROGRESS &&
-        (!attempt.expires_at || new Date(attempt.expires_at).getTime() > now);
 
       // Students see questions only if:
       // - they have an active IN_PROGRESS attempt, OR
@@ -283,9 +288,10 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       title: examRow.title,
       description: examRow.description,
       duration_minutes: examRow.duration_minutes,
-      attempts_allowed: examRow.attempts_allowed,
+      attempts_allowed: examRow.settings?.attempts_unlimited === true ? null : examRow.attempts_allowed,
       passing_score: examRow.passing_score,
       show_result_policy: examRow.show_result_policy || 'after_grade',
+      settings: examRow.settings || {},
       available_from: examRow.available_from,
       available_until: examRow.available_until,
       due_by: examRow.due_by,
@@ -390,7 +396,7 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Course not found' }, { status: 404 });
     }
 
-    const { hasAccess, isOrgAdmin, userMembership } = await checkUserCoursePermissions(
+    const { hasAccess, isStudent } = await checkUserCoursePermissions(
       supabase,
       userId,
       courseRow.group_id
@@ -400,7 +406,7 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
-    const isTeacher = isOrgAdmin || userMembership?.role_id === ROLE.TUTOR || userMembership?.role_id === ROLE.ADMIN;
+    const isTeacher = !isStudent;
     if (!isTeacher) {
       return json({ success: false, message: 'Only teachers can delete exams' }, { status: 403 });
     }

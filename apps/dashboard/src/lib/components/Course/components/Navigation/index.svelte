@@ -6,6 +6,7 @@
   import TextChip from '$lib/components/Chip/Text.svelte';
   import LockedIcon from 'carbon-icons-svelte/lib/Locked.svelte';
   import CheckmarkFilled from 'carbon-icons-svelte/lib/CheckmarkFilled.svelte';
+  import { CopyButton } from 'carbon-components-svelte';
   import NavExpandable from './NavExpandable.svelte';
   import { getNavItemRoute, getLessonsRoute, getLectureNo } from '$lib/components/Course/function';
   import { lessons, lessonSections } from '../Lesson/store/lessons';
@@ -21,7 +22,7 @@
   import { NAV_IDS } from './constants';
 
   export let path: string;
-  export let isStudent: boolean = false;
+  export let isStudent: boolean = true;
 
   interface Section {
     id: string;
@@ -204,7 +205,7 @@
         to: getNavItemRoute($course.id, 'submissions'),
         hideSortIcon: true,
         show() {
-          return isStudent !== true;
+          return isStudent === false;
         }
       },
       {
@@ -276,6 +277,23 @@
   bind:this={sidebarRef}
 >
   <div class="flex flex-col">
+    {#if isStudent === false && $course?.join_code}
+      <div class="mx-4 mt-4 rounded-md border border-primary-100 bg-white p-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
+          {$t('course.join.code_label')}
+        </p>
+        <div class="mt-2 flex items-center justify-between gap-2">
+          <span class="font-mono text-lg font-bold tracking-widest text-primary-700 dark:text-primary-300">
+            {$course.join_code}
+          </span>
+          <CopyButton text={$course.join_code} feedback="Copied!" />
+        </div>
+        <p class="mt-2 text-xs leading-4 text-gray-500 dark:text-gray-400">
+          {$t('course.join.code_hint')}
+        </p>
+      </div>
+    {/if}
+
     <ul
       class="sidebar-content my-5"
       bind:this={menuContentRef}

@@ -29,6 +29,7 @@
   export let isOnLandingPage = false;
   export let isLMS = false;
   export let isExplore = false;
+  export let canManageActions = true;
   export let progressRate = 45;
   export let type: COURSE_TYPE;
   export let pricingData: {
@@ -41,8 +42,10 @@
   };
 
   $: formatter = getCurrencyFormatter(currency);
+  $: showManageMenu = canManageActions && !isExplore && !isLMS && !isOnLandingPage;
 
   function handleCloneCourse() {
+    if (!showManageMenu) return;
     $copyCourseModal.open = true;
     $copyCourseModal.id = id;
     $copyCourseModal.title = title;
@@ -50,14 +53,17 @@
   }
 
   function handleShareCourse() {
+    if (!showManageMenu) return;
     goto(`/courses/${id}/settings#share`);
   }
 
   function handleInvite() {
+    if (!showManageMenu) return;
     goto(`/courses/${id}/people?add=true`);
   }
 
   function handleDeleteCourse() {
+    if (!showManageMenu) return;
     $deleteCourseModal.open = true;
     $deleteCourseModal.id = id;
     $deleteCourseModal.title = title;
@@ -118,7 +124,7 @@
 >
   <div class="p-4">
     <div class="relative mb-5">
-      {#if !isLMS && !isOnLandingPage}
+      {#if showManageMenu}
         <OverflowMenu
           class="absolute right-2 top-2 z-40 rounded-full bg-gray-200 opacity-0 transition-all delay-150  duration-200 ease-in-out group-hover:opacity-100 dark:bg-neutral-800"
           size="sm"
