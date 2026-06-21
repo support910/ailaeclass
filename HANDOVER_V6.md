@@ -128,6 +128,31 @@ Useful local checks:
 
 ## Deployment
 
+### Current Deployment Status On 2026-06-22
+
+Local save is complete, but remote upload is pending.
+
+Completed locally:
+- v5 final commit: `60a609c chore: finalize v5 handoff for v6`
+- Local tag: `v5-final-20260622`
+- v6 worktree branch: `v6-development`
+- Local Docker validation passed before handoff.
+
+Blocked remotely:
+- HTTPS GitHub push failed because this machine could not connect to `github.com:443`.
+- SSH to `github.com:22` was reachable, but the local SSH key did not have permission for `support910/ailaeclass`.
+- Railway CLI is not installed on this machine.
+- Supabase CLI is not installed on this machine.
+
+When network/auth is fixed, run from `E:\Class\ailaeclass-v5`:
+
+```powershell
+git push origin v5-development
+git push origin v5-final-20260622
+```
+
+Then verify Railway has deployed commit `60a609c` or newer.
+
 ### GitHub / Railway
 
 Repository:
