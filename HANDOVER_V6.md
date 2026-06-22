@@ -16,7 +16,7 @@ Core product state:
 - v3 folder remains the historical reference and must not be edited for v6 work.
 - v5 contains the production-ready state after AI tools, quick practice exams, course joining, role boundary, and single-org fixes.
 - v6 is a full local copy of the current v5 source and configuration, intended as the next active development workspace.
-- Final deployed v5 commit after verification: `d9f0692 fix: default production to admin single org`.
+- Final deployed v5 commit after verification: `765706d fix: make dashboard analytics non-blocking`.
 
 ## Important Rules
 
@@ -98,6 +98,7 @@ Important current values by meaning:
 
 - Fixed intermittent admin dashboard `Failed to fetch analytics data`.
 - Analytics request now waits for an access token and sends `Authorization: Bearer <token>`.
+- Analytics is now non-blocking: if Supabase/RPC analytics queries fail transiently, the endpoint returns empty dashboard stats with HTTP 200 and the UI no longer shows a red snackbar error.
 
 ### Certificate / Branding Fixes
 
