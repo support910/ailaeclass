@@ -132,28 +132,37 @@ Useful local checks:
 
 ### Current Deployment Status On 2026-06-22
 
-Local save is complete, but remote upload is pending.
+Local save and remote upload are complete.
 
 Completed locally:
-- v5 final commit: `60a609c chore: finalize v5 handoff for v6`
+- v5 final code commit: `d9f0692 fix: default production to admin single org`
+- v5 final documentation/deployment commit: `8376913 docs: update final v5 deployment handoff`
 - Local tag: `v5-final-20260622`
 - v6 worktree branch: `v6-development`
 - Local Docker validation passed before handoff.
 
-Blocked remotely:
-- HTTPS GitHub push failed because this machine could not connect to `github.com:443`.
-- SSH to `github.com:22` was reachable, but the local SSH key did not have permission for `support910/ailaeclass`.
-- Railway CLI is not installed on this machine.
-- Supabase CLI is not installed on this machine.
-
-When network/auth is fixed, run from `E:\Class\ailaeclass-v5`:
+Completed remotely:
+- `v5-development` pushed to GitHub.
+- `main` fast-forwarded to the same v5 final state for Railway production deployment.
+- `v5-final-20260622` pushed to GitHub and updated to final commit `8376913`.
+- `v6-development` pushed to GitHub as the next development branch.
 
 ```powershell
 git push origin v5-development
-git push origin v5-final-20260622
+git push origin v5-development:main
+git push origin v5-final-20260622 --force
+git push origin v6-development
 ```
 
-Then verify Railway has deployed commit `60a609c` or newer.
+Railway CLI is not installed on this machine, so deployment was verified by polling the production site and running browser tests.
+
+Production verification passed on `https://ailaeclass.5gnumultimedia.com`:
+- Admin login opened `/org/admin` with no analytics fetch error.
+- Temporary student initially assigned to `test-team` resolved into `admin`.
+- Student Explore showed published course `我的梦`.
+- Temporary student account was deleted after verification.
+
+Supabase CLI is not installed on this machine. No Supabase migration was required for the final fixes.
 
 ### GitHub / Railway
 
