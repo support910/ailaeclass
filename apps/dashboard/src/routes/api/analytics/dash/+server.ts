@@ -21,19 +21,24 @@ export async function POST({ setHeaders, request }) {
 
     return json(analytics, { status: 200 });
   } catch (error) {
-    return json({ error: 'Something went wrong' }, { status: 500 });
+    console.error('Failed to fetch organisation analytics', error);
+    return json(getEmptyOrganisationAnalytics(), { status: 200 });
   }
 }
 
-async function getOrganisationAnalytics(orgId: string): Promise<OrganisationAnalytics> {
-  const supabase = getServerSupabase();
-  const analytics: OrganisationAnalytics = {
+function getEmptyOrganisationAnalytics(): OrganisationAnalytics {
+  return {
     revenue: 0,
     numberOfCourses: 0,
     totalStudents: 0,
     topCourses: [],
     enrollments: []
   };
+}
+
+async function getOrganisationAnalytics(orgId: string): Promise<OrganisationAnalytics> {
+  const supabase = getServerSupabase();
+  const analytics = getEmptyOrganisationAnalytics();
   // Run all queries in parallel
   const [statsResult, topCoursesResult, enrollmentsResult] = await Promise.all([
     supabase.from('dash_org_stats').select('*').eq('org_id', orgId),
