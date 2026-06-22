@@ -21,7 +21,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // Only validate API routes
   if (!pathname.includes('/api')) {
-    return resolve(event);
+    const response = await resolve(event);
+    const contentType = response.headers.get('content-type') || '';
+
+    if (contentType.includes('text/html') || pathname.endsWith('/_app/version.json')) {
+      response.headers.set('cache-control', 'no-cache, no-store, must-revalidate');
+      response.headers.set('pragma', 'no-cache');
+      response.headers.set('expires', '0');
+    }
+
+    return response;
   }
 
   // Skip public routes
