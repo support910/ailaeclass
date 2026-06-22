@@ -78,10 +78,10 @@
     setTheme(data.org?.theme);
   }
 
-  onMount(() => {
+  onMount(async () => {
     pageSetup();
 
-    if (!hasSession() && !isPublicRoute($page.url?.pathname)) {
+    if (!(await hasSession()) && !isPublicRoute($page.url?.pathname)) {
       console.log('No auth token and is not a public route, redirect to login', path);
       return goto('/login?redirect=/' + path);
     }
