@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import CourseContainer from '$lib/components/CourseContainer/index.svelte';
   import StudentExamIntro from '$lib/components/Exam/StudentExamIntro.svelte';
@@ -40,6 +40,13 @@
   let isPreview = false;
   let hasGroupLoaded = false;
   let shuffleNextAttempt = false;
+  let loadRequestedFor = '';
+
+  $: currentExamKey = `${courseId || ''}:${examId || ''}`;
+  $: if (browser && currentExamKey !== ':' && loadRequestedFor !== currentExamKey) {
+    loadRequestedFor = currentExamKey;
+    loadExam();
+  }
 
   $: groupPeople = Array.isArray($group.people) ? $group.people : [];
   $: groupMemberId = getGroupMemberId(groupPeople, $profile.id);
@@ -255,10 +262,6 @@
     submission = null;
     await handleStart(options);
   }
-
-  onMount(() => {
-    loadExam();
-  });
 </script>
 
 <CourseContainer {courseId}>
