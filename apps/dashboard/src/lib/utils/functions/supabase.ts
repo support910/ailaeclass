@@ -46,7 +46,44 @@ export const isSupabaseTokenInLocalStorage = () => {
   return false;
 };
 
+const getStoredAccessToken = () => {
+  if (!browser) return '';
+
+  try {
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key || !/^sb-[\w-]+-auth-token$/.test(key)) continue;
+
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+
+      const parsed = JSON.parse(raw);
+      const token = parsed?.access_token || parsed?.currentSession?.access_token;
+      if (token) return token;
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+};
+
 export const getAccessToken = async () => {
-  const { data } = await getSupabase().auth.getSession();
-  return data.session?.access_token || '';
+  const storedToken = getStoredAccessToken();
+
+  try {
+    const sessionPromise = getSupabase().auth.getSession();
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), 2000);
+    });
+    const result = await Promise.race([sessionPromise, timeoutPromise]);
+
+    if (result && 'data' in result) {
+      return result.data.session?.access_token || storedToken;
+    }
+  } catch {
+    return storedToken;
+  }
+
+  return storedToken;
 };
