@@ -58,14 +58,14 @@
       });
 
       if (!response.ok) {
-        console.error(response);
-        throw new Error('Failed to fetch analytics data');
+        console.warn('Failed to fetch analytics data', response.status);
+        return;
       }
 
       dashAnalytics = (await response.json()) as OrganisationAnalytics;
       analyticsOrgId = orgId;
     } catch (error) {
-      snackbar.error('Failed to fetch analytics data');
+      console.warn('Failed to fetch analytics data', error);
     } finally {
       analyticsLoading = false;
     }
