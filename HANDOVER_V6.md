@@ -259,17 +259,21 @@ These were present during v5 work and are not blockers.
 Latest deployed commits:
 
 ```text
+1dbfba4 fix: stabilize page auth and cache headers
 87273ef fix: prevent auth token lookup from hanging
 b3e4c0f fix: load student exam details reliably
 ```
 
 What changed:
+- Global layout auth setup now awaits `hasSession()` before deciding whether to redirect. This fixes unreliable loading/redirect behavior on production pages such as `控制檯` and `考試`.
+- Server-side page responses now mark HTML and SvelteKit version checks as `no-cache`, reducing stale frontend chunk issues after Railway deploys.
 - Student exam detail pages now trigger loading from a browser-side reactive guard instead of relying only on `onMount`, fixing the production case where `/courses/{courseId}/exams/{examId}` stayed on `Loading...`.
 - `getAccessToken()` now falls back to the stored Supabase browser token if `supabase.auth.getSession()` hangs longer than 2 seconds, fixing the case where starting a quick-practice exam succeeded but the follow-up refresh stayed on `Loading...`.
 
 Production verification completed:
 - `https://ailaeclass.5gnumultimedia.com/org/admin` loads without the previous analytics error.
 - `https://ailaeclass.5gnumultimedia.com/org/admin/exams` loads exam lists for admin.
+- `https://ailaeclass.5gnumultimedia.com/org/admin/exams/5fc366b9-8bb6-4900-ad2b-fe4304648bfa/edit` opens without page error.
 - Student course exam list for `我的梦` loads published quick-practice exams.
 - Student quick-practice detail loads questions.
 - Student quick-practice start creates/resumes an in-progress attempt and renders the runner.
