@@ -16,6 +16,7 @@ Core product state:
 - v3 folder remains the historical reference and must not be edited for v6 work.
 - v5 contains the production-ready state after AI tools, quick practice exams, course joining, role boundary, and single-org fixes.
 - v6 is a full local copy of the current v5 source and configuration, intended as the next active development workspace.
+- Final deployed v5 commit after verification: `d9f0692 fix: default production to admin single org`.
 
 ## Important Rules
 
@@ -53,6 +54,7 @@ USE_HTTPS_ON_LOCALHOST
 
 Important current values by meaning:
 - `PUBLIC_SINGLE_ORG_SITE_NAME` must be `admin`.
+- The code also defaults to `admin` if `PUBLIC_SINGLE_ORG_SITE_NAME` is missing, because Railway production was missing this env var during verification.
 - `PUBLIC_IS_SELFHOSTED` must be `true`.
 - `PRIVATE_APP_HOST` is the root app host used by the dashboard.
 - DeepSeek is used by ailaeclass Agent and Socratic-style learning tools.
@@ -177,13 +179,15 @@ docker/Dockerfile.dashboard
 
 The Dockerfile path in `railway.toml` is the production-safe deployment path.
 
-Railway must include the dashboard env variables listed above, especially:
+Railway should include the dashboard env variables listed above, especially:
 
 ```text
 PUBLIC_SINGLE_ORG_SITE_NAME=admin
 ```
 
-The local machine currently does not have the Railway CLI installed. Use Railway web dashboard if env vars need to be changed manually.
+The code has a production-safe fallback to `admin`, but the Railway variable should still be set explicitly.
+
+The local machine currently does not have the Railway CLI installed. Deployment was triggered by pushing GitHub `main` and verified by production browser tests.
 
 ### Supabase
 
@@ -239,4 +243,3 @@ E:\Class\.archive\old-top-level
 - Large chunk warning.
 
 These were present during v5 work and are not blockers.
-
