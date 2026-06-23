@@ -84,6 +84,14 @@
     return Object.values(grades).reduce((acc, grade) => acc + parseInt(grade), 0);
   }
 
+  function getStudentDisplayName(student: any) {
+    return student?.fullname || student?.username || student?.email || 'Unknown student';
+  }
+
+  function getStudentInitial(student: any) {
+    return getStudentDisplayName(student).trim().charAt(0).toUpperCase() || 'U';
+  }
+
   const notifyStudent = (submissionData) => {
     maxMark = getMaxPoints(submissionData?.questions);
     totalMark = calculateTotal(submissionData?.questionAnswerByPoint);
@@ -368,7 +376,12 @@
 />
 
 <CourseContainer bind:courseId={data.courseId}>
-  <RoleBasedSecurity allowedRoles={[1, 2]}>
+  <RoleBasedSecurity
+    allowedRoles={[1, 2]}
+    onDenied={() => {
+      goto(`/courses/${courseId}/lessons`);
+    }}
+  >
     <PageNav title={$t('course.navItem.submissions.title')} />
 
     <PageBody width="w-full max-w-6xl md:w-11/12 overflow-x-auto">
@@ -408,13 +421,21 @@
                       class="mb-2 flex w-full cursor-pointer items-center text-black"
                       href={`${$page.url.pathname}?submissionId=${item.id}`}
                     >
-                      <img
-                        alt="Student avatar"
-                        class="block h-6 w-6 rounded-full"
-                        src={item.student.avatar_url}
-                      />
+                      {#if item.student?.avatar_url}
+                        <img
+                          alt="Student avatar"
+                          class="block h-6 w-6 rounded-full object-cover"
+                          src={item.student.avatar_url}
+                        />
+                      {:else}
+                        <span
+                          class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700"
+                        >
+                          {getStudentInitial(item.student)}
+                        </span>
+                      {/if}
                       <p class="ml-2 text-sm dark:text-white">
-                        {item.student.username}
+                        {getStudentDisplayName(item.student)}
                       </p>
                     </a>
                     <a

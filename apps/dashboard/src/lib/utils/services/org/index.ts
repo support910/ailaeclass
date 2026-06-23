@@ -1,5 +1,6 @@
 import type { CurrentOrg, OrgTeamMember } from '$lib/utils/types/org';
 import { ROLE, ROLE_LABEL } from '$lib/utils/constants/roles';
+import { SUPER_ADMIN_EMAIL } from '$lib/utils/constants/admin';
 import { currentOrg, defaultCurrentOrgState, orgAudience, orgTeam, orgs } from '$lib/utils/store/org';
 
 import type { OrganizationPlan } from '$lib/utils/types';
@@ -46,6 +47,13 @@ export async function getOrgTeam(orgId: string) {
 }
 
 export async function getOrganizations(userId: string, isOrgSite?: boolean, orgSiteName?: string) {
+  const { data: userProfile } = await supabase
+    .from('profile')
+    .select('email')
+    .eq('id', userId)
+    .maybeSingle();
+  const isSuperAdmin = userProfile?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+
   // Step 1: Fetch memberships (no nested org to avoid RLS filtering nested rows)
   const { data: memberData, error: memberError } = await supabase
     .from('organizationmember')
@@ -92,10 +100,14 @@ export async function getOrganizations(userId: string, isOrgSite?: boolean, orgS
   if (Array.isArray(memberData) && memberData.length) {
     memberData.forEach((orgMember) => {
       const org = orgMap[orgMember.organization_id];
+      const effectiveRoleId =
+        parseInt(orgMember?.role_id) === ROLE.ADMIN && !isSuperAdmin
+          ? ROLE.TUTOR
+          : parseInt(orgMember?.role_id);
       orgsArray.push({
         ...(org || {}),
         memberId: orgMember?.id,
-        role_id: parseInt(orgMember?.role_id),
+        role_id: effectiveRoleId,
         verified: !!orgMember?.verified,
         shortName: org?.name?.substring(0, 2)?.toUpperCase() || ''
       });
@@ -158,7 +170,7 @@ export async function getOrgAudience(orgId: string) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: accessToken
+      Authorization: `Bearer ${accessToken}`
     }
   });
 

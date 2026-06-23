@@ -280,3 +280,53 @@ Production verification completed:
 - Selecting an answer and clicking `Check answer` shows correctness, correct answer, and explanation area.
 
 Temporary test account used for verification was removed from Supabase after testing.
+
+## 2026-06-23 Final v5 Sync Into v6
+
+Latest deployed commits on `main` and `v5-development`:
+
+```text
+2162d2f docs: record v5 production deployment
+71bb948 feat: add course logs and tighten course permissions
+```
+
+Production URLs:
+
+```text
+https://ailaeclass.5gnumultimedia.com
+https://ailaeclass-production.up.railway.app
+```
+
+Production `_app/version.json` after Railway deployment:
+
+```text
+1782196123722
+```
+
+What changed after the earlier v6 handoff:
+- Course navigation now includes `日志` for teacher/admin course-level student logs.
+- Teacher/admin course logs show course joins and answer/submission records, with Excel export.
+- Admin-only authority is restricted through `admin@5gnu.com`; normal teacher/student registration cannot become admin.
+- Teachers can see and manage only their own courses; admin can manage all courses.
+- Teacher/admin can add/remove course students through course people/member APIs.
+- Student course boundaries were tightened so students cannot access teacher/admin course management surfaces.
+- Course submissions now avoid broken avatar images and `undefined` names by using profile fallback display.
+- Certificate preview CSP allows required font assets.
+
+Verification completed before this v6 sync:
+- Local production build: `pnpm --filter @cio/dashboard run build` passed.
+- Local Docker: `http://localhost:4082` three-role Playwright smoke passed.
+- Railway production deploy: triggered by GitHub `main` push, no new Railway project created.
+- Production smoke on company domain passed sequentially for:
+  - admin dashboard, exams, AI tools, course people, logs, submissions, marks, analytics
+  - teacher course lessons, people, logs, submissions, exams, analytics
+  - student LMS, explore, my learning, AI tools, course lessons, exams, marks, and direct submissions boundary
+
+Supabase notes:
+- No new migration was required for this final sync.
+- Do not run `supabase db push --include-all` against production.
+- Future database work should use narrow migration files only.
+
+Next development:
+- Start from `E:\Class\ailaeclass-v6` on branch `v6-development`.
+- Treat `E:\Class\ailaeclass-v5` as the completed deployed v5 reference after this sync.

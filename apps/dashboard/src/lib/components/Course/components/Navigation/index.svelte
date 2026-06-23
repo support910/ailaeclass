@@ -249,6 +249,15 @@
         }
       },
       {
+        id: NAV_IDS.LOGS,
+        label: $t('course.navItems.nav_logs'),
+        to: getNavItemRoute($course.id, 'logs'),
+        hideSortIcon: true,
+        show() {
+          return isStudent === false;
+        }
+      },
+      {
         id: NAV_IDS.SETTINGS,
         label: $t('course.navItems.nav_settings'),
         to: getNavItemRoute($course.id, 'settings'),

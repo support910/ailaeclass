@@ -34,6 +34,7 @@ const config = {
         'style-src': [
           'self',
           'unsafe-inline',
+          'https://fonts.googleapis.com',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
           'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
@@ -41,6 +42,7 @@ const config = {
         'style-src-elem': [
           'self',
           'unsafe-inline',
+          'https://fonts.googleapis.com',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
           'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
@@ -86,6 +88,7 @@ const config = {
         'style-src': [
           'self',
           'unsafe-inline',
+          'https://fonts.googleapis.com',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
           'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
@@ -93,6 +96,7 @@ const config = {
         'style-src-elem': [
           'self',
           'unsafe-inline',
+          'https://fonts.googleapis.com',
           'https://cdn.plyr.io',
           'https://unpkg.com/katex@0.12.0/dist/katex.min.css',
           'https://assets.cdn.ailaeclass.com/eqneditor_1.css'

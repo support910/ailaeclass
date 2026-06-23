@@ -30,29 +30,32 @@
 </script>
 
 <CourseContainer bind:courseId={data.courseId}>
-  <PageNav title={$t('course.navItem.people.title')} disableSticky={true}>
-    <slot:fragment slot="image">
-      {#if data.personId}
-        <RoleBasedSecurity allowedRoles={[1, 2]}>
+  <RoleBasedSecurity
+    allowedRoles={[1, 2]}
+    onDenied={() => {
+      goto(`/courses/${data.courseId}/lessons`);
+    }}
+  >
+    <PageNav title={$t('course.navItem.people.title')} disableSticky={true}>
+      <slot:fragment slot="image">
+        {#if data.personId}
           <IconButton size="large" onClick={handleBackNavigation}>
             <ArrowLeft size={16} class="carbon-icon dark:text-white " />
           </IconButton>
-        </RoleBasedSecurity>
-      {/if}
-    </slot:fragment>
-    <slot:fragment slot="widget">
-      {#if !data.personId}
-        <RoleBasedSecurity allowedRoles={[1, 2]}>
+        {/if}
+      </slot:fragment>
+      <slot:fragment slot="widget">
+        {#if !data.personId}
           <PrimaryButton
             className="mr-2"
             label={$t('course.navItem.people.add')}
             onClick={handleClick}
           />
-        </RoleBasedSecurity>
-      {/if}
-    </slot:fragment>
-  </PageNav>
-  <PageBody width="w-full max-w-6xl md:w-11/12">
-    <slot />
-  </PageBody>
+        {/if}
+      </slot:fragment>
+    </PageNav>
+    <PageBody width="w-full max-w-6xl md:w-11/12">
+      <slot />
+    </PageBody>
+  </RoleBasedSecurity>
 </CourseContainer>

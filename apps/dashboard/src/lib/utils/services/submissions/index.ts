@@ -12,7 +12,7 @@ export async function fetchSubmissions(course_id: string) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: accessToken
+      Authorization: `Bearer ${accessToken}`
     }
   });
 
@@ -55,7 +55,7 @@ export async function fetchSubmission({
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: accessToken
+      Authorization: `Bearer ${accessToken}`
     }
   });
 

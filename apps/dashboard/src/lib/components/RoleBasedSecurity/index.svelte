@@ -23,7 +23,7 @@
 
       userRole = user ? user.role_id : userRole;
 
-      if (!$isOrgAdmin && $group.people.length && !isAllowed(userRole)) {
+      if (!$isOrgAdmin && user && $group.people.length && !isAllowed(userRole)) {
         onDenied();
       }
     }
