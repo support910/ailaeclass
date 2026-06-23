@@ -157,3 +157,25 @@
 ### 注意事项
 - 临时 Playwright spec 和测试产物已清理，未保留在仓库。
 - 本次未新增 Supabase migration；当前功能使用既有生产 Supabase 表结构与数据。
+
+## 2026-06-23 — v5 上线与线上回归
+
+### 部署动作
+- 已提交：`71bb948 feat: add course logs and tighten course permissions`。
+- 已推送到 GitHub：
+  - `origin/main`
+  - `origin/v5-development`
+- Railway 通过 GitHub `main` 自动部署，未创建新的 Railway 项目。
+- Supabase 本次没有新 migration；没有执行 `supabase db push --include-all`，避免覆盖生产数据。
+
+### 线上版本
+- 公司域名：`https://ailaeclass.5gnumultimedia.com`
+- Railway 域名：`https://ailaeclass-production.up.railway.app`
+- 部署切换后 `_app/version.json`：`1782196123722`
+
+### 线上验收
+- 线上 Playwright smoke 使用公司域名顺序执行，3/3 通过：
+  - 管理员：控制台、考试、AI 工具、课程人员、日志、提交、成绩、分析。
+  - 教师：课程内容、人员、日志、提交、考试、分析。
+  - 学生：LMS、探索、我的学习、AI 工具、课程内容、课程考试、成绩；直连提交页会回到课程内容。
+- 备注：并发跑三个角色时公司域名偶发 `/login` 超时；顺序跑稳定通过，属于线上冷启动/网络并发敏感，不是业务逻辑失败。
