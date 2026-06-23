@@ -61,6 +61,14 @@
     return Object.values(grades).reduce((acc, grade) => acc + parseInt(grade || '0'), 0);
   }
 
+  function getStudentDisplayName(student: any) {
+    return student?.fullname || student?.username || student?.email || 'Unknown student';
+  }
+
+  function getStudentInitial(student: any) {
+    return getStudentDisplayName(student).trim().charAt(0).toUpperCase() || 'U';
+  }
+
   function handleStatusChange(event) {
     const newSelectedId = event.detail.selectedId;
 
@@ -321,13 +329,21 @@
           <div
             class="flex flex-row items-center justify-center rounded-md bg-gray-100 p-[6px] dark:bg-neutral-700"
           >
-            <img
-              alt="Student avatar"
-              class="flex h-5 w-5 rounded-full"
-              src={data.student.avatar_url}
-            />
+            {#if data.student?.avatar_url}
+              <img
+                alt="Student avatar"
+                class="flex h-5 w-5 rounded-full object-cover"
+                src={data.student.avatar_url}
+              />
+            {:else}
+              <span
+                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[10px] font-semibold text-primary-700"
+              >
+                {getStudentInitial(data.student)}
+              </span>
+            {/if}
             <p class="ml-2 line-clamp-1 text-sm font-semibold dark:text-white">
-              {data.student.fullname}
+              {getStudentDisplayName(data.student)}
             </p>
           </div>
         {/if}

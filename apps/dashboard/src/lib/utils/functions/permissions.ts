@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ROLE } from '$lib/utils/constants/roles';
+import { isSuperAdminUser } from '$lib/utils/functions/authz.server';
 
 export interface UserPermissionResult {
   hasAccess: boolean;
@@ -33,27 +34,33 @@ export async function checkUserCoursePermissions(
     .eq('id', courseGroupId)
     .single();
 
+  const isSuperAdmin = await isSuperAdminUser(supabase, userId);
   let isOrgAdmin = false;
   let isVerifiedTeacher = false;
   if (orgData?.organization_id) {
-    const { data: orgMembership } = await supabase
-      .from('organizationmember')
-      .select('role_id, verified')
-      .eq('organization_id', orgData.organization_id)
-      .eq('profile_id', userId)
-      .eq('role_id', ROLE.ADMIN)
-      .eq('verified', true)
-      .single();
+    let orgMembership: any = null;
+    if (isSuperAdmin) {
+      const { data } = await supabase
+        .from('organizationmember')
+        .select('role_id, verified')
+        .eq('organization_id', orgData.organization_id)
+        .eq('profile_id', userId)
+        .eq('role_id', ROLE.ADMIN)
+        .eq('verified', true)
+        .single();
+      orgMembership = data;
+    }
 
     isOrgAdmin = !!orgMembership;
 
     // Check if user has a verified TUTOR or ADMIN org membership
+    const teacherRoles = isSuperAdmin ? [ROLE.ADMIN, ROLE.TUTOR] : [ROLE.TUTOR];
     const { data: teacherMember } = await supabase
       .from('organizationmember')
       .select('role_id, verified')
       .eq('organization_id', orgData.organization_id)
       .eq('profile_id', userId)
-      .in('role_id', [ROLE.ADMIN, ROLE.TUTOR])
+      .in('role_id', teacherRoles)
       .eq('verified', true)
       .single();
 
@@ -68,9 +75,9 @@ export async function checkUserCoursePermissions(
     }
   }
 
-  // Verified organization teachers/admins can manage courses in their organization.
-  // Students still need direct course membership.
-  const hasAccess = !!effectiveMembership || isVerifiedTeacher;
+  // Highest admin can manage every course in the org. Teachers and students need
+  // direct membership in the course group.
+  const hasAccess = !!effectiveMembership || isOrgAdmin;
   // Course-level role takes precedence inside a course. If a user is a student
   // member of this course group, the course UI/API must keep student boundaries
   // even if another org-level membership exists.

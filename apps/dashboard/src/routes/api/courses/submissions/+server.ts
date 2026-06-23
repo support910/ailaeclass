@@ -1,11 +1,11 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { getServerSupabase } from '$lib/utils/functions/supabase.server';
+import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 
 export const GET: RequestHandler = async ({ request, url }) => {
   const courseId = url.searchParams.get('courseId');
-  const userId = request.headers.get('user_id');
+  const userId = await getUserIdFromRequest(request);
 
   if (!userId) {
     return json({ success: false, message: 'Unauthorized' }, { status: 401 });

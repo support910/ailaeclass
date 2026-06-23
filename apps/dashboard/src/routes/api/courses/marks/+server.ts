@@ -1,10 +1,10 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { getServerSupabase } from '$lib/utils/functions/supabase.server';
+import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 
 export const POST: RequestHandler = async ({ request }) => {
-  const userId = request.headers.get('user_id');
+  const userId = await getUserIdFromRequest(request);
   const { courseId } = await request.json();
 
   if (!courseId) {

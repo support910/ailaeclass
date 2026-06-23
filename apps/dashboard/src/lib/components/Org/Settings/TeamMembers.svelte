@@ -12,7 +12,7 @@
   import { snackbar } from '$lib/components/Snackbar/store';
   import { getOrgTeam } from '$lib/utils/services/org';
   import { profile } from '$lib/utils/store/user';
-  import { supabase } from '$lib/utils/functions/supabase';
+  import { getAccessToken } from '$lib/utils/functions/supabase';
   import SectionTitle from '../SectionTitle.svelte';
   import {
     triggerSendEmail,
@@ -39,80 +39,62 @@
 
     isLoading = true;
     let apiError = '';
-    emails.forEach(async (email: string, index: number) => {
-      if (apiError) return;
-
-      const doesEmailExist = $orgTeam.some(
-        (teamMember) => teamMember.email.toLowerCase() === email.toLowerCase()
-      );
-
-      if (doesEmailExist) {
-        snackbar.error('snackbar.team_members.user_exists');
-        isLoading = false;
-        return;
-      }
-      const { data, error } = await supabase
-        .from('organizationmember')
-        .insert({
-          organization_id: $currentOrg.id,
-          email,
-          role_id: role,
-          verified: false
+    try {
+      const accessToken = await getAccessToken();
+      const res = await fetch('/api/org/team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          orgId: $currentOrg.id,
+          emails,
+          roleId: role
         })
-        .select();
-      console.log('data', data);
-
-      if (error) {
-        apiError = `${error}`;
-
-        console.error('onSendInvite:', error);
-        snackbar.error(`snackbar.team_members.invite_fail`);
-        isLoading = false;
-        return;
-      }
-      const [newMember] = data || [];
-      if (newMember) {
-        orgTeam.update((team) => [
-          {
-            id: newMember.id,
-            email: newMember?.email,
-            fullname: newMember?.fullname || '',
-            verified: newMember?.verified,
-            role: ROLE_LABEL[newMember?.role_id] || '',
-            isAdmin: newMember?.role_id === ROLE.ADMIN
-          },
-          ...team
-        ]);
-      }
-
-      triggerSendEmail(NOTIFICATION_NAME.INVITE_TEACHER, {
-        email: newMember.email,
-        org: {
-          id: $currentOrg.id,
-          name: $currentOrg.name,
-          siteName: $currentOrg.siteName
-        }
       });
 
-      const isLast = index === emails.length - 1;
-      if (isLast) {
-        snackbar.success('snackbar.team_members.invite_sent');
-
-        emailsStr = '';
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        apiError = result.message || 'Invite failed';
+        snackbar.error('snackbar.team_members.invite_fail');
         isLoading = false;
+        return;
       }
-    });
+
+      const newMembers = result.team || [];
+      orgTeam.update((team) => [...newMembers, ...team]);
+
+      for (const newMember of newMembers) {
+        triggerSendEmail(NOTIFICATION_NAME.INVITE_TEACHER, {
+          email: newMember.email,
+          org: {
+            id: $currentOrg.id,
+            name: $currentOrg.name,
+            siteName: $currentOrg.siteName
+          }
+        });
+      }
+
+      snackbar.success('snackbar.team_members.invite_sent');
+      emailsStr = '';
+    } catch (error) {
+      apiError = error instanceof Error ? error.message : 'Invite failed';
+      console.error('onSendInvite:', error);
+      snackbar.error('snackbar.team_members.invite_fail');
+    }
+    isLoading = false;
   }
 
   async function onApprove(id: number) {
     isApproving = id;
     try {
-      const accessToken = await (await import('$lib/utils/functions/supabase')).getAccessToken();
+      const accessToken = await getAccessToken();
       const res = await fetch('/api/org/team', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: accessToken
+          Authorization: `Bearer ${accessToken}`
         },
         body: JSON.stringify({
           orgId: $currentOrg.id,
@@ -143,15 +125,31 @@
   }
 
   async function onRemove(id: number) {
-    console.log('onRemove called');
     isRemoving = id;
-    const { error } = await supabase.from('organizationmember').delete().match({ id });
+    try {
+      const accessToken = await getAccessToken();
+      const res = await fetch('/api/org/team', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          orgId: $currentOrg.id,
+          memberId: id
+        })
+      });
 
-    if (error) {
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        console.error('onRemove:', result);
+        snackbar.error('snackbar.team_members.remove_fail');
+      } else {
+        orgTeam.update((team) => [...team.filter((member) => member.id !== id)]);
+      }
+    } catch (error) {
       console.error('onRemove:', error);
       snackbar.error('snackbar.team_members.remove_fail');
-    } else {
-      orgTeam.update((team) => [...team.filter((member) => member.id !== id)]);
     }
 
     isRemoving = null;
@@ -197,7 +195,6 @@
             bind:selected={role}
             class="mb-5 w-40"
           >
-            <SelectItem value={ROLE.ADMIN} text={$t(ROLE_LABEL[ROLE.ADMIN])} />
             <SelectItem value={ROLE.TUTOR} text={$t(ROLE_LABEL[ROLE.TUTOR])} />
           </Select>
 

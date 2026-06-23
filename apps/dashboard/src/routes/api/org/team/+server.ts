@@ -2,18 +2,11 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { ROLE, ROLE_LABEL } from '$lib/utils/constants/roles';
+import { getOrgAccess } from '$lib/utils/functions/authz.server';
 
 async function assertVerifiedAdmin(supabase: any, orgId: string, userId: string) {
-  const { data: orgMember } = await supabase
-    .from('organizationmember')
-    .select('role_id')
-    .eq('organization_id', orgId)
-    .eq('profile_id', userId)
-    .eq('role_id', ROLE.ADMIN)
-    .eq('verified', true)
-    .single();
-
-  return !!orgMember;
+  const access = await getOrgAccess(supabase, orgId, userId);
+  return access.isAdmin === true;
 }
 
 async function getProfilesById(supabase: any, profileIds: string[]) {
@@ -190,6 +183,157 @@ export const PATCH: RequestHandler = async ({ request }) => {
     const member = serializeTeamMember(updated, profileById);
 
     return json({ success: true, member });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return json({ success: false, message }, { status: 500 });
+  }
+};
+
+export const POST: RequestHandler = async ({ request }) => {
+  const userId = await getUserIdFromRequest(request);
+
+  if (!userId) {
+    return json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+
+  let body: { orgId?: string; emails?: string[]; roleId?: number };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ success: false, message: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const emails = (body.emails || [])
+    .map((email) => String(email || '').trim().toLowerCase())
+    .filter(Boolean);
+
+  if (!body.orgId || emails.length === 0) {
+    return json({ success: false, message: 'orgId and emails are required' }, { status: 400 });
+  }
+
+  if (body.roleId !== ROLE.TUTOR) {
+    return json({ success: false, message: 'Only teacher accounts can be invited here.' }, { status: 400 });
+  }
+
+  try {
+    const supabase = getServerSupabase();
+
+    const isAdmin = await assertVerifiedAdmin(supabase, body.orgId, userId);
+    if (!isAdmin) {
+      return json({ success: false, message: 'Only the system admin can invite teachers.' }, { status: 403 });
+    }
+
+    const { data: existingMembers } = await supabase
+      .from('organizationmember')
+      .select('email, profile_id')
+      .eq('organization_id', body.orgId);
+
+    const existingEmails = new Set(
+      (existingMembers || []).map((member: any) => String(member.email || '').toLowerCase()).filter(Boolean)
+    );
+
+    const { data: profiles } = await supabase
+      .from('profile')
+      .select('id, email')
+      .in('email', emails);
+
+    const profileByEmail = new Map(
+      (profiles || []).map((profile: any) => [String(profile.email || '').toLowerCase(), profile])
+    );
+
+    const rows = emails
+      .filter((email) => !existingEmails.has(email))
+      .map((email) => ({
+        organization_id: body.orgId,
+        email,
+        role_id: ROLE.TUTOR,
+        verified: false,
+        profile_id: profileByEmail.get(email)?.id || null
+      }));
+
+    if (rows.length === 0) {
+      return json({ success: false, message: 'All invited emails already exist in this organization.' }, { status: 409 });
+    }
+
+    const { data, error } = await supabase
+      .from('organizationmember')
+      .insert(rows)
+      .select('id, email, verified, role_id, profile_id');
+
+    if (error) {
+      console.error('POST /api/org/team error:', error);
+      return json({ success: false, message: error.message }, { status: 500 });
+    }
+
+    const profileById = await getProfilesById(
+      supabase,
+      (data || []).map((member: any) => member.profile_id)
+    );
+
+    return json({
+      success: true,
+      team: (data || []).map((member: any) => serializeTeamMember(member, profileById))
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return json({ success: false, message }, { status: 500 });
+  }
+};
+
+export const DELETE: RequestHandler = async ({ request }) => {
+  const userId = await getUserIdFromRequest(request);
+
+  if (!userId) {
+    return json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+
+  let body: { orgId?: string; memberId?: number };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ success: false, message: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  if (!body.orgId || typeof body.memberId !== 'number') {
+    return json({ success: false, message: 'orgId and memberId are required' }, { status: 400 });
+  }
+
+  try {
+    const supabase = getServerSupabase();
+
+    const isAdmin = await assertVerifiedAdmin(supabase, body.orgId, userId);
+    if (!isAdmin) {
+      return json({ success: false, message: 'Only the system admin can remove teachers.' }, { status: 403 });
+    }
+
+    const { data: targetMember, error: targetError } = await supabase
+      .from('organizationmember')
+      .select('id, role_id, profile_id')
+      .eq('id', body.memberId)
+      .eq('organization_id', body.orgId)
+      .single();
+
+    if (targetError || !targetMember) {
+      return json({ success: false, message: 'Member not found.' }, { status: 404 });
+    }
+
+    if (targetMember.role_id === ROLE.ADMIN) {
+      return json({ success: false, message: 'The system admin cannot be removed here.' }, { status: 409 });
+    }
+
+    const { error } = await supabase
+      .from('organizationmember')
+      .delete()
+      .eq('id', body.memberId)
+      .eq('organization_id', body.orgId)
+      .neq('role_id', ROLE.ADMIN);
+
+    if (error) {
+      console.error('DELETE /api/org/team error:', error);
+      return json({ success: false, message: error.message }, { status: 500 });
+    }
+
+    return json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     return json({ success: false, message }, { status: 500 });

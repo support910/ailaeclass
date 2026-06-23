@@ -24,3 +24,136 @@
 - 其他 locale（da/de/es/fr/hi/pl/pt/ru/vi）未添加新翻译 key，切换语言时可能显示英文 fallback。
 - VisitOrgSiteButton 在 `globalStore.isStudent` 为 undefined 时保守跳转 `/lms`，教师可能在非课程页面被误导。
 - CourseContainer `membershipResolved` 依赖 `fetchCourseFromAPI` 返回 group members。极端情况下（API 完全不返回 group），权限判断可能延迟一个 tick，但 Navigation 已做 show() 加固。
+
+## 2026-06-23 — 管理/教师权限边界 + 课程学生日志
+
+### 本次目标
+- 修复管理端点击考试偶发 error 的组织考试接口风险。
+- 课程内新增 `日志` 页面：管理员/课程教师可查看学生加入记录、答题记录，并导出 Excel。
+- 收紧权限：最高管理员仅 `admin@5gnu.com`；教师只能访问自己任教课程；学生不能访问课程日志/组织受众；受众菜单仅最高管理员可见。
+- 课程人员页新增按邮箱添加学生，移除操作仅允许移除学生。
+
+### 主要修改
+1. 新增服务端权限 helper：
+   - `apps/dashboard/src/lib/utils/constants/admin.ts`
+   - `apps/dashboard/src/lib/utils/functions/authz.server.ts`
+2. 新增课程日志与成员 API：
+   - `apps/dashboard/src/routes/api/courses/[id]/logs/+server.ts`
+   - `apps/dashboard/src/routes/api/courses/[id]/members/+server.ts`
+   - `apps/dashboard/src/routes/api/courses/[id]/members/[memberId]/+server.ts`
+3. 新增课程日志页面：
+   - `apps/dashboard/src/routes/courses/[id]/logs/+page.svelte`
+   - `apps/dashboard/src/routes/courses/[id]/logs/+page.ts`
+4. 权限与 UI 收紧：
+   - `apps/dashboard/src/lib/utils/functions/permissions.ts`
+   - `apps/dashboard/src/routes/api/org/[id]/exams/+server.ts`
+   - `apps/dashboard/src/routes/api/org/audience/+server.ts`
+   - `apps/dashboard/src/routes/api/org/team/+server.ts`
+   - `apps/dashboard/src/lib/components/Org/Settings/TeamMembers.svelte`
+   - `apps/dashboard/src/lib/components/Org/SideBar.svelte`
+   - `apps/dashboard/src/routes/courses/[id]/people/+page.svelte`
+   - 课程导航新增 `日志`，并补翻译 key。
+
+### 验证结果
+- `pnpm --filter @cio/dashboard run prepare`：通过
+- `pnpm --filter @cio/dashboard run build`：通过
+- 本地 5174 dev server API 角色测试：通过
+  - admin 读取组织考试：200
+  - admin 读取课程日志：200
+  - 临时 teacher 读取自己课程日志：200
+  - 临时 teacher 读取其他课程日志：403
+  - 临时 student 读取课程日志：403
+  - 临时 student 读取组织受众：403
+  - admin 添加/移除课程学生：200/200
+- Playwright 浏览器登录测试：通过
+  - admin 打开 `/org/admin/exams` 无 runtime error
+  - admin 打开 `/courses/{courseId}/logs` 显示学生日志和导出按钮
+  - teacher 左侧栏不显示受众
+  - teacher 可打开自己课程日志
+  - teacher 打开其他课程日志显示拒绝访问
+
+### 注意事项
+- 本次未部署 Railway / Supabase，仅在 v5 本地代码修改和验证。
+- 测试创建的临时教师/学生账号与临时成员已清理。
+- 本地测试 server 使用 `http://127.0.0.1:5174`；原 `5173` 端口当时是旧实例，不能用于判断本次代码。
+
+## 2026-06-23 — 课程二级模块串联验收 + Docker 4082 更新
+
+### 本次目标
+- 检查课程内各二级页面是否真正串联到同一门课程的数据。
+- 管理端、教师端、学生端分别真实登录并逐页验证。
+- 修复学生/教师/管理员边界不清和页面加载错误。
+- 保留联调课程，供用户二次查看。
+
+### 保留测试课程与账号
+- 课程：`V5课程功能联调测试`
+- Course ID：`c0f1f116-cdde-4435-9e23-de7a417ee6e5`
+- 课程码：`V5TEST`
+- 教师测试账号：`v5test.teacher@5gnu.com`
+- 学生测试账号：
+  - `v5test.student1@5gnu.com`
+  - `v5test.student2@5gnu.com`
+  - `v5test.student3@5gnu.com`
+- 测试密码由本次会话上下文保存，不在交接文档重复公开。
+
+### 主要修复
+1. 课程成绩/提交 API 调用补全 `Bearer` token：
+   - `apps/dashboard/src/lib/utils/services/marks/index.ts`
+   - `apps/dashboard/src/lib/utils/services/submissions/index.ts`
+   - `apps/dashboard/src/routes/api/courses/marks/+server.ts`
+   - `apps/dashboard/src/routes/api/courses/submissions/+server.ts`
+2. 证书预览放行 Google Fonts CSP：
+   - `apps/dashboard/svelte.config.js`
+3. 学生不能直接访问课程 People/Logs 管理页：
+   - `apps/dashboard/src/routes/courses/[id]/people/+layout.svelte`
+   - `apps/dashboard/src/routes/courses/[id]/logs/+page.svelte`
+4. 修复管理员直接进入课程 People/Logs 偶发被误判为非成员并重定向的问题：
+   - `apps/dashboard/src/lib/components/RoleBasedSecurity/index.svelte`
+
+### 浏览器验收结果
+- Dev server `http://127.0.0.1:5174` 全量三角色 Playwright 测试通过：
+  - 学生：News Feed、Content、Exams、Attendance、Marks、Certificates 正常显示。
+  - 学生直接访问 People/Logs 会回到 Content，不显示管理数据。
+  - 教师：News Feed、Content、Exams、Analytics、Attendance、Submissions、Marks、Certificates、Landing Page、People、Logs、Settings 正常显示。
+  - 管理员：`/org/admin`、`/org/admin/exams`、课程 People、课程 Logs、课程 Exams 正常显示。
+- Docker `http://localhost:4082` 精简三角色 Playwright 测试通过：
+  - 学生课程内容/考试/People 边界通过。
+  - 教师 People/Logs 通过。
+  - 管理员控制台/课程 Logs 通过。
+
+### 构建与运行
+- `pnpm --filter @cio/dashboard run build`：通过。
+- Docker 镜像已重建：`ailaeclass-v5/dashboard:local`。
+- Docker 容器已重启：`ailaeclass-v5-dashboard`。
+- 当前本地访问地址：`http://localhost:4082`。
+- 5174 dev server 已停止，临时 Playwright spec 与临时日志已清理。
+
+## 2026-06-23 — 最终 Docker 回归与提交页显示修复
+
+### 本次目标
+- 修复课程 `提交` 页学生头像缺失时出现破图、姓名显示 `undefined` 的问题。
+- 补齐学生直连教师 `提交` 管理页时的权限边界。
+- 在 Docker `http://localhost:4082` 上再次做管理员、教师、学生三角色回归。
+
+### 主要修复
+1. 提交列表与批改弹窗增加学生显示名 fallback：
+   - 优先使用 `fullname`、`username`、`email`，都缺失时显示 `Unknown student`。
+   - 头像缺失时显示姓名首字母圆形占位，不再渲染空 `img`。
+   - 涉及文件：
+     - `apps/dashboard/src/routes/courses/[id]/submissions/+page.svelte`
+     - `apps/dashboard/src/lib/components/Course/components/Lesson/Exercise/MarkExerciseModal.svelte`
+2. 学生直连 `/courses/{courseId}/submissions` 时导回课程内容页：
+   - 涉及文件：`apps/dashboard/src/routes/courses/[id]/submissions/+page.svelte`
+
+### 验证结果
+- `pnpm --filter @cio/dashboard run build`：通过。
+- Docker 镜像重建：`ailaeclass-v5/dashboard:local`。
+- Docker 容器重启：`ailaeclass-v5-dashboard`，端口 `4082 -> 3082`。
+- Playwright Docker 回归：3/3 通过。
+  - 管理员：`/org/admin`、课程、考试、AI 工具、课程人员、日志、提交、成绩、分析页面正常。
+  - 教师：课程内容、人员、日志、提交、考试、分析页面正常；提交页无 `undefined`，可见图片无破图。
+  - 学生：LMS、探索、我的学习、AI 工具、课程内容、课程考试、成绩页面正常；直连提交页会回到课程内容，不出现教师控件。
+
+### 注意事项
+- 临时 Playwright spec 和测试产物已清理，未保留在仓库。
+- 本次未新增 Supabase migration；当前功能使用既有生产 Supabase 表结构与数据。

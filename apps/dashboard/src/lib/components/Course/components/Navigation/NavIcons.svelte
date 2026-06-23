@@ -10,6 +10,8 @@
   import Settings from 'carbon-icons-svelte/lib/Settings.svelte';
   import Bullhorn from 'carbon-icons-svelte/lib/Bullhorn.svelte';
   import Analytics from 'carbon-icons-svelte/lib/Analytics.svelte';
+  import Task from 'carbon-icons-svelte/lib/Task.svelte';
+  import Document from 'carbon-icons-svelte/lib/Document.svelte';
   import { NAV_IDS } from './constants';
 
   export let name = '';
@@ -21,6 +23,8 @@
   <Bullhorn size={20} class="carbon-icon mr-2" />
 {:else if name === NAV_IDS.LESSONS}
   <IbmWatsonKnowledgeCatalog size={20} class="carbon-icon mr-2" />
+{:else if name === NAV_IDS.EXAMS}
+  <Task size={20} class="carbon-icon mr-2" />
 {:else if name === NAV_IDS.ATTENDANCE}
   <ListChecked size={20} class="carbon-icon mr-2" />
 {:else if name === NAV_IDS.SUBMISSIONS}
@@ -29,6 +33,8 @@
   <Result size={20} class="carbon-icon mr-2" />
 {:else if name === NAV_IDS.PEOPLE}
   <Group size={20} class="carbon-icon mr-2" />
+{:else if name === NAV_IDS.LOGS}
+  <Document size={20} class="carbon-icon mr-2" />
 {:else if name === NAV_IDS.ANALYTICS}
   <Analytics size={20} class="carbon-icon mr-2" />
 {:else if name === NAV_IDS.LANDING_PAGE}

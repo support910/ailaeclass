@@ -14,14 +14,16 @@
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import RoleBasedSecurity from '$lib/components/RoleBasedSecurity/index.svelte';
-  import { ROLE_LABEL, ROLES } from '$lib/utils/constants/roles';
+  import { ROLE, ROLE_LABEL, ROLES } from '$lib/utils/constants/roles';
   import { t } from '$lib/utils/functions/translations';
   import {
+    addCourseStudent,
     approveJoinRequest,
     deleteGroupMember,
     fetchJoinRequests,
     rejectJoinRequest
   } from '$lib/utils/services/courses';
+  import { snackbar } from '$lib/components/Snackbar/store';
   import { profile } from '$lib/utils/store/user';
   import type { GroupPerson } from '$lib/utils/types';
   import {
@@ -42,6 +44,8 @@
   let searchValue = '';
   let joinRequests: any[] = [];
   let isLoadingRequests = false;
+  let studentEmail = '';
+  let isAddingStudent = false;
 
   async function loadJoinRequests() {
     if (!$course?.id) return;
@@ -82,10 +86,35 @@
 
   async function deletePerson() {
     if (!member.id) return;
+    const { error } = await deleteGroupMember(member.id, $course.id);
+    if (error) {
+      snackbar.error(error.message || 'Failed to remove student');
+      return;
+    }
+
     $group.people = $group.people.filter((person: { id: string }) => person.id !== member.id);
     $group.tutors = $group.tutors.filter((person: GroupPerson) => person.memberId !== member.id);
+  }
 
-    await deleteGroupMember(member.id);
+  async function handleAddStudent() {
+    const email = studentEmail.trim();
+    if (!email || !email.includes('@') || !$course?.id) {
+      snackbar.error('Please enter a valid student email.');
+      return;
+    }
+
+    isAddingStudent = true;
+    const { data, error } = await addCourseStudent($course.id, email);
+    isAddingStudent = false;
+
+    if (error) {
+      snackbar.error(error.message || 'Failed to add student');
+      return;
+    }
+
+    $group.people = [data, ...($group.people || [])];
+    studentEmail = '';
+    snackbar.success('Student added to this course.');
   }
 
   function sortAndFilterPeople(_people: Array<GroupPerson>, filterBy: ProfileRole) {
@@ -155,6 +184,33 @@
         </div>
       </div>
     {/if}
+  </RoleBasedSecurity>
+
+  <RoleBasedSecurity allowedRoles={[1, 2]}>
+    <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
+      <p class="mb-3 text-sm font-semibold text-gray-700 dark:text-white">
+        添加学生
+      </p>
+      <div class="flex flex-col gap-3 md:flex-row md:items-end">
+        <div class="flex-1">
+          <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400" for="student-email">
+            学生邮箱
+          </label>
+          <input
+            id="student-email"
+            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+            placeholder="student@example.com"
+            bind:value={studentEmail}
+          />
+        </div>
+        <PrimaryButton
+          label="添加到课程"
+          onClick={handleAddStudent}
+          isLoading={isAddingStudent}
+          isDisabled={isAddingStudent}
+        />
+      </div>
+    </div>
   </RoleBasedSecurity>
 
   <!-- Pending Join Requests -->
@@ -328,7 +384,7 @@
           <StructuredListCell class="w-1/4 p-0">
             <RoleBasedSecurity allowedRoles={[1, 2]}>
               <div class="hidden space-x-2 sm:flex sm:items-center">
-                {#if person.profile_id !== $profile.id}
+                {#if person.profile_id !== $profile.id && person.role_id === ROLE.STUDENT}
                   <IconButton
                     onClick={() => {
                       member = person;
@@ -343,6 +399,12 @@
                     <TrashCanIcon size={16} class="carbon-icon dark:text-white" />
                   </IconButton> -->
 
+                  <PrimaryButton
+                    variant={VARIANTS.OUTLINED}
+                    label={$t('course.navItem.people.view')}
+                    onClick={() => gotoPerson(person)}
+                  />
+                {:else if person.profile_id !== $profile.id}
                   <PrimaryButton
                     variant={VARIANTS.OUTLINED}
                     label={$t('course.navItem.people.view')}

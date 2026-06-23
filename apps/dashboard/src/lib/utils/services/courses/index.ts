@@ -329,6 +329,32 @@ export function addGroupMember(member: any) {
   return supabase.from('groupmember').insert(member).select();
 }
 
+export async function addCourseStudent(courseId: string, email: string) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/courses/${courseId}/members`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email })
+    });
+
+    const result = await res.json();
+    if (!res.ok || !result.success) {
+      return { data: null, error: { message: result.message || 'Failed to add student' } as PostgrestError };
+    }
+
+    return { data: result.member, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: { message: error instanceof Error ? error.message : 'Network error' } as PostgrestError
+    };
+  }
+}
+
 export function addDefaultNewsFeed(feed) {
   return supabase.from('course_newsfeed').insert(feed);
 }
@@ -337,7 +363,31 @@ export function updatedGroupMember(update: any, match: any) {
   return supabase.from('groupmember').update(update).match(match);
 }
 
-export function deleteGroupMember(groupMemberId: Groupmember['id']) {
+export async function deleteGroupMember(groupMemberId: Groupmember['id'], courseId?: Course['id']) {
+  if (courseId) {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/courses/${courseId}/members/${groupMemberId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        return { error: { message: result.message || 'Failed to remove member' } as PostgrestError };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return {
+        error: { message: error instanceof Error ? error.message : 'Network error' } as PostgrestError
+      };
+    }
+  }
+
   return supabase.from('groupmember').delete().match({ id: groupMemberId });
 }
 

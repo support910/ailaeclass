@@ -98,7 +98,7 @@
       path: '/audience',
       label: $t('org_navigation.audience'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/audience`),
-      show: true
+      show: $isOrgAdmin
     },
     {
       path: '/setup',

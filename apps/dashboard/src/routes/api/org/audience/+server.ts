@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
-import { ROLE } from '$lib/utils/constants/roles';
+import { getOrgAccess } from '$lib/utils/functions/authz.server';
 
 export const GET: RequestHandler = async ({ request, url }) => {
   const userId = await getUserIdFromRequest(request);
@@ -18,21 +18,13 @@ export const GET: RequestHandler = async ({ request, url }) => {
   try {
     const supabase = getServerSupabase();
 
-    // Check if user is a verified admin or tutor of this organization
-    const { data: orgMember } = await supabase
-      .from('organizationmember')
-      .select('role_id')
-      .eq('organization_id', orgId)
-      .eq('profile_id', userId)
-      .in('role_id', [ROLE.ADMIN, ROLE.TUTOR])
-      .eq('verified', true)
-      .single();
+    const orgAccess = await getOrgAccess(supabase, orgId, userId);
 
-    if (!orgMember) {
+    if (!orgAccess.isAdmin) {
       return json(
         {
           success: false,
-          message: 'Access denied. User is not a verified member of this organization.'
+          message: 'Access denied. Only the system admin can view the organization audience.'
         },
         { status: 403 }
       );
