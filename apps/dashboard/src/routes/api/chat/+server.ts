@@ -1,6 +1,10 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import {
+  createDeepSeekChatCompletion,
+  DeepSeekError,
+  type DeepSeekMessage
+} from '$lib/utils/services/ai/deepseek.server';
 
 const SYSTEM_PROMPT = `You are an official AI assistant for ailaeclass, a learning platform developed by 5G nuMultiMedia Limited (5GNU).
 
@@ -29,15 +33,6 @@ If the user asks about anything outside these topics, politely refuse and say:
 Keep responses concise (under 150 words) and professional.`;
 
 export const POST: RequestHandler = async ({ request }) => {
-  const deepseekKey = env.PRIVATE_DEEPSEEK_API_KEY || 'sk-c52784623d754d81ac315d11ba178931';
-
-  if (!deepseekKey) {
-    return json(
-      { error: 'Chat service not configured', code: 'missing_deepseek_key' },
-      { status: 503 }
-    );
-  }
-
   try {
     const { message } = await request.json();
 
@@ -45,46 +40,21 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Message is required', code: 'invalid_request' }, { status: 400 });
     }
 
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${deepseekKey}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 512,
-        temperature: 0.7
-      })
+    const messages: DeepSeekMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: message }
+    ];
+    const reply = await createDeepSeekChatCompletion(messages, {
+      maxTokens: 512,
+      temperature: 0.7
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('DeepSeek API error:', errorText);
-      return json(
-        { error: 'AI service temporarily unavailable', code: 'upstream_error' },
-        { status: 502 }
-      );
-    }
-
-    const data = await response.json();
-    console.log('DeepSeek raw response:', JSON.stringify(data).slice(0, 500));
-
-    const reply = data.choices?.[0]?.message?.content;
-    if (!reply) {
-      console.error('Unexpected DeepSeek response structure:', data);
-      return json(
-        { error: 'AI returned an unexpected response. Please try again.', code: 'unexpected_response' },
-        { status: 502 }
-      );
-    }
 
     return json({ reply });
   } catch (err) {
+    if (err instanceof DeepSeekError) {
+      return json({ error: err.message, code: err.code }, { status: err.status });
+    }
+
     console.error('Chat endpoint error:', err);
     return json(
       { error: 'Internal error', code: 'internal_error' },
