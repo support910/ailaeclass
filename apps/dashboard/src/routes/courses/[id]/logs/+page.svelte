@@ -122,6 +122,7 @@
   };
   let joins: any[] = [];
   let submissions: any[] = [];
+
   $: uiLanguage = mapLocaleToUiLanguage($locale);
   $: summaryCards = [
     { label: ui('studentCount'), value: summary.studentCount },
