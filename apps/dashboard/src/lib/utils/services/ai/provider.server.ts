@@ -46,13 +46,13 @@ const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
     defaultModel: 'deepseek-chat'
   },
   kimi: {
-    baseUrl: 'https://api.moonshot.cn',
+    baseUrl: 'https://api.moonshot.cn/v1',
     model: env.PRIVATE_KIMI_MODEL?.trim() || 'moonshot-v1-8k',
     keyEnvVars: ['PRIVATE_KIMI_API_KEY', 'PRIVATE_MOONSHOT_API_KEY'],
     defaultModel: 'moonshot-v1-8k'
   },
   moonshot: {
-    baseUrl: 'https://api.moonshot.cn',
+    baseUrl: 'https://api.moonshot.cn/v1',
     model: env.PRIVATE_KIMI_MODEL?.trim() || 'moonshot-v1-8k',
     keyEnvVars: ['PRIVATE_MOONSHOT_API_KEY', 'PRIVATE_KIMI_API_KEY'],
     defaultModel: 'moonshot-v1-8k'
