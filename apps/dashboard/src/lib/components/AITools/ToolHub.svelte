@@ -10,6 +10,7 @@
   import Settings from 'carbon-icons-svelte/lib/Settings.svelte';
   import WarningAlt from 'carbon-icons-svelte/lib/WarningAlt.svelte';
   import { getAccessToken } from '$lib/utils/functions/supabase';
+  import { locale } from '$lib/utils/functions/translations';
   import CopyButton from './CopyButton.svelte';
 
   type ToolId =
@@ -70,12 +71,6 @@
       answer: string;
     }>;
   }
-
-  const UI_LANGUAGES: Array<{ value: UiLanguage; label: string }> = [
-    { value: 'zh-Hant', label: '繁體中文' },
-    { value: 'zh-Hans', label: '简体中文' },
-    { value: 'en', label: 'English' }
-  ];
 
   const COPY: Record<UiLanguage, Record<string, string>> = {
     'zh-Hant': {
@@ -808,6 +803,13 @@
   $: activeConfig = TOOLS.find((tool) => tool.id === activeToolId);
   $: availableTools = TOOLS.filter((tool) => tool.available);
   $: plannedTools = TOOLS.filter((tool) => !tool.available);
+  $: uiLanguage = mapLocaleToUiLanguage($locale);
+
+  function mapLocaleToUiLanguage(currentLocale: string): UiLanguage {
+    if (currentLocale === 'en') return 'en';
+    if (currentLocale === 'zh') return 'zh-Hans';
+    return 'zh-Hant';
+  }
 
   function ui(key: string) {
     return COPY[uiLanguage][key] ?? COPY['zh-Hant'][key] ?? key;
@@ -1184,23 +1186,6 @@
       </div>
     </div>
 
-    <div class="mb-4 flex flex-col gap-2 rounded-md border border-gray-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900 md:flex-row md:items-center md:justify-between">
-      <div class="text-sm font-medium text-gray-700 dark:text-gray-200">{ui('language')}</div>
-      <div class="grid grid-cols-3 gap-1 rounded-md border border-gray-200 bg-gray-100 p-1 dark:border-neutral-700 dark:bg-neutral-800">
-        {#each UI_LANGUAGES as language}
-          <button
-            type="button"
-            class="min-h-[34px] rounded px-3 text-sm font-medium transition {uiLanguage === language.value
-              ? 'bg-white text-primary-800 shadow-sm dark:bg-neutral-950 dark:text-white'
-              : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}"
-            on:click={() => (uiLanguage = language.value)}
-          >
-            {language.label}
-          </button>
-        {/each}
-      </div>
-    </div>
-
     <div class="mb-4 grid gap-3 md:grid-cols-2">
       <div class="rounded-md border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
         <div class="flex gap-3">
@@ -1310,21 +1295,8 @@
         </div>
       </div>
 
-      <div class="flex w-full flex-col gap-2 md:w-auto">
-        <div class="grid grid-cols-3 gap-1 rounded-md border border-gray-200 bg-gray-100 p-1 dark:border-neutral-700 dark:bg-neutral-800">
-          {#each UI_LANGUAGES as language}
-            <button
-              type="button"
-              class="min-h-[34px] rounded px-3 text-sm font-medium transition {uiLanguage === language.value
-                ? 'bg-white text-primary-800 shadow-sm dark:bg-neutral-950 dark:text-white'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}"
-              on:click={() => (uiLanguage = language.value)}
-            >
-              {language.label}
-            </button>
-          {/each}
-        </div>
-        {#if activeConfig.id === 'socratic'}
+      {#if activeConfig.id === 'socratic'}
+        <div class="w-full md:w-auto">
           <div class="grid grid-cols-2 rounded-md border border-gray-200 bg-gray-100 p-1 dark:border-neutral-700 dark:bg-neutral-800">
             <button
               type="button"
@@ -1345,8 +1317,8 @@
               {ui('direct')}
             </button>
           </div>
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
 
     <div class="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30">

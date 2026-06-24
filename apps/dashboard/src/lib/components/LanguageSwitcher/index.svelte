@@ -9,6 +9,7 @@
 
   const SUPPORTED_LOCALES = [
     { id: LOCALE.ZH_TW, label: '繁中' },
+    { id: LOCALE.ZH, label: '简中' },
     { id: LOCALE.EN, label: 'EN' }
   ];
 
