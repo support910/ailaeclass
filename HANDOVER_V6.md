@@ -131,6 +131,40 @@ Useful local checks:
 
 ## Deployment
 
+### Current Deployment Status On 2026-06-22
+
+Local save and remote upload are complete.
+
+Completed locally:
+- v5 final code commit: `d9f0692 fix: default production to admin single org`
+- v5 final documentation/deployment commit: `8376913 docs: update final v5 deployment handoff`
+- Local tag: `v5-final-20260622`
+- v6 worktree branch: `v6-development`
+- Local Docker validation passed before handoff.
+
+Completed remotely:
+- `v5-development` pushed to GitHub.
+- `main` fast-forwarded to the same v5 final state for Railway production deployment.
+- `v5-final-20260622` pushed to GitHub and updated to final commit `8376913`.
+- `v6-development` pushed to GitHub as the next development branch.
+
+```powershell
+git push origin v5-development
+git push origin v5-development:main
+git push origin v5-final-20260622 --force
+git push origin v6-development
+```
+
+Railway CLI is not installed on this machine, so deployment was verified by polling the production site and running browser tests.
+
+Production verification passed on `https://ailaeclass.5gnumultimedia.com`:
+- Admin login opened `/org/admin` with no analytics fetch error.
+- Temporary student initially assigned to `test-team` resolved into `admin`.
+- Student Explore showed published course `我的梦`.
+- Temporary student account was deleted after verification.
+
+Supabase CLI is not installed on this machine. No Supabase migration was required for the final fixes.
+
 ### GitHub / Railway
 
 Repository:
@@ -246,3 +280,53 @@ Production verification completed:
 - Selecting an answer and clicking `Check answer` shows correctness, correct answer, and explanation area.
 
 Temporary test account used for verification was removed from Supabase after testing.
+
+## 2026-06-23 Final v5 Sync Into v6
+
+Latest deployed commits on `main` and `v5-development`:
+
+```text
+2162d2f docs: record v5 production deployment
+71bb948 feat: add course logs and tighten course permissions
+```
+
+Production URLs:
+
+```text
+https://ailaeclass.5gnumultimedia.com
+https://ailaeclass-production.up.railway.app
+```
+
+Production `_app/version.json` after Railway deployment:
+
+```text
+1782196123722
+```
+
+What changed after the earlier v6 handoff:
+- Course navigation now includes `日志` for teacher/admin course-level student logs.
+- Teacher/admin course logs show course joins and answer/submission records, with Excel export.
+- Admin-only authority is restricted through `admin@5gnu.com`; normal teacher/student registration cannot become admin.
+- Teachers can see and manage only their own courses; admin can manage all courses.
+- Teacher/admin can add/remove course students through course people/member APIs.
+- Student course boundaries were tightened so students cannot access teacher/admin course management surfaces.
+- Course submissions now avoid broken avatar images and `undefined` names by using profile fallback display.
+- Certificate preview CSP allows required font assets.
+
+Verification completed before this v6 sync:
+- Local production build: `pnpm --filter @cio/dashboard run build` passed.
+- Local Docker: `http://localhost:4082` three-role Playwright smoke passed.
+- Railway production deploy: triggered by GitHub `main` push, no new Railway project created.
+- Production smoke on company domain passed sequentially for:
+  - admin dashboard, exams, AI tools, course people, logs, submissions, marks, analytics
+  - teacher course lessons, people, logs, submissions, exams, analytics
+  - student LMS, explore, my learning, AI tools, course lessons, exams, marks, and direct submissions boundary
+
+Supabase notes:
+- No new migration was required for this final sync.
+- Do not run `supabase db push --include-all` against production.
+- Future database work should use narrow migration files only.
+
+Next development:
+- Start from `E:\Class\ailaeclass-v6` on branch `v6-development`.
+- Treat `E:\Class\ailaeclass-v5` as the completed deployed v5 reference after this sync.

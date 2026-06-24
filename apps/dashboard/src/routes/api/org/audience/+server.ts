@@ -30,38 +30,80 @@ export const GET: RequestHandler = async ({ request, url }) => {
       );
     }
 
-    // Get all students who are participants in any course belonging to an org
-    const { data, error } = await supabase
-      .from('profile')
+    // Get all students who are participants in any course belonging to an org.
+    // Keep profile lookup separate because some deployed Supabase schema caches
+    // do not expose the groupmember -> profile relationship to PostgREST.
+    const { data: members, error: memberError } = await supabase
+      .from('groupmember')
       .select(
         `
         id,
-        fullname,
+        profile_id,
         email,
-        avatar_url,
         created_at,
-        groupmember!inner(
-          role_id,
-          group_id:group!inner(
-            organization_id
-          )
-        )
+        group!inner(
+          organization_id
+        ),
+        role_id
       `
       )
-      .eq('groupmember.group.organization_id', orgId)
-      .eq('groupmember.role_id', 3); // STUDENT role
+      .eq('group.organization_id', orgId)
+      .eq('role_id', 3); // STUDENT role
 
-    if (error) {
-      throw new Error('Error fetching organization audience');
+    if (memberError) {
+      console.error('Error fetching organization audience members:', memberError);
+      throw new Error(memberError.message || 'Error fetching organization audience');
     }
 
-    const audience = (data || []).map((profile) => ({
-      id: profile.id,
-      name: profile.fullname,
-      email: profile.email,
-      avatar_url: profile.avatar_url,
-      date_joined: new Date(profile.created_at).toDateString()
-    }));
+    const profileIds = [
+      ...new Set((members || []).map((member: any) => member.profile_id).filter(Boolean))
+    ];
+
+    let profileById = new Map<string, any>();
+
+    if (profileIds.length) {
+      const { data: profiles, error: profileError } = await supabase
+        .from('profile')
+        .select('id, fullname, email, avatar_url, created_at')
+        .in('id', profileIds);
+
+      if (profileError) {
+        console.error('Error fetching organization audience profiles:', profileError);
+        throw new Error(profileError.message || 'Error fetching organization audience');
+      }
+
+      profileById = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
+    }
+
+    const audienceByProfileId = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        email: string;
+        avatar_url: string;
+        date_joined: string;
+      }
+    >();
+
+    for (const membership of members || []) {
+      const profile = membership.profile_id ? profileById.get(membership.profile_id) : null;
+      const memberKey = membership.profile_id || membership.email || membership.id;
+
+      if (!memberKey || audienceByProfileId.has(memberKey)) {
+        continue;
+      }
+
+      audienceByProfileId.set(memberKey, {
+        id: membership.profile_id || membership.id,
+        name: profile?.fullname || membership.email || 'Student',
+        email: profile?.email || membership.email || '',
+        avatar_url: profile?.avatar_url || '',
+        date_joined: new Date(membership.created_at || profile?.created_at).toDateString()
+      });
+    }
+
+    const audience = Array.from(audienceByProfileId.values());
 
     return json({
       success: true,

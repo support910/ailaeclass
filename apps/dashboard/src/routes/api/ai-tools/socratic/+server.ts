@@ -60,13 +60,13 @@ Guided teaching behavior:
 
 Keep responses focused, age-appropriate, and useful for learning.`;
 
-function buildSystemPrompt(mode: LearningAssistantMode) {
+function buildSystemPrompt(mode: LearningAssistantMode, outputLanguage = 'Traditional Chinese') {
   const modeInstruction =
     mode === 'guided'
       ? 'Current mode: guided. Act as a warm step-by-step tutor. If the student made a mistake, explain why, give the correct result for that current step when helpful, and teach the relevant idea before asking one smaller next question. Do not provide the final answer immediately unless the student explicitly asks for it.'
       : 'Current mode: direct. Give the final answer first, then concise reasoning and a common mistake warning.';
 
-  return `${BASE_SYSTEM_PROMPT}\n\n${modeInstruction}`;
+  return `${BASE_SYSTEM_PROMPT}\n\n${modeInstruction}\n\nOutput language: ${outputLanguage}. Use this language unless the learner's question clearly requires another language for the learning task.`;
 }
 
 function jsonError(error: string, code: string, status: number) {
@@ -322,6 +322,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const payload = body as Record<string, unknown>;
     const message = typeof payload.message === 'string' ? payload.message.trim() : '';
     const mode = payload.mode;
+    const outputLanguage =
+      typeof payload.outputLanguage === 'string' ? payload.outputLanguage.trim() : 'Traditional Chinese';
 
     if (!message) {
       return jsonError('Message is required', 'invalid_request', 400);
@@ -337,7 +339,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const history = sanitizeHistory(payload.history);
 
-    if (mode === 'guided') {
+    if (mode === 'guided' && outputLanguage === 'Simplified Chinese') {
       const guidedArithmeticReply = buildGuidedArithmeticReply(message, history);
       if (guidedArithmeticReply) {
         return json({ reply: guidedArithmeticReply });
@@ -345,7 +347,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const messages: DeepSeekMessage[] = [
-      { role: 'system', content: buildSystemPrompt(mode) },
+      { role: 'system', content: buildSystemPrompt(mode, outputLanguage) },
       ...history,
       { role: 'user', content: message }
     ];
