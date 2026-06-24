@@ -9,6 +9,63 @@
   import UserAvatar from 'carbon-icons-svelte/lib/UserAvatar.svelte';
   import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
+  import { locale } from '$lib/utils/functions/translations';
+
+  type UiLanguage = 'zh-Hant' | 'zh-Hans' | 'en';
+
+  const COPY: Record<UiLanguage, Record<string, string>> = {
+    'zh-Hant': {
+      welcome:
+        '你好，我是 ailaeclass AI 助手。你可以問我平台使用、課程學習、無人機與低空經濟，也可以問簡單英文詞義、語法、數學或科學概念。',
+      subtitle: 'AI 助手',
+      openChat: '開啟聊天',
+      closeChat: '關閉聊天',
+      maximize: '放大',
+      minimize: '縮小',
+      send: '發送',
+      placeholder: '問平台使用、課程學習、英文詞義或無人機知識...',
+      disclaimer: 'AI 生成內容僅供學習參考，重要資訊請以教師或官方資料為準',
+      serviceUnavailable: '抱歉，AI 服務暫時不可用，請稍後再試。',
+      notConfigured: 'AI 助手尚未配置，請聯絡管理員設定 API Key。',
+      upstreamUnavailable: 'AI 服務暫時不可用。',
+      invalidRequest: '請求格式不正確，請重新輸入。',
+      unexpectedResponse: '抱歉，AI 服務回傳異常，請稍後再試。'
+    },
+    'zh-Hans': {
+      welcome:
+        '你好，我是 ailaeclass AI 助手。你可以问我平台使用、课程学习、无人机与低空经济，也可以问简单英文词义、语法、数学或科学概念。',
+      subtitle: 'AI 助手',
+      openChat: '开启聊天',
+      closeChat: '关闭聊天',
+      maximize: '放大',
+      minimize: '缩小',
+      send: '发送',
+      placeholder: '问平台使用、课程学习、英文词义或无人机知识...',
+      disclaimer: 'AI 生成内容仅供学习参考，重要信息请以教师或官方资料为准',
+      serviceUnavailable: '抱歉，AI 服务暂时不可用，请稍后再试。',
+      notConfigured: 'AI 助手尚未配置，请联系管理员设置 API Key。',
+      upstreamUnavailable: 'AI 服务暂时不可用。',
+      invalidRequest: '请求格式不正确，请重新输入。',
+      unexpectedResponse: '抱歉，AI 服务返回异常，请稍后再试。'
+    },
+    en: {
+      welcome:
+        'Hi, I am the ailaeclass AI assistant. You can ask about the platform, course learning, drones and low-altitude economy, or simple English, math, and science concepts.',
+      subtitle: 'AI Assistant',
+      openChat: 'Open chat',
+      closeChat: 'Close chat',
+      maximize: 'Maximize',
+      minimize: 'Minimize',
+      send: 'Send',
+      placeholder: 'Ask about learning, English words, drones, or this platform...',
+      disclaimer: 'AI content is for learning reference only. Check important information with teachers or official sources.',
+      serviceUnavailable: 'Sorry, the AI service is temporarily unavailable. Please try again later.',
+      notConfigured: 'AI assistant is not configured. Please contact an administrator to set the API key.',
+      upstreamUnavailable: 'AI service is temporarily unavailable.',
+      invalidRequest: 'Invalid request. Please try again.',
+      unexpectedResponse: 'Sorry, the AI service returned an unexpected response. Please try again later.'
+    }
+  };
 
   let isOpen = false;
   let isExpanded = false;
@@ -18,11 +75,26 @@
   let chatContainer: HTMLDivElement;
   let inputRef: HTMLInputElement;
   $: isLandingPage = $page.url.pathname === '/';
+  $: uiLanguage = mapLocaleToUiLanguage($locale);
 
-  const welcomeMessage = {
+  function mapLocaleToUiLanguage(currentLocale: string): UiLanguage {
+    if (currentLocale === 'en') return 'en';
+    if (currentLocale === 'zh') return 'zh-Hans';
+    return 'zh-Hant';
+  }
+
+  function ui(key: string) {
+    return COPY[uiLanguage][key] ?? COPY['zh-Hant'][key] ?? key;
+  }
+
+  $: welcomeMessage = {
     role: 'bot' as const,
-    text: "Hello! I'm the ailaeclass AI assistant. I can tell you all about 5G nuMultiMedia, our low-altitude economy services, drone training, and how to use this platform. What would you like to know?"
+    text: ui('welcome')
   };
+
+  $: if (messages.length === 1 && messages[0]?.role === 'bot') {
+    messages = [welcomeMessage];
+  }
 
   onMount(() => {
     messages = [welcomeMessage];
@@ -63,38 +135,48 @@
       if (!response.ok || data.error) {
         const status = response.status;
         const code = data.code;
-        let friendly = 'Sorry, the AI service is temporarily unavailable. Please try again later.';
+        let friendly = ui('serviceUnavailable');
 
         if (status === 503 && code === 'missing_deepseek_key') {
-          friendly = 'AI assistant is not configured. Please set PRIVATE_DEEPSEEK_API_KEY and restart the server.';
+          friendly = ui('notConfigured');
         } else if (status === 502 && code === 'upstream_error') {
-          friendly = 'AI service is temporarily unavailable.';
+          friendly = ui('upstreamUnavailable');
         } else if (status === 400) {
-          friendly = data.error || 'Invalid request. Please try again.';
+          friendly = data.error || ui('invalidRequest');
         } else if (data.error) {
           friendly = data.error;
         }
 
-        messages = [...messages, { role: 'bot', text: friendly }];
+        messages = [...messages, { role: 'bot', text: cleanBotText(friendly) }];
       } else if (data.reply) {
-        messages = [...messages, { role: 'bot', text: data.reply }];
+        messages = [...messages, { role: 'bot', text: cleanBotText(data.reply) }];
       } else {
         messages = [
           ...messages,
           {
             role: 'bot',
-            text: 'Sorry, the AI service returned an unexpected response. Please try again later.'
+            text: ui('unexpectedResponse')
           }
         ];
       }
     } catch (err) {
       console.error('Chat request failed:', err);
-      messages = [...messages, { role: 'bot', text: 'Sorry, the AI service is temporarily unavailable. Please try again later.' }];
+      messages = [...messages, { role: 'bot', text: ui('serviceUnavailable') }];
     } finally {
       isLoading = false;
       await scrollToBottom();
       inputRef?.focus();
     }
+  }
+
+  function cleanBotText(text: string) {
+    return String(text || '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/\*/g, '')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, '').trim())
+      .trim();
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -123,7 +205,7 @@
     class="chat-toggle fixed right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95"
     class:landing-chat-position={isLandingPage}
     style="background: linear-gradient(135deg, #0E7372 0%, #00D4FF 100%);"
-    aria-label="Open chat"
+    aria-label={ui('openChat')}
     in:fade={{ duration: 200 }}
   >
     <ChatIcon size={24} class="text-white" />
@@ -152,14 +234,14 @@
         </div>
         <div>
           <h3 class="text-sm font-semibold text-white">ailaeclass AI</h3>
-          <p class="text-xs text-white/80">AI Assistant</p>
+          <p class="text-xs text-white/80">{ui('subtitle')}</p>
         </div>
       </div>
       <div class="flex items-center gap-1">
         <button
           on:click={toggleExpand}
           class="rounded p-1.5 text-white/80 transition hover:bg-white/20 hover:text-white"
-          aria-label={isExpanded ? 'Minimize' : 'Maximize'}
+          aria-label={isExpanded ? ui('minimize') : ui('maximize')}
         >
           {#if isExpanded}
             <MinimizeIcon size={18} />
@@ -170,7 +252,7 @@
         <button
           on:click={toggleOpen}
           class="rounded p-1.5 text-white/80 transition hover:bg-white/20 hover:text-white"
-          aria-label="Close chat"
+          aria-label={ui('closeChat')}
         >
           <CloseIcon size={18} />
         </button>
@@ -239,7 +321,7 @@
           bind:value={inputValue}
           on:keydown={handleKeydown}
           type="text"
-          placeholder="Ask about 5GNU, drones, or this platform..."
+          placeholder={ui('placeholder')}
           class="flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:text-gray-100"
         />
         <button
@@ -247,13 +329,13 @@
           disabled={!inputValue.trim() || isLoading}
           class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition-opacity disabled:opacity-40"
           style="background: linear-gradient(135deg, #0E7372, #00D4FF);"
-          aria-label="Send"
+          aria-label={ui('send')}
         >
           <SendIcon size={16} />
         </button>
       </div>
       <p class="mt-1.5 text-center text-[10px] text-gray-400">
-        AI responses are limited to 5G nuMultiMedia & ailaeclass topics only
+        {ui('disclaimer')}
       </p>
     </div>
   </div>
