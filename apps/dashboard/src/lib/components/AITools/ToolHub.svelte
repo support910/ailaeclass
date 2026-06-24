@@ -846,15 +846,15 @@
   }
 
   function ui(key: string) {
-    return COPY[uiLanguage][key] ?? COPY['zh-Hant'][key] ?? key;
+    return (COPY[uiLanguage] ?? COPY['zh-Hant'])[key] ?? COPY['zh-Hant'][key] ?? key;
   }
 
   function localizedTool(tool: ToolConfig) {
-    return TOOL_TEXT[uiLanguage][tool.id] ?? TOOL_TEXT['zh-Hant'][tool.id];
+    return (TOOL_TEXT[uiLanguage] ?? TOOL_TEXT['zh-Hant'])[tool.id] ?? TOOL_TEXT['zh-Hant'][tool.id];
   }
 
   function localizedField(toolId: AnyToolId, field: ToolField) {
-    return FIELD_TEXT[uiLanguage][toolId]?.[field.key] ?? {
+    return (FIELD_TEXT[uiLanguage] ?? FIELD_TEXT['zh-Hant'])[toolId]?.[field.key] ?? {
       label: field.label,
       placeholder: field.placeholder
     };

@@ -137,7 +137,7 @@
   }
 
   function ui(key: string) {
-    return COPY[uiLanguage][key] ?? COPY['zh-Hant'][key] ?? key;
+    return (COPY[uiLanguage] ?? COPY['zh-Hant'])[key] ?? COPY['zh-Hant'][key] ?? key;
   }
 
   function formatDate(value: string | null | undefined) {

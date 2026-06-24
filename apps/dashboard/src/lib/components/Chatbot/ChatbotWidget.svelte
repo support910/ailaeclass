@@ -74,6 +74,7 @@
   let isLoading = false;
   let chatContainer: HTMLDivElement;
   let inputRef: HTMLInputElement;
+  let uiLanguage: UiLanguage = 'zh-Hant';
   $: isLandingPage = $page.url.pathname === '/';
   $: uiLanguage = mapLocaleToUiLanguage($locale);
 
@@ -84,7 +85,7 @@
   }
 
   function ui(key: string) {
-    return COPY[uiLanguage][key] ?? COPY['zh-Hant'][key] ?? key;
+    return (COPY[uiLanguage] ?? COPY['zh-Hant'])[key] ?? COPY['zh-Hant'][key] ?? key;
   }
 
   $: welcomeMessage = {
