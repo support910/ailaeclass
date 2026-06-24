@@ -103,6 +103,9 @@
       thinking: '正在思考...',
       send: '發送',
       clear: '清除',
+      me: '我',
+      copy: '複製',
+      copied: '已複製',
       generate: '生成結果',
       generatingButton: '生成中...',
       loginRequired: '請先登入。',
@@ -174,6 +177,9 @@
       thinking: '正在思考...',
       send: '发送',
       clear: '清除',
+      me: '我',
+      copy: '复制',
+      copied: '已复制',
       generate: '生成结果',
       generatingButton: '生成中...',
       loginRequired: '请先登录。',
@@ -246,6 +252,9 @@
       thinking: 'Thinking...',
       send: 'Send',
       clear: 'Clear',
+      me: 'Me',
+      copy: 'Copy',
+      copied: 'Copied',
       generate: 'Generate',
       generatingButton: 'Generating...',
       loginRequired: 'Please log in first.',
@@ -1379,7 +1388,7 @@
                 </div>
                 {#if message.role === 'user'}
                   <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-300 text-white dark:bg-neutral-700">
-                    <span class="text-xs font-bold">我</span>
+                    <span class="text-xs font-bold">{ui('me')}</span>
                   </div>
                 {/if}
               </div>
@@ -1481,7 +1490,7 @@
             <div class="mb-3 flex items-center justify-between gap-3">
               <h2 class="text-sm font-semibold text-gray-800 dark:text-white">{ui('result')}</h2>
               {#if resultText}
-                <CopyButton text={resultText} />
+                <CopyButton text={resultText} copyLabel={ui('copy')} copiedLabel={ui('copied')} />
               {/if}
             </div>
 
