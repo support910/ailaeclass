@@ -1,6 +1,14 @@
 import { dev } from '$app/environment';
 import posthog from 'posthog-js';
 
+declare global {
+  interface Window {
+    counterscale?: {
+      q: Array<[string, string, string] | [string]>;
+    };
+  }
+}
+
 export const capturePosthogEvent = (event: string, properties?: Record<string, unknown>): void => {
   if (dev) return;
 
@@ -23,17 +31,15 @@ export const initPosthog = (): void => {
 
 export const initOrgAnalytics = (siteId: string) => {
   if (dev) return;
-  
-  // add js to head of page
-  const script1 = document.createElement('script');
-  script1.textContent = `
-    (function () {
-        window.counterscale = {
-            q: [["set", "siteId", "${siteId}"], ["trackPageview"]],
-        };
-    })();
-  `;
-  document.head.appendChild(script1);
+
+  window.counterscale = {
+    q: [
+      ['set', 'siteId', siteId],
+      ['trackPageview']
+    ]
+  };
+
+  if (document.getElementById('counterscale-script')) return;
 
   const script2 = document.createElement('script'); 
   script2.id = 'counterscale-script';

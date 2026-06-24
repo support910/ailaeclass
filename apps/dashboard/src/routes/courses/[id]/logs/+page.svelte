@@ -9,9 +9,107 @@
   import { snackbar } from '$lib/components/Snackbar/store';
   import { SkeletonPlaceholder } from 'carbon-components-svelte';
   import RoleBasedSecurity from '$lib/components/RoleBasedSecurity/index.svelte';
+  import { locale } from '$lib/utils/functions/translations';
 
   export let data;
   const { courseId } = data;
+  type UiLanguage = 'zh-Hant' | 'zh-Hans' | 'en';
+
+  const COPY: Record<UiLanguage, Record<string, string>> = {
+    'zh-Hant': {
+      pageTitle: '學生日誌',
+      pageDescription: '查看學生加入課程與答題記錄',
+      exportExcel: '匯出為 Excel',
+      course: '課程',
+      joinRecords: '加入記錄',
+      submissionRecords: '答題記錄',
+      name: '姓名',
+      email: '電郵',
+      studentId: '學號',
+      joinedAt: '加入時間',
+      student: '學生',
+      assessment: '考試/練習',
+      type: '類型',
+      status: '狀態',
+      score: '分數',
+      attempts: '次數',
+      startedAt: '開始時間',
+      submittedAt: '提交時間',
+      updatedAt: '更新時間',
+      studentCount: '學生人數',
+      submissionCount: '答題記錄',
+      completedCount: '已完成',
+      inProgressCount: '進行中',
+      emptyJoins: '暫無學生加入記錄',
+      emptySubmissions: '暫無答題記錄',
+      loadFailed: '無法載入課程日誌',
+      submitted: '已提交',
+      inProgress: '進行中',
+      graded: '已評分'
+    },
+    'zh-Hans': {
+      pageTitle: '学生日志',
+      pageDescription: '查看学生加入课程与答题记录',
+      exportExcel: '导出为 Excel',
+      course: '课程',
+      joinRecords: '加入记录',
+      submissionRecords: '答题记录',
+      name: '姓名',
+      email: '邮箱',
+      studentId: '学号',
+      joinedAt: '加入时间',
+      student: '学生',
+      assessment: '考试/练习',
+      type: '类型',
+      status: '状态',
+      score: '分数',
+      attempts: '次数',
+      startedAt: '开始时间',
+      submittedAt: '提交时间',
+      updatedAt: '更新时间',
+      studentCount: '学生人数',
+      submissionCount: '答题记录',
+      completedCount: '已完成',
+      inProgressCount: '进行中',
+      emptyJoins: '暂无学生加入记录',
+      emptySubmissions: '暂无答题记录',
+      loadFailed: '无法加载课程日志',
+      submitted: '已提交',
+      inProgress: '进行中',
+      graded: '已评分'
+    },
+    en: {
+      pageTitle: 'Student Logs',
+      pageDescription: 'View student course joins and assessment activity',
+      exportExcel: 'Export to Excel',
+      course: 'Course',
+      joinRecords: 'Join Records',
+      submissionRecords: 'Assessment Records',
+      name: 'Name',
+      email: 'Email',
+      studentId: 'Student ID',
+      joinedAt: 'Joined At',
+      student: 'Student',
+      assessment: 'Exam / Practice',
+      type: 'Type',
+      status: 'Status',
+      score: 'Score',
+      attempts: 'Attempts',
+      startedAt: 'Started At',
+      submittedAt: 'Submitted At',
+      updatedAt: 'Updated At',
+      studentCount: 'Students',
+      submissionCount: 'Records',
+      completedCount: 'Completed',
+      inProgressCount: 'In Progress',
+      emptyJoins: 'No student join records yet',
+      emptySubmissions: 'No assessment records yet',
+      loadFailed: 'Failed to load course logs',
+      submitted: 'Submitted',
+      inProgress: 'In Progress',
+      graded: 'Graded'
+    }
+  };
 
   let isLoading = true;
   let errorMessage = '';
@@ -25,9 +123,28 @@
   let joins: any[] = [];
   let submissions: any[] = [];
 
+  $: uiLanguage = mapLocaleToUiLanguage($locale);
+  $: summaryCards = [
+    { label: ui('studentCount'), value: summary.studentCount },
+    { label: ui('submissionCount'), value: summary.submissionCount },
+    { label: ui('completedCount'), value: summary.completedCount },
+    { label: ui('inProgressCount'), value: summary.inProgressCount }
+  ];
+
+  function mapLocaleToUiLanguage(currentLocale: string): UiLanguage {
+    if (currentLocale === 'en') return 'en';
+    if (currentLocale === 'zh') return 'zh-Hans';
+    return 'zh-Hant';
+  }
+
+  function ui(key: string) {
+    return (COPY[uiLanguage] ?? COPY['zh-Hant'])[key] ?? COPY['zh-Hant'][key] ?? key;
+  }
+
   function formatDate(value: string | null | undefined) {
     if (!value) return '';
-    return new Date(value).toLocaleString();
+    const dateLocale = uiLanguage === 'en' ? 'en-US' : uiLanguage === 'zh-Hans' ? 'zh-CN' : 'zh-HK';
+    return new Date(value).toLocaleString(dateLocale);
   }
 
   function escapeCell(value: any) {
@@ -36,6 +153,14 @@
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;');
+  }
+
+  function statusLabel(statusId: number | string | null | undefined, fallback = '') {
+    const id = Number(statusId);
+    if (id === 1) return ui('submitted');
+    if (id === 2) return ui('inProgress');
+    if (id === 3) return ui('graded');
+    return fallback || String(statusId || '');
   }
 
   async function loadLogs() {
@@ -52,7 +177,7 @@
       const result = await res.json();
 
       if (!res.ok || !result.success) {
-        errorMessage = result.message || 'Failed to load course logs';
+        errorMessage = result.message || ui('loadFailed');
         snackbar.error(errorMessage);
         return;
       }
@@ -62,7 +187,7 @@
       joins = result.joins || [];
       submissions = result.submissions || [];
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : 'Failed to load course logs';
+      errorMessage = error instanceof Error ? error.message : ui('loadFailed');
       snackbar.error(errorMessage);
     } finally {
       isLoading = false;
@@ -88,7 +213,7 @@
           <td>${escapeCell(row.studentEmail)}</td>
           <td>${escapeCell(row.exerciseTitle)}</td>
           <td>${escapeCell(row.assessmentType)}</td>
-          <td>${escapeCell(row.statusLabel)}</td>
+          <td>${escapeCell(statusLabel(row.statusId, row.statusLabel))}</td>
           <td>${escapeCell(row.total)}</td>
           <td>${escapeCell(row.attemptNo)}</td>
           <td>${escapeCell(formatDate(row.startedAt))}</td>
@@ -102,16 +227,16 @@
       <html>
         <head><meta charset="utf-8" /></head>
         <body>
-          <h2>${escapeCell(courseTitle || '课程')} - 学生日志</h2>
-          <h3>加入记录</h3>
+          <h2>${escapeCell(courseTitle || ui('course'))} - ${ui('pageTitle')}</h2>
+          <h3>${ui('joinRecords')}</h3>
           <table border="1">
-            <thead><tr><th>姓名</th><th>邮箱</th><th>学号</th><th>加入时间</th></tr></thead>
+            <thead><tr><th>${ui('name')}</th><th>${ui('email')}</th><th>${ui('studentId')}</th><th>${ui('joinedAt')}</th></tr></thead>
             <tbody>${joinRows}</tbody>
           </table>
-          <h3>答题记录</h3>
+          <h3>${ui('submissionRecords')}</h3>
           <table border="1">
             <thead>
-              <tr><th>姓名</th><th>邮箱</th><th>考试/练习</th><th>类型</th><th>状态</th><th>分数</th><th>次数</th><th>开始时间</th><th>提交时间</th><th>更新时间</th></tr>
+              <tr><th>${ui('name')}</th><th>${ui('email')}</th><th>${ui('assessment')}</th><th>${ui('type')}</th><th>${ui('status')}</th><th>${ui('score')}</th><th>${ui('attempts')}</th><th>${ui('startedAt')}</th><th>${ui('submittedAt')}</th><th>${ui('updatedAt')}</th></tr>
             </thead>
             <tbody>${submissionRows}</tbody>
           </table>
@@ -139,16 +264,16 @@
       goto(`/courses/${courseId}/lessons`);
     }}
   >
-    <PageNav title="学生日志" />
+    <PageNav title={ui('pageTitle')} />
 
     <PageBody width="w-full max-w-6xl md:w-11/12">
       <div class="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900 dark:text-white">学生日志</h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400">查看学生加入课程与答题记录</p>
+          <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{ui('pageTitle')}</h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{ui('pageDescription')}</p>
         </div>
         <PrimaryButton
-          label="导出为 Excel"
+          label={ui('exportExcel')}
           variant={VARIANTS.OUTLINED}
           onClick={exportExcel}
           isDisabled={isLoading || (joins.length === 0 && submissions.length === 0)}
@@ -167,31 +292,26 @@
         </div>
       {:else}
         <div class="mb-6 grid gap-3 md:grid-cols-4">
-          {#each [
-            ['学生人数', summary.studentCount],
-            ['答题记录', summary.submissionCount],
-            ['已完成', summary.completedCount],
-            ['进行中', summary.inProgressCount]
-          ] as item}
+          {#each summaryCards as item}
             <div class="rounded-md border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
-              <p class="text-xs text-gray-500 dark:text-gray-400">{item[0]}</p>
-              <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{item[1]}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{item.label}</p>
+              <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{item.value}</p>
             </div>
           {/each}
         </div>
 
         <section class="mb-8 rounded-md border border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
           <div class="border-b border-gray-200 px-4 py-3 dark:border-neutral-700">
-            <h2 class="font-semibold text-gray-900 dark:text-white">加入记录</h2>
+            <h2 class="font-semibold text-gray-900 dark:text-white">{ui('joinRecords')}</h2>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
               <thead class="bg-gray-50 text-xs text-gray-500 dark:bg-neutral-800 dark:text-gray-300">
                 <tr>
-                  <th class="px-4 py-3">姓名</th>
-                  <th class="px-4 py-3">邮箱</th>
-                  <th class="px-4 py-3">学号</th>
-                  <th class="px-4 py-3">加入时间</th>
+                  <th class="px-4 py-3">{ui('name')}</th>
+                  <th class="px-4 py-3">{ui('email')}</th>
+                  <th class="px-4 py-3">{ui('studentId')}</th>
+                  <th class="px-4 py-3">{ui('joinedAt')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -203,7 +323,7 @@
                     <td class="px-4 py-3 dark:text-white">{formatDate(row.joinedAt) || '-'}</td>
                   </tr>
                 {:else}
-                  <tr><td class="px-4 py-6 text-gray-500" colspan="4">暂无学生加入记录</td></tr>
+                  <tr><td class="px-4 py-6 text-gray-500" colspan="4">{ui('emptyJoins')}</td></tr>
                 {/each}
               </tbody>
             </table>
@@ -212,19 +332,19 @@
 
         <section class="rounded-md border border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
           <div class="border-b border-gray-200 px-4 py-3 dark:border-neutral-700">
-            <h2 class="font-semibold text-gray-900 dark:text-white">答题记录</h2>
+            <h2 class="font-semibold text-gray-900 dark:text-white">{ui('submissionRecords')}</h2>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
               <thead class="bg-gray-50 text-xs text-gray-500 dark:bg-neutral-800 dark:text-gray-300">
                 <tr>
-                  <th class="px-4 py-3">学生</th>
-                  <th class="px-4 py-3">邮箱</th>
-                  <th class="px-4 py-3">考试/练习</th>
-                  <th class="px-4 py-3">状态</th>
-                  <th class="px-4 py-3">分数</th>
-                  <th class="px-4 py-3">次数</th>
-                  <th class="px-4 py-3">提交时间</th>
+                  <th class="px-4 py-3">{ui('student')}</th>
+                  <th class="px-4 py-3">{ui('email')}</th>
+                  <th class="px-4 py-3">{ui('assessment')}</th>
+                  <th class="px-4 py-3">{ui('status')}</th>
+                  <th class="px-4 py-3">{ui('score')}</th>
+                  <th class="px-4 py-3">{ui('attempts')}</th>
+                  <th class="px-4 py-3">{ui('submittedAt')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -233,13 +353,13 @@
                     <td class="px-4 py-3 dark:text-white">{row.studentName || '-'}</td>
                     <td class="px-4 py-3 dark:text-white">{row.studentEmail || '-'}</td>
                     <td class="px-4 py-3 dark:text-white">{row.exerciseTitle || '-'}</td>
-                    <td class="px-4 py-3 dark:text-white">{row.statusLabel || '-'}</td>
+                    <td class="px-4 py-3 dark:text-white">{statusLabel(row.statusId, row.statusLabel) || '-'}</td>
                     <td class="px-4 py-3 dark:text-white">{row.total ?? '-'}</td>
                     <td class="px-4 py-3 dark:text-white">{row.attemptNo || '-'}</td>
                     <td class="px-4 py-3 dark:text-white">{formatDate(row.submittedAt) || '-'}</td>
                   </tr>
                 {:else}
-                  <tr><td class="px-4 py-6 text-gray-500" colspan="7">暂无答题记录</td></tr>
+                  <tr><td class="px-4 py-6 text-gray-500" colspan="7">{ui('emptySubmissions')}</td></tr>
                 {/each}
               </tbody>
             </table>

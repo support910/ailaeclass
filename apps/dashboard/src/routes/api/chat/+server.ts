@@ -1,17 +1,23 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import {
+  createDeepSeekChatCompletion,
+  DeepSeekError,
+  type DeepSeekMessage
+} from '$lib/utils/services/ai/deepseek.server';
+import { normalizeAiText } from '$lib/utils/services/ai/provider.server';
 
-const SYSTEM_PROMPT = `You are an official AI assistant for ailaeclass, a learning platform developed by 5G nuMultiMedia Limited (5GNU).
+const SYSTEM_PROMPT = `You are the built-in ailaeclass chat assistant.
 
-Your knowledge is STRICTLY LIMITED to the following topics:
-1. 5G nuMultiMedia Limited (5GNU) company information
-2. ailaeclass platform features and usage
-3. Low-altitude economy (drone technology, 5G-A live streaming, STEM/STEAM education)
-4. Hong Kong Cyberport and Hong Kong Science Park
-5. AOPA drone certification and training programs
+You serve students, teachers, and visitors. Answer in the same language the user uses, defaulting to clear Chinese for Chinese questions.
 
-Company facts:
+You can help with:
+1. ailaeclass platform features and usage
+2. 5G nuMultiMedia Limited (5GNU) company information, when it is covered by the facts below
+3. Low-altitude economy, drone technology, 5G-A live streaming, STEM/STEAM education, and AOPA drone training
+4. Simple learning support for students, including English word meanings, short grammar explanations, basic math/science concepts, and study guidance
+
+Known 5GNU facts:
 - Full name: 5代新多媒体有限公司 / 5G nuMultiMedia Limited
 - Founded: 2020, Reg No: 2977513 (Hong Kong)
 - HQ: 608-613, Core C, Cyberport 3, 100 Cyberport Road, Hong Kong
@@ -23,21 +29,17 @@ Company facts:
 - Core business: 5G drone solutions, STEM/STEAM education, low-altitude economy
 - Vision: Build Hong Kong as "International Drone XR MultiMedia Edu City"
 
-If the user asks about anything outside these topics, politely refuse and say:
-"Sorry, I can only answer questions related to 5G nuMultiMedia, ailaeclass, and our low-altitude economy services."
+Important style rules:
+- Use plain text only. Do not use Markdown formatting, bold markers, headings, code fences, or tables.
+- Never output asterisks for emphasis.
+- Be warm, concise, and useful. For student learning questions, explain simply and give 1 short example when helpful.
+- Do not over-refuse. If the user asks a normal learning question, answer it.
+- If the user asks for private data, legal/medical/financial decisions, or unrelated harmful content, politely decline or give a safe general suggestion.
+- If a user asks about 5GNU facts that are not listed above, say you are not sure and suggest checking official 5GNU/ailaeclass materials.
 
-Keep responses concise (under 150 words) and professional.`;
+Keep responses concise, normally under 150 Chinese characters or 120 English words unless the user asks for detail.`;
 
 export const POST: RequestHandler = async ({ request }) => {
-  const deepseekKey = env.PRIVATE_DEEPSEEK_API_KEY || 'sk-c52784623d754d81ac315d11ba178931';
-
-  if (!deepseekKey) {
-    return json(
-      { error: 'Chat service not configured', code: 'missing_deepseek_key' },
-      { status: 503 }
-    );
-  }
-
   try {
     const { message } = await request.json();
 
@@ -45,46 +47,21 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Message is required', code: 'invalid_request' }, { status: 400 });
     }
 
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${deepseekKey}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 512,
-        temperature: 0.7
-      })
+    const messages: DeepSeekMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: message }
+    ];
+    const reply = await createDeepSeekChatCompletion(messages, {
+      maxTokens: 512,
+      temperature: 0.4
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('DeepSeek API error:', errorText);
-      return json(
-        { error: 'AI service temporarily unavailable', code: 'upstream_error' },
-        { status: 502 }
-      );
-    }
-
-    const data = await response.json();
-    console.log('DeepSeek raw response:', JSON.stringify(data).slice(0, 500));
-
-    const reply = data.choices?.[0]?.message?.content;
-    if (!reply) {
-      console.error('Unexpected DeepSeek response structure:', data);
-      return json(
-        { error: 'AI returned an unexpected response. Please try again.', code: 'unexpected_response' },
-        { status: 502 }
-      );
-    }
-
-    return json({ reply });
+    return json({ reply: normalizeAiText(reply).replace(/\*/g, '') });
   } catch (err) {
+    if (err instanceof DeepSeekError) {
+      return json({ error: err.message, code: err.code }, { status: err.status });
+    }
+
     console.error('Chat endpoint error:', err);
     return json(
       { error: 'Internal error', code: 'internal_error' },

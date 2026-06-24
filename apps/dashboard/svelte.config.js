@@ -28,6 +28,7 @@ const config = {
           'https://cdnjs.cloudflare.com',
           'https://*.i.posthog.com',
           'https://*.senja.io',
+          'https://be13a4b3.counterscale-5jn.pages.dev',
           'https://www.youtube.com',
           'https://youtube.com'
         ],
@@ -60,6 +61,7 @@ const config = {
           'https://*.i.posthog.com',
           'https://eu.posthog.com',
           'https://umami.hz.oncws.com',
+          'https://be13a4b3.counterscale-5jn.pages.dev',
           'https://*.r2.cloudflarestorage.com',
           'http://localhost:54321',
           'ws://localhost:54321',
@@ -82,6 +84,7 @@ const config = {
           'https://cdnjs.cloudflare.com',
           'https://*.i.posthog.com',
           'https://*.senja.io',
+          'https://be13a4b3.counterscale-5jn.pages.dev',
           'https://www.youtube.com',
           'https://youtube.com'
         ],
@@ -115,6 +118,7 @@ const config = {
           'https://*.i.posthog.com',
           'https://eu.posthog.com',
           'https://umami.hz.oncws.com',
+          'https://be13a4b3.counterscale-5jn.pages.dev',
           'https://*.r2.cloudflarestorage.com',
           'http://localhost:54321',
           'ws://localhost:54321',

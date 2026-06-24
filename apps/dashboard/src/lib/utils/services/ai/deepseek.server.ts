@@ -1,4 +1,8 @@
-import { env } from '$env/dynamic/private';
+import {
+  createAiChatCompletion,
+  AiServiceError,
+  type AiMessage
+} from './provider.server';
 
 export type DeepSeekRole = 'system' | 'user' | 'assistant';
 
@@ -24,62 +28,27 @@ export class DeepSeekError extends Error {
   }
 }
 
-export async function createDeepSeekChatCompletion(messages: DeepSeekMessage[]): Promise<string> {
-  const deepseekKey = env.PRIVATE_DEEPSEEK_API_KEY?.trim();
-
-  if (!deepseekKey) {
-    throw new DeepSeekError(
-      'missing_deepseek_key',
-      'AI service is not configured',
-      503
-    );
-  }
-
-  const response = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${deepseekKey}`
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages,
-      max_tokens: 800,
-      temperature: 0.5
-    })
-  });
-
-  if (!response.ok) {
-    throw new DeepSeekError(
-      'upstream_error',
-      'AI service temporarily unavailable',
-      502
-    );
-  }
-
-  let data: unknown;
-
+export async function createDeepSeekChatCompletion(
+  messages: DeepSeekMessage[],
+  options: { maxTokens?: number; temperature?: number } = {}
+): Promise<string> {
   try {
-    data = await response.json();
-  } catch {
-    throw new DeepSeekError(
-      'unexpected_response',
-      'AI returned an unexpected response',
-      502
-    );
+    const reply = await createAiChatCompletion(messages as AiMessage[], {
+      provider: 'deepseek',
+      maxTokens: options.maxTokens ?? 800,
+      temperature: options.temperature ?? 0.5
+    });
+    return reply;
+  } catch (err) {
+    if (err instanceof AiServiceError) {
+      const codeMap: Record<string, DeepSeekErrorCode> = {
+        missing_api_key: 'missing_deepseek_key',
+        upstream_error: 'upstream_error',
+        unexpected_response: 'unexpected_response'
+      };
+      const mappedCode = codeMap[err.code] ?? 'upstream_error';
+      throw new DeepSeekError(mappedCode, err.message, err.status);
+    }
+    throw new DeepSeekError('upstream_error', 'AI service temporarily unavailable', 502);
   }
-  const deepseekData = data as {
-    choices?: { message?: { content?: unknown } }[];
-  };
-  const reply = deepseekData.choices?.[0]?.message?.content;
-
-  if (!reply || typeof reply !== 'string') {
-    throw new DeepSeekError(
-      'unexpected_response',
-      'AI returned an unexpected response',
-      502
-    );
-  }
-
-  return reply;
 }

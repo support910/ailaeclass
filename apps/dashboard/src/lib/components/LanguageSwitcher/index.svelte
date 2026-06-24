@@ -7,12 +7,38 @@
 
   let isOpen = false;
 
-  const SUPPORTED_LOCALES = [
-    { id: LOCALE.ZH_TW, label: '繁中' },
-    { id: LOCALE.EN, label: 'EN' }
-  ];
+  const SUPPORTED_LOCALES = [{ id: LOCALE.ZH_TW }, { id: LOCALE.ZH }, { id: LOCALE.EN }];
 
-  $: currentLabel = SUPPORTED_LOCALES.find((l) => l.id === $locale)?.label || '繁中';
+  $: currentLabel = getLocaleLabel($locale, $locale);
+  $: fallbackTitle = getSwitchTitle($locale);
+
+  function getLocaleLabel(localeId: string, displayLocale: string) {
+    const labels: Record<string, Record<string, string>> = {
+      [LOCALE.ZH_TW]: {
+        [LOCALE.ZH_TW]: '繁體中文',
+        [LOCALE.ZH]: '簡體中文',
+        [LOCALE.EN]: '英文'
+      },
+      [LOCALE.ZH]: {
+        [LOCALE.ZH_TW]: '繁体中文',
+        [LOCALE.ZH]: '简体中文',
+        [LOCALE.EN]: '英文'
+      },
+      [LOCALE.EN]: {
+        [LOCALE.ZH_TW]: 'Traditional Chinese',
+        [LOCALE.ZH]: 'Simplified Chinese',
+        [LOCALE.EN]: 'English'
+      }
+    };
+
+    return labels[displayLocale]?.[localeId] || labels[LOCALE.ZH_TW][localeId] || localeId;
+  }
+
+  function getSwitchTitle(displayLocale: string) {
+    if (displayLocale === LOCALE.EN) return 'Switch language';
+    if (displayLocale === LOCALE.ZH) return '切换语言';
+    return '切換語言';
+  }
 
   function toggleDropdown() {
     isOpen = !isOpen;
@@ -61,7 +87,7 @@
       class="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-gray-700
              hover:bg-gray-100 dark:text-white dark:hover:bg-neutral-700 transition-colors duration-150"
       on:click|stopPropagation={toggleDropdown}
-      title={$t('navigation.language_switcher') || 'Switch language'}
+      title={$t('navigation.language_switcher') || fallbackTitle}
     >
       <span>{currentLabel}</span>
       <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20">
@@ -81,7 +107,7 @@
                    {$locale === localeOption.id ? 'font-semibold bg-primary-50 dark:bg-neutral-700' : ''}"
             on:click={() => switchLocale(localeOption.id)}
           >
-            <span>{localeOption.label}</span>
+            <span>{getLocaleLabel(localeOption.id, $locale)}</span>
             {#if $locale === localeOption.id}
               <svg class="ml-auto h-4 w-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
