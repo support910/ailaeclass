@@ -96,7 +96,7 @@
       dataBody:
         '系統會把你在本工具輸入的題目、文章或文字送到已配置的 AI 服務供生成結果使用。請只輸入完成學習任務所需的內容。',
       enter: '進入使用',
-      viewPlan: '查看規劃',
+      viewPlan: '待開發',
       back: '返回 AI 工具中心',
       guided: '引導模式',
       direct: '直接解釋',
@@ -167,7 +167,7 @@
       dataBody:
         '系统会把你在本工具输入的题目、文章或文字发送到已配置的 AI 服务用于生成结果。请只输入完成学习任务所需的内容。',
       enter: '进入使用',
-      viewPlan: '查看规划',
+      viewPlan: '待开发',
       back: '返回 AI 工具中心',
       guided: '引导模式',
       direct: '直接解释',
@@ -239,7 +239,7 @@
       dataBody:
         'The questions, passages, or text you enter in this tool are sent to the configured AI service to generate a response. Only enter information needed for the learning task.',
       enter: 'Open tool',
-      viewPlan: 'View plan',
+      viewPlan: 'Pending',
       back: 'Back to AI Tools Center',
       guided: 'Guided',
       direct: 'Direct',
@@ -323,12 +323,12 @@
       'math-error-card': '已上線',
       'reading-question-generator': '已上線',
       'science-concept-map': '已上線',
-      'photo-math': 'Kimi 預留',
-      'general-studies-qa': '規劃中',
-      'daily-practice': '數據型',
-      'learning-summary': '數據型',
-      'emotion-journal': '需安全設計',
-      'story-card': '創作型'
+      'photo-math': '待開發',
+      'general-studies-qa': '待開發',
+      'daily-practice': '待開發',
+      'learning-summary': '待開發',
+      'emotion-journal': '待開發',
+      'story-card': '待開發'
     },
     'zh-Hans': {
       socratic: '已上线',
@@ -337,12 +337,12 @@
       'math-error-card': '已上线',
       'reading-question-generator': '已上线',
       'science-concept-map': '已上线',
-      'photo-math': 'Kimi 预留',
-      'general-studies-qa': '规划中',
-      'daily-practice': '数据型',
-      'learning-summary': '数据型',
-      'emotion-journal': '需安全设计',
-      'story-card': '创作型'
+      'photo-math': '待开发',
+      'general-studies-qa': '待开发',
+      'daily-practice': '待开发',
+      'learning-summary': '待开发',
+      'emotion-journal': '待开发',
+      'story-card': '待开发'
     },
     en: {
       socratic: 'Live',
@@ -351,12 +351,12 @@
       'math-error-card': 'Live',
       'reading-question-generator': 'Live',
       'science-concept-map': 'Live',
-      'photo-math': 'Kimi ready',
-      'general-studies-qa': 'Planned',
-      'daily-practice': 'Data',
-      'learning-summary': 'Data',
-      'emotion-journal': 'Safety review',
-      'story-card': 'Creative'
+      'photo-math': 'Pending',
+      'general-studies-qa': 'Pending',
+      'daily-practice': 'Pending',
+      'learning-summary': 'Pending',
+      'emotion-journal': 'Pending',
+      'story-card': 'Pending'
     }
   };
 
@@ -1249,23 +1249,24 @@
               {#each groupTools as tool (tool.id)}
                 <button
                   type="button"
-                  class="group min-h-[178px] rounded-md border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md disabled:cursor-not-allowed disabled:hover:translate-y-0 dark:bg-neutral-900 {tool.available
+                  disabled={!tool.available}
+                  class="group min-h-[178px] rounded-md border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md disabled:cursor-not-allowed disabled:bg-gray-50 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:border-gray-300 dark:bg-neutral-900 dark:disabled:bg-neutral-900/60 {tool.available
                     ? 'border-gray-200 dark:border-neutral-700'
-                    : 'border-dashed border-gray-300 opacity-85 dark:border-neutral-700'}"
+                    : 'border-dashed border-gray-300 opacity-70 grayscale dark:border-neutral-800'}"
                   on:click={() => openTool(tool)}
                 >
                   <div class="flex items-start justify-between gap-3">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gray-100 text-primary-800 dark:bg-neutral-800 dark:text-primary-300">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gray-100 {tool.available ? 'text-primary-800 dark:text-primary-300' : 'text-gray-400 dark:text-gray-500'} dark:bg-neutral-800">
                       <svelte:component this={tool.icon} size={20} />
                     </div>
-                    <span class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 dark:bg-neutral-800 dark:text-gray-300">
+                    <span class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium {tool.available ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-500'} dark:bg-neutral-800">
                       {toolBadge(tool)}
                     </span>
                   </div>
-                  <h3 class="mt-4 text-base font-semibold text-[#040F2D] dark:text-white">
+                  <h3 class="mt-4 text-base font-semibold {tool.available ? 'text-[#040F2D] dark:text-white' : 'text-gray-500 dark:text-gray-500'}">
                     {localizedTool(tool).label}
                   </h3>
-                  <p class="mt-2 line-clamp-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                  <p class="mt-2 line-clamp-2 text-sm leading-6 {tool.available ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-500'}">
                     {localizedTool(tool).description}
                   </p>
                   <div class="mt-4 text-sm font-medium {tool.available ? 'text-primary-800 dark:text-primary-300' : 'text-gray-500'}">
