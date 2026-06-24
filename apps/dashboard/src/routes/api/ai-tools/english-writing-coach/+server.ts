@@ -43,6 +43,7 @@ IMPORTANT RULES:
 - Do NOT rewrite the whole essay for the student.
 - Give corrections, suggestions, and a next revision task only.
 - Keep the tone encouraging and specific.
+- Write explanations and feedback in the requested output language.
 - Do not use Markdown formatting such as **bold** or headings.
 - Respond ONLY with valid JSON in this exact shape:
 {
@@ -82,6 +83,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const essay = typeof payload.essay === 'string' ? payload.essay.trim() : '';
     const grade = typeof payload.grade === 'string' ? payload.grade.trim() : '';
     const focus = typeof payload.focus === 'string' ? payload.focus.trim() : '';
+    const outputLanguage =
+      typeof payload.outputLanguage === 'string' ? payload.outputLanguage.trim() : 'Traditional Chinese';
 
     if (!essay) {
       return jsonError('Essay is required', 'invalid_request', 400);
@@ -92,6 +95,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const userPrompt = [
+      `Output language: ${outputLanguage}`,
       grade ? `Grade level: ${grade}` : '',
       focus ? `Focus area: ${focus}` : '',
       'Essay:',

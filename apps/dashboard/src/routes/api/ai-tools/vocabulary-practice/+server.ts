@@ -33,7 +33,7 @@ The user will provide a list of Chinese vocabulary words. For each word, generat
 - answer: the correct word for the blank
 
 Rules:
-- Use Traditional Chinese characters suitable for Hong Kong students.
+- Use the requested output language. If no output language is provided, use Traditional Chinese suitable for Hong Kong students.
 - Keep sentences short and natural.
 - Do not use Markdown formatting.
 - Respond ONLY with valid JSON in this exact shape:
@@ -71,6 +71,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const payload = body as Record<string, unknown>;
     const words = typeof payload.words === 'string' ? payload.words.trim() : '';
     const grade = typeof payload.grade === 'string' ? payload.grade.trim() : '';
+    const outputLanguage =
+      typeof payload.outputLanguage === 'string' ? payload.outputLanguage.trim() : 'Traditional Chinese';
 
     if (!words) {
       return jsonError('Words are required', 'invalid_request', 400);
@@ -81,8 +83,8 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const userPrompt = grade
-      ? `Grade level: ${grade}\nWords:\n${words}`
-      : `Words:\n${words}`;
+      ? `Output language: ${outputLanguage}\nGrade level: ${grade}\nWords:\n${words}`
+      : `Output language: ${outputLanguage}\nWords:\n${words}`;
 
     const reply = await createAiChatCompletion(
       [

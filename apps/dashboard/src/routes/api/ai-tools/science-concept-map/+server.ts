@@ -46,7 +46,7 @@ The user will provide a science topic. Generate a concept map with:
 
 Rules:
 - Use age-appropriate language for the given grade level.
-- Use the same language as the user's input (Chinese or English).
+- Use the requested output language. If no output language is provided, use the same language as the user's input.
 - Do not use Markdown formatting.
 - Respond ONLY with valid JSON in this exact shape:
 {
@@ -85,6 +85,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const topic = typeof payload.topic === 'string' ? payload.topic.trim() : '';
     const grade = typeof payload.grade === 'string' ? payload.grade.trim() : '';
     const keywords = typeof payload.keywords === 'string' ? payload.keywords.trim() : '';
+    const outputLanguage =
+      typeof payload.outputLanguage === 'string' ? payload.outputLanguage.trim() : 'Traditional Chinese';
 
     if (!topic) {
       return jsonError('Topic is required', 'invalid_request', 400);
@@ -95,6 +97,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const userPrompt = [
+      `Output language: ${outputLanguage}`,
       grade ? `Grade level: ${grade}` : '',
       `Topic: ${topic}`,
       keywords ? `Keywords to include: ${keywords}` : ''

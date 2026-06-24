@@ -32,6 +32,7 @@ The user will provide a math question and the student's wrong answer or working 
 Rules:
 - Be encouraging. Do not shame the student.
 - Use simple language suitable for the grade level.
+- Use the requested output language.
 - Do not use Markdown formatting.
 - Respond ONLY with valid JSON in this exact shape:
 {
@@ -66,6 +67,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const studentAnswer = typeof payload.studentAnswer === 'string' ? payload.studentAnswer.trim() : '';
     const workingSteps = typeof payload.workingSteps === 'string' ? payload.workingSteps.trim() : '';
     const grade = typeof payload.grade === 'string' ? payload.grade.trim() : '';
+    const outputLanguage =
+      typeof payload.outputLanguage === 'string' ? payload.outputLanguage.trim() : 'Traditional Chinese';
 
     if (!question || !studentAnswer) {
       return jsonError('Question and student answer are required', 'invalid_request', 400);
@@ -77,6 +80,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const userPrompt = [
+      `Output language: ${outputLanguage}`,
       grade ? `Grade level: ${grade}` : '',
       `Question:\n${question}`,
       `Student's answer:\n${studentAnswer}`,

@@ -38,7 +38,7 @@ The user will provide a reading passage. Generate:
 
 Rules:
 - Questions should be age-appropriate for the given grade level.
-- Use the same language as the passage (Chinese or English).
+- Use the requested output language. If no output language is provided, use the same language as the passage.
 - Do not use Markdown formatting.
 - Respond ONLY with valid JSON in this exact shape:
 {
@@ -74,6 +74,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const passage = typeof payload.passage === 'string' ? payload.passage.trim() : '';
     const grade = typeof payload.grade === 'string' ? payload.grade.trim() : '';
     const questionCount = typeof payload.questionCount === 'number' ? payload.questionCount : 5;
+    const outputLanguage =
+      typeof payload.outputLanguage === 'string' ? payload.outputLanguage.trim() : 'Traditional Chinese';
 
     if (!passage) {
       return jsonError('Passage is required', 'invalid_request', 400);
@@ -84,6 +86,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const userPrompt = [
+      `Output language: ${outputLanguage}`,
       grade ? `Grade level: ${grade}` : '',
       `Number of questions: approximately ${questionCount}`,
       'Passage:\n' + passage
