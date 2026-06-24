@@ -106,6 +106,11 @@
       me: '我',
       copy: '複製',
       copied: '已複製',
+      colon: '：',
+      listSeparator: '、',
+      openParen: '（',
+      closeParen: '）',
+      arrow: ' → ',
       generate: '生成結果',
       generatingButton: '生成中...',
       loginRequired: '請先登入。',
@@ -129,7 +134,7 @@
       suggestion: '建議',
       vocabularyUpgrades: '詞彙升級',
       sentenceSuggestions: '句式建議',
-      originalPattern: '原 pattern',
+      originalPattern: '原句式',
       priorities: '優先改進',
       nextRevisionTask: '下一步修改任務',
       mistakeSummary: '錯誤總結',
@@ -180,6 +185,11 @@
       me: '我',
       copy: '复制',
       copied: '已复制',
+      colon: '：',
+      listSeparator: '、',
+      openParen: '（',
+      closeParen: '）',
+      arrow: ' → ',
       generate: '生成结果',
       generatingButton: '生成中...',
       loginRequired: '请先登录。',
@@ -203,7 +213,7 @@
       suggestion: '建议',
       vocabularyUpgrades: '词汇升级',
       sentenceSuggestions: '句式建议',
-      originalPattern: '原 pattern',
+      originalPattern: '原句式',
       priorities: '优先改进',
       nextRevisionTask: '下一步修改任务',
       mistakeSummary: '错误总结',
@@ -255,6 +265,11 @@
       me: 'Me',
       copy: 'Copy',
       copied: 'Copied',
+      colon: ': ',
+      listSeparator: ', ',
+      openParen: ' (',
+      closeParen: ')',
+      arrow: ' -> ',
       generate: 'Generate',
       generatingButton: 'Generating...',
       loginRequired: 'Please log in first.',
@@ -808,11 +823,21 @@
   let messages: ChatMessage[] = [];
   let messagesContainer: HTMLDivElement;
   let inputValues: Record<string, string> = {};
+  let previousUiLanguage: UiLanguage | null = null;
 
   $: activeConfig = TOOLS.find((tool) => tool.id === activeToolId);
   $: availableTools = TOOLS.filter((tool) => tool.available);
   $: plannedTools = TOOLS.filter((tool) => !tool.available);
   $: uiLanguage = mapLocaleToUiLanguage($locale);
+  $: if (previousUiLanguage !== uiLanguage) {
+    if (previousUiLanguage) {
+      errorMessage = '';
+      resultData = null;
+      resultText = '';
+      messages = [];
+    }
+    previousUiLanguage = uiLanguage;
+  }
 
   function mapLocaleToUiLanguage(currentLocale: string): UiLanguage {
     if (currentLocale === 'en') return 'en';
@@ -1067,11 +1092,11 @@
         .map((item, index) =>
           [
             `${index + 1}. ${item.word}`,
-            `${ui('meaning')}：${stripMarkdown(item.meaning || '')}`,
-            `${ui('example')}：${stripMarkdown(item.example || '')}`,
-            item.synonyms?.length ? `${ui('synonyms')}：${item.synonyms.join('、')}` : '',
-            `${ui('blankQuestion')}：${stripMarkdown(item.blankQuestion || '')}`,
-            `${ui('answer')}：${stripMarkdown(item.answer || '')}`
+            `${ui('meaning')}${ui('colon')}${stripMarkdown(item.meaning || '')}`,
+            `${ui('example')}${ui('colon')}${stripMarkdown(item.example || '')}`,
+            item.synonyms?.length ? `${ui('synonyms')}${ui('colon')}${item.synonyms.join(ui('listSeparator'))}` : '',
+            `${ui('blankQuestion')}${ui('colon')}${stripMarkdown(item.blankQuestion || '')}`,
+            `${ui('answer')}${ui('colon')}${stripMarkdown(item.answer || '')}`
           ]
             .filter(Boolean)
             .join('\n')
@@ -1083,26 +1108,26 @@
       const corrections = data.corrections
         .map((item, index) =>
           [
-            `${index + 1}. ${ui('originalSentence')}：${stripMarkdown(item.originalSentence || '')}`,
-            `${ui('issue')}：${stripMarkdown(item.issue || '')}`,
-            `${ui('suggestion')}：${stripMarkdown(item.suggestion || '')}`
+            `${index + 1}. ${ui('originalSentence')}${ui('colon')}${stripMarkdown(item.originalSentence || '')}`,
+            `${ui('issue')}${ui('colon')}${stripMarkdown(item.issue || '')}`,
+            `${ui('suggestion')}${ui('colon')}${stripMarkdown(item.suggestion || '')}`
           ].join('\n')
         )
         .join('\n\n');
       const upgrades = data.vocabularyUpgrades
-        .map((item) => `${item.original} -> ${item.upgrade}：${stripMarkdown(item.reason || '')}`)
+        .map((item) => `${item.original}${ui('arrow')}${item.upgrade}${ui('colon')}${stripMarkdown(item.reason || '')}`)
         .join('\n');
       const patterns = data.sentenceSuggestions
-        .map((item) => `${item.originalPattern} -> ${item.suggestedPattern}：${stripMarkdown(item.benefit || '')}`)
+        .map((item) => `${item.originalPattern}${ui('arrow')}${item.suggestedPattern}${ui('colon')}${stripMarkdown(item.benefit || '')}`)
         .join('\n');
 
       return [
-        `${ui('overallFeedback')}：${stripMarkdown(data.overallFeedback || '')}`,
-        corrections ? `${ui('corrections')}：\n${corrections}` : '',
-        upgrades ? `${ui('vocabularyUpgrades')}：\n${upgrades}` : '',
-        patterns ? `${ui('sentenceSuggestions')}：\n${patterns}` : '',
-        data.priorities?.length ? `${ui('priorities')}：\n${data.priorities.map((item, index) => `${index + 1}. ${stripMarkdown(item)}`).join('\n')}` : '',
-        `${ui('nextRevisionTask')}：${stripMarkdown(data.nextRevisionTask || '')}`
+        `${ui('overallFeedback')}${ui('colon')}${stripMarkdown(data.overallFeedback || '')}`,
+        corrections ? `${ui('corrections')}${ui('colon')}\n${corrections}` : '',
+        upgrades ? `${ui('vocabularyUpgrades')}${ui('colon')}\n${upgrades}` : '',
+        patterns ? `${ui('sentenceSuggestions')}${ui('colon')}\n${patterns}` : '',
+        data.priorities?.length ? `${ui('priorities')}${ui('colon')}\n${data.priorities.map((item, index) => `${index + 1}. ${stripMarkdown(item)}`).join('\n')}` : '',
+        `${ui('nextRevisionTask')}${ui('colon')}${stripMarkdown(data.nextRevisionTask || '')}`
       ]
         .filter(Boolean)
         .join('\n\n');
@@ -1110,12 +1135,12 @@
 
     if (tool === 'math-error-card' && isMathErrorCardResult(data)) {
       return [
-        `${ui('mistakeSummary')}：${stripMarkdown(data.mistakeSummary || '')}`,
-        `${ui('wrongStep')}：${stripMarkdown(data.wrongStep || '')}`,
-        `${ui('correctStep')}：${stripMarkdown(data.correctStep || '')}`,
-        `${ui('concept')}：${stripMarkdown(data.concept || '')}`,
-        `${ui('similarQuestion')}：${stripMarkdown(data.similarQuestion || '')}`,
-        `${ui('answer')}：${stripMarkdown(data.similarAnswer || '')}`
+        `${ui('mistakeSummary')}${ui('colon')}${stripMarkdown(data.mistakeSummary || '')}`,
+        `${ui('wrongStep')}${ui('colon')}${stripMarkdown(data.wrongStep || '')}`,
+        `${ui('correctStep')}${ui('colon')}${stripMarkdown(data.correctStep || '')}`,
+        `${ui('concept')}${ui('colon')}${stripMarkdown(data.concept || '')}`,
+        `${ui('similarQuestion')}${ui('colon')}${stripMarkdown(data.similarQuestion || '')}`,
+        `${ui('answer')}${ui('colon')}${stripMarkdown(data.similarAnswer || '')}`
       ].join('\n\n');
     }
 
@@ -1125,35 +1150,35 @@
           [
             `${index + 1}. ${stripMarkdown(item.question || '')}`,
             ...(item.options || []).map(stripMarkdown),
-            `${ui('answer')}：${stripMarkdown(item.answer || '')}`
+            `${ui('answer')}${ui('colon')}${stripMarkdown(item.answer || '')}`
           ].join('\n')
         )
         .join('\n\n');
       const open = data.openQuestions
-        .map((item, index) => `${index + 1}. ${stripMarkdown(item.question || '')}\n${ui('suggestedAnswer')}：${stripMarkdown(item.suggestedAnswer || '')}`)
+        .map((item, index) => `${index + 1}. ${stripMarkdown(item.question || '')}\n${ui('suggestedAnswer')}${ui('colon')}${stripMarkdown(item.suggestedAnswer || '')}`)
         .join('\n\n');
 
       return [
-        mc ? `${ui('multipleChoice')}：\n${mc}` : '',
-        open ? `${ui('openQuestions')}：\n${open}` : '',
-        data.keywords?.length ? `${ui('keywords')}：${data.keywords.join('、')}` : '',
-        data.answerKey?.length ? `${ui('answer')}：\n${data.answerKey.map(stripMarkdown).join('\n')}` : ''
+        mc ? `${ui('multipleChoice')}${ui('colon')}\n${mc}` : '',
+        open ? `${ui('openQuestions')}${ui('colon')}\n${open}` : '',
+        data.keywords?.length ? `${ui('keywords')}${ui('colon')}${data.keywords.join(ui('listSeparator'))}` : '',
+        data.answerKey?.length ? `${ui('answer')}${ui('colon')}\n${data.answerKey.map(stripMarkdown).join('\n')}` : ''
       ]
         .filter(Boolean)
         .join('\n\n');
     }
 
     if (tool === 'science-concept-map' && isScienceConceptMapResult(data)) {
-      const nodes = data.nodes.map((node) => `${node.label}：${stripMarkdown(node.definition || '')}`).join('\n');
-      const edges = data.edges.map((edge) => `${edge.from} -> ${edge.to}：${stripMarkdown(edge.label || '')}`).join('\n');
-      const quiz = data.quiz.map((item, index) => `${index + 1}. ${stripMarkdown(item.question || '')}\n${ui('answer')}：${stripMarkdown(item.answer || '')}`).join('\n\n');
+      const nodes = data.nodes.map((node) => `${node.label}${ui('colon')}${stripMarkdown(node.definition || '')}`).join('\n');
+      const edges = data.edges.map((edge) => `${edge.from}${ui('arrow')}${edge.to}${ui('colon')}${stripMarkdown(edge.label || '')}`).join('\n');
+      const quiz = data.quiz.map((item, index) => `${index + 1}. ${stripMarkdown(item.question || '')}\n${ui('answer')}${ui('colon')}${stripMarkdown(item.answer || '')}`).join('\n\n');
 
       return [
-        nodes ? `${ui('nodes')}：\n${nodes}` : '',
-        edges ? `${ui('edges')}：\n${edges}` : '',
-        data.keywords?.length ? `${ui('keywords')}：${data.keywords.join('、')}` : '',
-        data.misconceptions?.length ? `${ui('misconceptions')}：\n${data.misconceptions.map(stripMarkdown).join('\n')}` : '',
-        quiz ? `${ui('quiz')}：\n${quiz}` : ''
+        nodes ? `${ui('nodes')}${ui('colon')}\n${nodes}` : '',
+        edges ? `${ui('edges')}${ui('colon')}\n${edges}` : '',
+        data.keywords?.length ? `${ui('keywords')}${ui('colon')}${data.keywords.join(ui('listSeparator'))}` : '',
+        data.misconceptions?.length ? `${ui('misconceptions')}${ui('colon')}\n${data.misconceptions.map(stripMarkdown).join('\n')}` : '',
+        quiz ? `${ui('quiz')}${ui('colon')}\n${quiz}` : ''
       ]
         .filter(Boolean)
         .join('\n\n');
@@ -1334,7 +1359,7 @@
       <div class="flex gap-2">
         <WarningAlt size={18} class="mt-0.5 shrink-0 text-amber-700 dark:text-amber-300" />
         <p class="text-sm leading-6 text-amber-900 dark:text-amber-100">
-          <span class="font-semibold">{ui('privacyTitle')}：</span>{ui('privacyBody')}
+          <span class="font-semibold">{ui('privacyTitle')}{ui('colon')}</span>{ui('privacyBody')}
         </p>
       </div>
     </div>
@@ -1508,15 +1533,15 @@
                   {#each resultData.items as item, index (index)}
                     <div class="rounded-md border border-gray-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900">
                       <div class="text-sm font-semibold text-primary-800 dark:text-primary-300">{item.word}</div>
-                      <div class="mt-1 text-sm text-gray-700 dark:text-gray-200"><span class="text-gray-500">{ui('meaning')}：</span>{item.meaning}</div>
-                      <div class="mt-1 text-sm text-gray-700 dark:text-gray-200"><span class="text-gray-500">{ui('example')}：</span>{item.example}</div>
+                      <div class="mt-1 text-sm text-gray-700 dark:text-gray-200"><span class="text-gray-500">{ui('meaning')}{ui('colon')}</span>{item.meaning}</div>
+                      <div class="mt-1 text-sm text-gray-700 dark:text-gray-200"><span class="text-gray-500">{ui('example')}{ui('colon')}</span>{item.example}</div>
                       {#if item.synonyms?.length}
-                        <div class="mt-1 text-sm text-gray-700 dark:text-gray-200"><span class="text-gray-500">{ui('synonyms')}：</span>{item.synonyms.join('、')}</div>
+                        <div class="mt-1 text-sm text-gray-700 dark:text-gray-200"><span class="text-gray-500">{ui('synonyms')}{ui('colon')}</span>{item.synonyms.join(ui('listSeparator'))}</div>
                       {/if}
                       <div class="mt-2 rounded-md bg-gray-50 p-2 text-sm text-gray-700 dark:bg-neutral-800 dark:text-gray-200">
-                        <span class="text-gray-500">{ui('blankQuestion')}：</span>{item.blankQuestion}
+                        <span class="text-gray-500">{ui('blankQuestion')}{ui('colon')}</span>{item.blankQuestion}
                       </div>
-                      <div class="mt-1 text-sm text-gray-500">{ui('answer')}：{item.answer}</div>
+                      <div class="mt-1 text-sm text-gray-500">{ui('answer')}{ui('colon')}{item.answer}</div>
                     </div>
                   {/each}
                 </div>
@@ -1534,9 +1559,9 @@
                       <div class="mt-2 space-y-2">
                         {#each resultData.corrections as correction, index (index)}
                           <div class="text-sm">
-                            <div class="text-gray-500">{ui('originalSentence')}：{correction.originalSentence}</div>
-                            <div class="text-red-600 dark:text-red-400">{ui('issue')}：{correction.issue}</div>
-                            <div class="text-green-700 dark:text-green-400">{ui('suggestion')}：{correction.suggestion}</div>
+                            <div class="text-gray-500">{ui('originalSentence')}{ui('colon')}{correction.originalSentence}</div>
+                            <div class="text-red-600 dark:text-red-400">{ui('issue')}{ui('colon')}{correction.issue}</div>
+                            <div class="text-green-700 dark:text-green-400">{ui('suggestion')}{ui('colon')}{correction.suggestion}</div>
                           </div>
                         {/each}
                       </div>
@@ -1549,9 +1574,9 @@
                         {#each resultData.vocabularyUpgrades as item, index (index)}
                           <div class="text-sm">
                             <span class="text-gray-600">{item.original}</span>
-                            <span class="mx-1 text-gray-400">-></span>
+                            <span class="mx-1 text-gray-400">{ui('arrow')}</span>
                             <span class="font-medium text-primary-800 dark:text-primary-300">{item.upgrade}</span>
-                            <span class="text-gray-500">（{item.reason}）</span>
+                            <span class="text-gray-500">{ui('openParen')}{item.reason}{ui('closeParen')}</span>
                           </div>
                         {/each}
                       </div>
@@ -1563,8 +1588,8 @@
                       <div class="mt-2 space-y-2">
                         {#each resultData.sentenceSuggestions as item, index (index)}
                           <div class="text-sm">
-                            <div class="text-gray-500">{ui('originalPattern')}：{item.originalPattern}</div>
-                            <div class="text-primary-800 dark:text-primary-300">{ui('suggestion')}：{item.suggestedPattern}</div>
+                            <div class="text-gray-500">{ui('originalPattern')}{ui('colon')}{item.originalPattern}</div>
+                            <div class="text-primary-800 dark:text-primary-300">{ui('suggestion')}{ui('colon')}{item.suggestedPattern}</div>
                             <div class="text-gray-500">{item.benefit}</div>
                           </div>
                         {/each}
@@ -1631,7 +1656,7 @@
                                 <div class="text-gray-700 dark:text-gray-200">{option}</div>
                               {/each}
                             </div>
-                            <div class="mt-1 text-xs text-gray-500">{ui('answer')}：{item.answer}</div>
+                            <div class="mt-1 text-xs text-gray-500">{ui('answer')}{ui('colon')}{item.answer}</div>
                           </div>
                         {/each}
                       </div>
@@ -1644,7 +1669,7 @@
                         {#each resultData.openQuestions as item, index (index)}
                           <div class="text-sm">
                             <div class="font-medium text-gray-800 dark:text-white">{index + 1}. {item.question}</div>
-                            <div class="mt-1 text-gray-500">{ui('suggestedAnswer')}：{item.suggestedAnswer}</div>
+                            <div class="mt-1 text-gray-500">{ui('suggestedAnswer')}{ui('colon')}{item.suggestedAnswer}</div>
                           </div>
                         {/each}
                       </div>
@@ -1685,9 +1710,9 @@
                         {#each resultData.edges as edge, index (index)}
                           <div class="text-sm text-gray-700 dark:text-gray-200">
                             <span class="font-medium">{edge.from}</span>
-                            <span class="mx-1 text-gray-400">-></span>
+                            <span class="mx-1 text-gray-400">{ui('arrow')}</span>
                             <span class="font-medium">{edge.to}</span>
-                            <span class="text-gray-500">（{edge.label}）</span>
+                            <span class="text-gray-500">{ui('openParen')}{edge.label}{ui('closeParen')}</span>
                           </div>
                         {/each}
                       </div>
