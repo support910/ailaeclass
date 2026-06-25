@@ -38,21 +38,36 @@ interface ProviderConfig {
   defaultModel: string;
 }
 
+function getNumberEnv(name: string, fallback: number) {
+  const value = Number(env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+const DEFAULT_MAX_OUTPUT_TOKENS = clamp(
+  getNumberEnv('PRIVATE_AI_MAX_TOKENS', getNumberEnv('PRIVATE_DEEPSEEK_MAX_TOKENS', 800)),
+  128,
+  1200
+);
+
 const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
   deepseek: {
     baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-chat',
+    model: env.PRIVATE_DEEPSEEK_MODEL?.trim() || 'deepseek-chat',
     keyEnvVars: ['PRIVATE_DEEPSEEK_API_KEY'],
     defaultModel: 'deepseek-chat'
   },
   kimi: {
-    baseUrl: 'https://api.moonshot.cn/v1',
+    baseUrl: env.PRIVATE_KIMI_BASE_URL?.trim() || 'https://api.moonshot.cn/v1',
     model: env.PRIVATE_KIMI_MODEL?.trim() || 'moonshot-v1-8k',
     keyEnvVars: ['PRIVATE_KIMI_API_KEY', 'PRIVATE_MOONSHOT_API_KEY'],
     defaultModel: 'moonshot-v1-8k'
   },
   moonshot: {
-    baseUrl: 'https://api.moonshot.cn/v1',
+    baseUrl: env.PRIVATE_MOONSHOT_BASE_URL?.trim() || 'https://api.moonshot.cn/v1',
     model: env.PRIVATE_KIMI_MODEL?.trim() || 'moonshot-v1-8k',
     keyEnvVars: ['PRIVATE_MOONSHOT_API_KEY', 'PRIVATE_KIMI_API_KEY'],
     defaultModel: 'moonshot-v1-8k'
@@ -110,7 +125,7 @@ export async function createAiChatCompletion(
     body: JSON.stringify({
       model: config.model,
       messages,
-      max_tokens: options.maxTokens ?? 1200,
+      max_tokens: Math.min(options.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS),
       temperature: options.temperature ?? 0.5,
       ...(options.responseFormat ? { response_format: options.responseFormat } : {})
     })

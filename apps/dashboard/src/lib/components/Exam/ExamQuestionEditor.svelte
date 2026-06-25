@@ -20,6 +20,7 @@
 
   export let questions: any[] = [];
   export let onQuestionsChange: (questions: any[]) => void = () => {};
+  export let pointsDisabled = false;
 
   let showImportModal = false;
 
@@ -218,6 +219,7 @@
     <QuestionContainer
       onClose={handleRemoveQuestion(question.id)}
       bind:points={question.points}
+      {pointsDisabled}
       onPointsChange={() => handleQuestionFieldChange(question.id, 'points', question.points)}
     >
       <div class="flex justify-between items-center gap-4">

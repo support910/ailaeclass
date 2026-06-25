@@ -8,6 +8,7 @@
   export let onClose = () => {};
   export let scrollToQuestion = false;
   export let points = undefined;
+  export let pointsDisabled = false;
   export let hasError = false;
   export let onPointsChange = () => {};
 
@@ -49,6 +50,8 @@
           placeholder={$t('course.navItem.lessons.exercises.new_exercise_modal.points')}
           bind:value={points}
           type="number"
+          min={0}
+          isDisabled={pointsDisabled}
           onChange={onPointsChange}
         />
       </div>

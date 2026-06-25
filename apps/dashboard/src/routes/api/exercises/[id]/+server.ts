@@ -42,6 +42,33 @@ function mergeOptionImagesIntoOptions(options: any[], optionImages: Record<strin
   });
 }
 
+function getAutoPoints(questionCount: number) {
+  if (questionCount <= 0) return [];
+
+  const base = Math.floor(100 / questionCount);
+  const remainder = 100 - base * questionCount;
+  return Array.from({ length: questionCount }, (_, index) =>
+    index >= questionCount - remainder ? base + 1 : base
+  );
+}
+
+function applyAutoQuestionPoints(questions: any[]) {
+  const activeIndexes = (questions || [])
+    .map((question, index) => (!question?.deleted_at ? index : -1))
+    .filter((index) => index >= 0);
+  const autoPoints = getAutoPoints(activeIndexes.length);
+
+  return (questions || []).map((question, index) => {
+    const activeIndex = activeIndexes.indexOf(index);
+    if (activeIndex === -1) return question;
+    return {
+      ...question,
+      points: autoPoints[activeIndex] ?? 0,
+      order: activeIndex
+    };
+  });
+}
+
 /**
  * POST /api/exercises/[id]
  *
@@ -73,7 +100,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
     due_by,
     is_title_dirty,
     is_description_dirty,
-    is_due_by_dirty
+    is_due_by_dirty,
+    score_mode
   } = body;
 
   try {
@@ -82,7 +110,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // 1. Verify exercise exists and get lesson/course for permission check
     const { data: exerciseRow, error: exerciseError } = await supabase
       .from('exercise')
-      .select('lesson_id')
+      .select('lesson_id, assessment_type, settings')
       .eq('id', exerciseId)
       .single();
 
@@ -137,8 +165,16 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     // 4. Process questions
     const updatedQuestions = [];
+    const scoreMode =
+      score_mode === 'auto' || score_mode === 'manual'
+        ? score_mode
+        : exerciseRow.assessment_type === 'exam' && exerciseRow.settings?.score_mode === 'auto'
+          ? 'auto'
+          : 'manual';
+    const questionsToSave =
+      scoreMode === 'auto' ? applyAutoQuestionPoints(questions || []) : questions || [];
 
-    for (const question of questions || []) {
+    for (const question of questionsToSave) {
       const { title: qTitle, id, name, question_type, options, deleted_at, order, points, is_dirty } = question;
 
       if (deleted_at) {
@@ -183,83 +219,118 @@ export const POST: RequestHandler = async ({ params, request }) => {
         const TEXTAREA_TYPE_ID = 3;
         if (question_type?.id !== TEXTAREA_TYPE_ID) { // skip options for TEXTAREA
           const optionImages: Record<string, any> = {};
+          const optionSlots: any[] = [];
+          const optionUpserts: Array<{ slotIndex: number; source: any; row: any }> = [];
+          const deletedOptionIds: string[] = [];
 
           for (const option of options || []) {
             if (option.deleted_at) {
               if (!isNew(option.id)) {
-                await supabase.from('option').delete().match({ id: option.id });
+                deletedOptionIds.push(option.id);
               }
               continue;
             }
 
+            const slotIndex = optionSlots.length;
             const newOption = {
-              ...option,
+              ...(isNew(option.id) ? {} : { id: option.id }),
               label: option.label || '',
-              is_dirty: undefined,
-              id: isNew(option.id) ? undefined : option.id,
-              value: isUUID(option.value) ? option.value : undefined,
+              value: isUUID(option.value) ? option.value : crypto.randomUUID(),
               question_id: savedQuestion.id,
+              is_correct: option.is_correct === true,
               metadata: option.metadata || {}
             };
 
             if (option.is_dirty || isNew(option.id)) {
-              let optionRes = await supabase.from('option').upsert(newOption).select();
-              // If metadata column is missing (remote schema not migrated), retry without metadata
-              if (optionRes.error) {
-                const errMsg = optionRes.error.message || '';
-                const isMetadataIssue =
-                  errMsg.includes('metadata') ||
-                  errMsg.includes('column') ||
-                  errMsg.includes('schema') ||
-                  (optionRes.error as any).code === '42703'; // undefined_column
-                if (isMetadataIssue) {
-                  console.warn(
-                    `Option upsert with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
-                    errMsg
-                  );
-                  const { id, value, label, question_id, is_correct } = newOption;
-                  const fallbackOption = { id, value, label, question_id, is_correct };
-                  optionRes = await supabase.from('option').upsert(fallbackOption).select();
-                }
-              }
-              if (optionRes.error) {
-                console.error('Upsert option error:', optionRes.error);
-                return json({ success: false, message: 'Failed to save option' }, { status: 500 });
-              }
-              if (Array.isArray(optionRes.data)) {
-                const savedOption = optionRes.data[0];
-                const optionImageKey = getOptionImageKey(savedOption);
-                if (option.metadata?.image && optionImageKey) {
-                  optionImages[optionImageKey] = option.metadata.image;
-                }
-                savedQuestion.options.push(savedOption);
-              }
+              optionUpserts.push({ slotIndex, source: option, row: newOption });
             } else {
               const optionImageKey = getOptionImageKey(newOption);
               if (option.metadata?.image && optionImageKey) {
                 optionImages[optionImageKey] = option.metadata.image;
               }
-              savedQuestion.options.push(newOption);
+              optionSlots[slotIndex] = newOption;
             }
+          }
+
+          if (deletedOptionIds.length > 0) {
+            const { error: deleteOptionError } = await supabase
+              .from('option')
+              .delete()
+              .in('id', deletedOptionIds);
+
+            if (deleteOptionError) {
+              console.error('Delete option error:', deleteOptionError);
+              return json({ success: false, message: 'Failed to delete option' }, { status: 500 });
+            }
+          }
+
+          if (optionUpserts.length > 0) {
+            let optionRes = await supabase
+              .from('option')
+              .upsert(optionUpserts.map(({ row }) => row))
+              .select();
+
+            // If metadata column is missing (remote schema not migrated), retry without metadata
+            if (optionRes.error) {
+              const errMsg = optionRes.error.message || '';
+              const isMetadataIssue =
+                errMsg.includes('metadata') ||
+                errMsg.includes('column') ||
+                errMsg.includes('schema') ||
+                (optionRes.error as any).code === '42703'; // undefined_column
+              if (isMetadataIssue) {
+                console.warn(
+                  `Option batch upsert with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
+                  errMsg
+                );
+                const fallbackOptions = optionUpserts.map(({ row }) => {
+                  const { id, value, label, question_id, is_correct } = row;
+                  return { id, value, label, question_id, is_correct };
+                });
+                optionRes = await supabase.from('option').upsert(fallbackOptions).select();
+              }
+            }
+
+            if (optionRes.error) {
+              console.error('Upsert option error:', optionRes.error);
+              return json({ success: false, message: 'Failed to save option' }, { status: 500 });
+            }
+
+            (optionRes.data || []).forEach((savedOption: any, index: number) => {
+              const source = optionUpserts[index]?.source || {};
+              const slotIndex = optionUpserts[index]?.slotIndex;
+              const optionImageKey = getOptionImageKey(savedOption);
+              if (source.metadata?.image && optionImageKey) {
+                optionImages[optionImageKey] = source.metadata.image;
+              }
+              if (slotIndex !== undefined) {
+                optionSlots[slotIndex] = savedOption;
+              }
+            });
           }
 
           const mergedMetadata = mergeOptionImagesIntoQuestionMetadata(
             savedQuestion.metadata || question.metadata,
             optionImages
           );
+          const currentMetadata = savedQuestion.metadata || question.metadata || {};
+          const metadataChanged =
+            JSON.stringify(mergedMetadata || {}) !== JSON.stringify(currentMetadata || {});
 
-          const { error: metadataUpdateError } = await supabase
-            .from('question')
-            .update({ metadata: mergedMetadata })
-            .eq('id', savedQuestion.id);
+          if (metadataChanged) {
+            const { error: metadataUpdateError } = await supabase
+              .from('question')
+              .update({ metadata: mergedMetadata })
+              .eq('id', savedQuestion.id);
 
-          if (metadataUpdateError) {
-            console.error('Update question option image metadata error:', metadataUpdateError);
-            return json({ success: false, message: 'Failed to save option images' }, { status: 500 });
+            if (metadataUpdateError) {
+              console.error('Update question option image metadata error:', metadataUpdateError);
+              return json({ success: false, message: 'Failed to save option images' }, { status: 500 });
+            }
           }
 
           savedQuestion.metadata = mergedMetadata;
-          savedQuestion.options = mergeOptionImagesIntoOptions(savedQuestion.options, optionImages);
+          savedQuestion.options = mergeOptionImagesIntoOptions(optionSlots.filter(Boolean), optionImages);
         }
 
         updatedQuestions.push(savedQuestion);

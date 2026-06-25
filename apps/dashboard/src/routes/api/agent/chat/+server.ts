@@ -34,7 +34,8 @@ Rules:
 4. If the user asks something unrelated to drone aviation, drone operations, airspace, aviation weather, or formation flight, politely explain that ailaeclass Agent focuses on drone aviation learning.
 5. Keep answers concise, accurate, and classroom-appropriate.
 6. Do not ask for unnecessary personal information.
-7. Do not help with unsafe or illegal activities.`;
+7. Do not help with unsafe or illegal activities.
+8. Do not use Markdown formatting such as **bold**, headings, bullet symbols, or code blocks. Write clean plain text that can be displayed directly in the chat UI.`;
 
 function jsonError(error: string, code: string, status: number) {
   return json({ error, code }, { status });
@@ -103,6 +104,8 @@ function stripInlineSourceFooter(reply: string) {
   return reply
     .replace(/\n?\s*[（(]\s*来源\s*[:：][\s\S]*?[）)]\s*$/u, '')
     .replace(/\n?\s*来源\s*[:：][\s\S]*$/u, '')
+    .replace(/\*\*/g, '')
+    .replace(/^\s*#{1,6}\s+/gm, '')
     .trim();
 }
 

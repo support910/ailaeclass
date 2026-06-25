@@ -35,7 +35,7 @@
       />
     </div>
   {:else}
-    <span class="dark:text-white ml-2">{label}</span>
+    <span class="ml-2 min-w-0 flex-1 whitespace-pre-wrap break-words dark:text-white">{label}</span>
   {/if}
 
   <slot name="iconbutton" />

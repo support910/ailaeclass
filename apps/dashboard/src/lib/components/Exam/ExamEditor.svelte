@@ -34,6 +34,7 @@
   let isPublishing = false;
   let settingsDirty = false;
   let localDraftTimer: ReturnType<typeof setTimeout> | null = null;
+  let scoreMode: 'auto' | 'manual' = 'auto';
 
   // Defense-in-depth: redirect students away
   $: if ($currentOrg.role_id === ROLE.STUDENT && $currentOrg.id) {
@@ -74,6 +75,71 @@
 
   function getActiveOptions(question: any) {
     return (question.options || []).filter((o) => !o.deleted_at);
+  }
+
+  function getAutoPoints(questionCount: number) {
+    if (questionCount <= 0) return [];
+
+    const base = Math.floor(100 / questionCount);
+    const remainder = 100 - base * questionCount;
+    return Array.from({ length: questionCount }, (_, index) =>
+      index >= questionCount - remainder ? base + 1 : base
+    );
+  }
+
+  function applyAutoQuestionPoints(allQuestions: any[]) {
+    const activeIndexes = allQuestions
+      .map((q, index) => (!q.deleted_at ? index : -1))
+      .filter((index) => index >= 0);
+    const autoPoints = getAutoPoints(activeIndexes.length);
+
+    return allQuestions.map((q, index) => {
+      const activeIndex = activeIndexes.indexOf(index);
+      if (activeIndex === -1) return q;
+      const nextPoints = autoPoints[activeIndex] ?? 0;
+      return {
+        ...q,
+        points: nextPoints,
+        order: activeIndex,
+        is_dirty: q.is_dirty || Number(q.points) !== nextPoints || q.order !== activeIndex
+      };
+    });
+  }
+
+  function applyQuestionOrder(allQuestions: any[]) {
+    let activeIndex = 0;
+
+    return allQuestions.map((q) => {
+      if (q.deleted_at) return q;
+      const nextOrder = activeIndex;
+      activeIndex += 1;
+      return {
+        ...q,
+        order: nextOrder,
+        is_dirty: q.is_dirty || q.order !== nextOrder
+      };
+    });
+  }
+
+  function normalizeQuestionsForScoreMode(allQuestions: any[]) {
+    return scoreMode === 'auto'
+      ? applyAutoQuestionPoints(allQuestions)
+      : applyQuestionOrder(allQuestions);
+  }
+
+  function setScoreMode(nextMode: 'auto' | 'manual') {
+    if (scoreMode === nextMode) return;
+    scoreMode = nextMode;
+    exam = {
+      ...exam,
+      settings: {
+        ...(exam.settings || {}),
+        score_mode: nextMode
+      }
+    };
+    questions = normalizeQuestionsForScoreMode(questions);
+    settingsDirty = true;
+    scheduleLocalDraftSave();
   }
 
   function hasQuestionContent(question: any) {
@@ -134,6 +200,7 @@
         getLocalDraftKey(),
         JSON.stringify({
           savedAt: new Date().toISOString(),
+          scoreMode,
           exam,
           questions
         })
@@ -153,7 +220,13 @@
       if (!confirmed) return;
 
       exam = draft.exam || exam;
-      questions = detectTrueFalse(draft.questions || questions);
+      scoreMode =
+        draft.scoreMode === 'auto' || draft.scoreMode === 'manual'
+          ? draft.scoreMode
+          : exam.settings?.score_mode === 'manual'
+            ? 'manual'
+            : 'auto';
+      questions = normalizeQuestionsForScoreMode(detectTrueFalse(draft.questions || questions));
       settingsDirty = true;
       snackbar.success($t('components.exam.draft_restored'));
     } catch (err) {
@@ -215,7 +288,11 @@
       available_from: exam.available_from,
       available_until: exam.available_until,
       shuffle_questions: exam.shuffle_questions,
-      shuffle_options: exam.shuffle_options
+      shuffle_options: exam.shuffle_options,
+      settings: {
+        ...(exam.settings || {}),
+        score_mode: scoreMode
+      }
     });
 
     if (saveError) {
@@ -224,7 +301,8 @@
     settingsDirty = false;
 
     const questionnaire = {
-      questions: mapTrueFalseToRadio(questions),
+      questions: mapTrueFalseToRadio(normalizeQuestionsForScoreMode(questions)),
+      score_mode: scoreMode,
       title: exam.title,
       description: exam.description,
       due_by: null,
@@ -235,7 +313,7 @@
 
     const updatedQuestions = await upsertExercise(questionnaire, examId);
     if (Array.isArray(updatedQuestions)) {
-      questions = detectTrueFalse(updatedQuestions);
+      questions = normalizeQuestionsForScoreMode(detectTrueFalse(updatedQuestions));
     } else {
       throw new Error('Failed to save questions');
     }
@@ -254,7 +332,8 @@
       return;
     }
     exam = data;
-    questions = detectTrueFalse(data.questions || []);
+    scoreMode = data.settings?.score_mode === 'manual' ? 'manual' : 'auto';
+    questions = normalizeQuestionsForScoreMode(detectTrueFalse(data.questions || []));
     isLoading = false;
     restoreLocalDraftIfAvailable();
   }
@@ -265,7 +344,7 @@
   }
 
   function handleQuestionsChange(newQuestions: any[]) {
-    questions = newQuestions;
+    questions = normalizeQuestionsForScoreMode(newQuestions);
     scheduleLocalDraftSave();
   }
 
@@ -435,10 +514,45 @@
 
     <!-- Questions -->
     <div class="bg-white dark:bg-black border border-gray-200 dark:border-neutral-600 rounded-md p-4 mb-6">
-      <h3 class="dark:text-white text-lg font-bold mb-4">
-        {$t('components.exam.questions_title')}
-      </h3>
-      <ExamQuestionEditor bind:questions onQuestionsChange={handleQuestionsChange} />
+      <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="dark:text-white text-lg font-bold">
+            {$t('components.exam.questions_title')}
+          </h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {scoreMode === 'auto'
+              ? $t('components.exam.score_auto_hint')
+              : $t('components.exam.score_manual_hint')}
+          </p>
+        </div>
+        <div
+          class="flex rounded-md border border-gray-200 bg-gray-50 p-1 dark:border-neutral-700 dark:bg-neutral-900"
+        >
+          <button
+            type="button"
+            class="rounded px-3 py-1.5 text-sm font-medium transition {scoreMode === 'auto'
+              ? 'bg-primary-700 text-white'
+              : 'text-gray-700 hover:bg-white dark:text-gray-200 dark:hover:bg-neutral-800'}"
+            on:click={() => setScoreMode('auto')}
+          >
+            {$t('components.exam.score_auto')}
+          </button>
+          <button
+            type="button"
+            class="rounded px-3 py-1.5 text-sm font-medium transition {scoreMode === 'manual'
+              ? 'bg-primary-700 text-white'
+              : 'text-gray-700 hover:bg-white dark:text-gray-200 dark:hover:bg-neutral-800'}"
+            on:click={() => setScoreMode('manual')}
+          >
+            {$t('components.exam.score_manual')}
+          </button>
+        </div>
+      </div>
+      <ExamQuestionEditor
+        bind:questions
+        onQuestionsChange={handleQuestionsChange}
+        pointsDisabled={scoreMode === 'auto'}
+      />
     </div>
   </div>
 {/if}

@@ -54,10 +54,10 @@
   $: if (exam?.id && baseQuestions.length > 0 && orderReadyForExamId !== exam.id) {
     initializeDisplayOrder();
   }
-  $: questions = orderByValues(baseQuestions, questionOrder, (q: any) => q.name);
+  $: questions = orderByValues(baseQuestions, questionOrder, getQuestionKey);
   $: totalQuestions = questions.length;
   $: currentQuestion = questions[currentQuestionIndex];
-  $: currentName = currentQuestion?.name || '';
+  $: currentName = currentQuestion ? getQuestionKey(currentQuestion) : '';
   $: currentAnswer = currentName ? answers[currentName] : undefined;
   $: currentFeedback = currentName ? feedbackByQuestion[currentName] : undefined;
   $: progressValue = totalQuestions > 0 ? Math.round((currentQuestionIndex / totalQuestions) * 100) : 0;
@@ -75,7 +75,7 @@
     const active = (question?.options || []).filter((option: any) => !option.deleted_at);
     return orderByValues(
       active,
-      optionOrders[question?.name] || [],
+      optionOrders[question ? getQuestionKey(question) : ''] || [],
       (option: any) => String(option.value)
     );
   }
@@ -101,14 +101,17 @@
     return [...ordered, ...missing];
   }
 
+  function getQuestionKey(question: any) {
+    return String(question?.name || question?.id || '');
+  }
+
   function initializeDisplayOrder() {
-    questionOrder = shuffleOnStart
-      ? shuffleArray(baseQuestions.map((q) => q.name))
-      : baseQuestions.map((q) => q.name);
+    const keys = baseQuestions.map(getQuestionKey).filter(Boolean);
+    questionOrder = shuffleOnStart ? shuffleArray(keys) : keys;
     optionOrders = Object.fromEntries(
       baseQuestions.map((q) => {
         const optionValues = getRawActiveOptions(q).map((o: any) => String(o.value));
-        return [q.name, shuffleOnStart ? shuffleArray(optionValues) : optionValues];
+        return [getQuestionKey(q), shuffleOnStart ? shuffleArray(optionValues) : optionValues];
       })
     );
     orderReadyForExamId = exam?.id || '';
@@ -124,7 +127,7 @@
 
   function setRadioAnswer(value: string) {
     if (!currentQuestion || currentFeedback || isExpired) return;
-    answers = { ...answers, [currentQuestion.name]: value };
+    answers = { ...answers, [getQuestionKey(currentQuestion)]: value };
     hasUnsavedChanges = true;
   }
 
@@ -134,13 +137,13 @@
     const next = current.includes(value)
       ? current.filter((item: string) => item !== value)
       : [...current, value];
-    answers = { ...answers, [currentQuestion.name]: next };
+    answers = { ...answers, [getQuestionKey(currentQuestion)]: next };
     hasUnsavedChanges = true;
   }
 
   function setTextAnswer(value: string) {
     if (!currentQuestion || currentFeedback || isExpired) return;
-    answers = { ...answers, [currentQuestion.name]: value };
+    answers = { ...answers, [getQuestionKey(currentQuestion)]: value };
     hasUnsavedChanges = true;
   }
 
@@ -186,7 +189,7 @@
 
     feedbackByQuestion = {
       ...feedbackByQuestion,
-      [currentQuestion.name]: {
+      [getQuestionKey(currentQuestion)]: {
         isCorrect,
         correctLabels: correctOptions.map(getOptionLabel),
         explanation: currentQuestion.metadata?.explanation || ''
@@ -260,13 +263,13 @@
     if (Array.isArray(saved.questionOrder) && saved.questionOrder.length > 0) {
       questionOrder = saved.questionOrder;
     } else if (questionOrder.length === 0) {
-      questionOrder = baseQuestions.map((q) => q.name);
+      questionOrder = baseQuestions.map(getQuestionKey).filter(Boolean);
     }
     if (saved.optionOrders && typeof saved.optionOrders === 'object') {
       optionOrders = saved.optionOrders;
     } else if (Object.keys(optionOrders).length === 0) {
       optionOrders = Object.fromEntries(
-        baseQuestions.map((q) => [q.name, getRawActiveOptions(q).map((o: any) => String(o.value))])
+        baseQuestions.map((q) => [getQuestionKey(q), getRawActiveOptions(q).map((o: any) => String(o.value))])
       );
     }
     orderReadyForExamId = exam?.id || '';
@@ -445,7 +448,7 @@
                       class="mb-2 max-h-32 rounded-md object-contain"
                     />
                   {/if}
-                  <span class="text-sm text-gray-900 dark:text-white">{option.label || option.value}</span>
+                  <span class="min-w-0 whitespace-pre-wrap break-words text-sm text-gray-900 dark:text-white">{option.label || option.value}</span>
                 </span>
               </div>
             </button>

@@ -4,10 +4,10 @@
   export let image: { url: string; alt?: string } | null = null;
 </script>
 
-<span class="flex flex-col gap-2">
-  <span class="flex gap-2">
-    <p class="text-md font-medium">{index}</p>
-    <p class="text-md font-medium">{title}</p>
+<span class="flex min-w-0 flex-col gap-2">
+  <span class="flex min-w-0 gap-2">
+    <p class="text-md flex-shrink-0 font-medium">{index}</p>
+    <p class="text-md min-w-0 whitespace-pre-wrap break-words font-medium">{title}</p>
   </span>
   {#if image?.url}
     <img

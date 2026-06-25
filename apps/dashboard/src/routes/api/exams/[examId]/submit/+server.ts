@@ -202,7 +202,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     for (const q of questions) {
-      const value = answers && q.name ? answers[q.name] : undefined;
+      const value = answers ? answers[q.name] ?? answers[q.id] : undefined;
       const typeId = q.question_type_id;
       const points = parseFloat(q.points) || 0;
 

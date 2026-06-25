@@ -43,7 +43,7 @@
   $: if (exam?.id && baseQuestions.length > 0 && orderReadyForExamId !== exam.id) {
     initializeDisplayOrder();
   }
-  $: questions = orderByValues(baseQuestions, questionOrder, (q: any) => q.name);
+  $: questions = orderByValues(baseQuestions, questionOrder, getQuestionKey);
   $: totalQuestions = questions.length;
   $: currentQuestion = questions[currentQuestionIndex];
   $: progressValue = totalQuestions > 0 ? Math.round((currentQuestionIndex / totalQuestions) * 100) : 0;
@@ -117,14 +117,17 @@
     return [...ordered, ...missing];
   }
 
+  function getQuestionKey(question: any) {
+    return String(question?.name || question?.id || '');
+  }
+
   function initializeDisplayOrder() {
-    questionOrder = shuffleOnStart
-      ? shuffleArray(baseQuestions.map((q) => q.name))
-      : baseQuestions.map((q) => q.name);
+    const keys = baseQuestions.map(getQuestionKey).filter(Boolean);
+    questionOrder = shuffleOnStart ? shuffleArray(keys) : keys;
     optionOrders = Object.fromEntries(
       baseQuestions.map((q) => {
         const optionValues = getActiveOptions(q).map((o) => String(o.value));
-        return [q.name, shuffleOnStart ? shuffleArray(optionValues) : optionValues];
+        return [getQuestionKey(q), shuffleOnStart ? shuffleArray(optionValues) : optionValues];
       })
     );
     orderReadyForExamId = exam?.id || '';
@@ -135,7 +138,7 @@
   function getDisplayOptions(question: any) {
     return orderByValues(
       getActiveOptions(question),
-      optionOrders[question.name] || [],
+      optionOrders[getQuestionKey(question)] || [],
       (option) => String(option.value)
     );
   }
@@ -190,7 +193,7 @@
   }
 
   function getDefaultValue(question: any) {
-    const val = answers[question.name];
+    const val = answers[getQuestionKey(question)];
     if (val === undefined) return '';
     return val;
   }
@@ -208,7 +211,7 @@
     return {
       title: question.title,
       index: index + 1,
-      name: question.name,
+      name: getQuestionKey(question),
       options: activeOptions,
       metadata: question.metadata || {},
       onSubmit: handleQuestionSubmit,
@@ -283,7 +286,7 @@
         <button
           class="w-8 h-8 rounded-full text-xs font-medium border transition {i === currentQuestionIndex && !isReviewing
             ? 'bg-primary-700 text-white border-primary-700'
-            : answers[q.name] !== undefined && answers[q.name] !== '' && !(Array.isArray(answers[q.name]) && answers[q.name].length === 0)
+            : answers[getQuestionKey(q)] !== undefined && answers[getQuestionKey(q)] !== '' && !(Array.isArray(answers[getQuestionKey(q)]) && answers[getQuestionKey(q)].length === 0)
               ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-100'
               : 'bg-gray-100 text-gray-600 border-gray-300 dark:bg-neutral-800 dark:text-gray-300'}"
           on:click={() => goToQuestion(i)}
@@ -313,10 +316,10 @@
             <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-neutral-700">
               <div class="flex items-center gap-3">
                 <span class="text-sm text-gray-500 dark:text-gray-400 w-6">{i + 1}.</span>
-                <span class="dark:text-white text-sm truncate max-w-xs md:max-w-md">{q.title}</span>
+                <span class="min-w-0 whitespace-pre-wrap break-words text-sm dark:text-white">{q.title}</span>
               </div>
               <div class="flex items-center gap-3">
-                {#if answers[q.name] !== undefined && answers[q.name] !== '' && !(Array.isArray(answers[q.name]) && answers[q.name].length === 0)}
+                {#if answers[getQuestionKey(q)] !== undefined && answers[getQuestionKey(q)] !== '' && !(Array.isArray(answers[getQuestionKey(q)]) && answers[getQuestionKey(q)].length === 0)}
                   <span class="text-xs text-green-600 dark:text-green-400">
                     {$t('components.exam.runner.answered')}
                   </span>
