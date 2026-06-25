@@ -22,12 +22,14 @@ export type AiErrorCode =
 export class AiServiceError extends Error {
   code: AiErrorCode;
   status: number;
+  details?: string;
 
-  constructor(code: AiErrorCode, message: string, status: number) {
+  constructor(code: AiErrorCode, message: string, status: number, details?: string) {
     super(message);
     this.name = 'AiServiceError';
     this.code = code;
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -193,7 +195,8 @@ export async function createAiChatCompletion(
     throw new AiServiceError(
       'upstream_error',
       'AI service temporarily unavailable',
-      502
+      502,
+      `provider=${provider}; status=${response.status}; body=${body}`
     );
   }
 
@@ -270,8 +273,8 @@ export function parseAiJson<T>(reply: string): T {
   }
 }
 
-export function jsonError(error: string, code: AiErrorCode, status: number) {
-  return new Response(JSON.stringify({ error, code }), {
+export function jsonError(error: string, code: AiErrorCode, status: number, details?: string) {
+  return new Response(JSON.stringify({ error, code, ...(details ? { details } : {}) }), {
     status,
     headers: { 'Content-Type': 'application/json' }
   });
