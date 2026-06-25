@@ -77,13 +77,23 @@ const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
   }
 };
 
-function getProviderKey(provider: AiProvider): string | undefined {
+function getProviderKeyDetails(provider: AiProvider): { value?: string; source?: string; fingerprints: Record<string, string> } {
   const config = PROVIDER_CONFIGS[provider];
+  const fingerprints: Record<string, string> = {};
+
   for (const envVar of config.keyEnvVars) {
     const value = env[envVar]?.trim();
-    if (value) return value;
+    if (value) {
+      fingerprints[envVar] = getKeyFingerprint(value);
+      return { value, source: envVar, fingerprints };
+    }
   }
-  return undefined;
+
+  return { fingerprints };
+}
+
+function getProviderKey(provider: AiProvider): string | undefined {
+  return getProviderKeyDetails(provider).value;
 }
 
 function getKeyFingerprint(apiKey: string) {
@@ -113,7 +123,8 @@ export async function createAiChatCompletion(
 ): Promise<string> {
   const provider = pickProvider(options.provider);
   const config = PROVIDER_CONFIGS[provider];
-  const apiKey = getProviderKey(provider);
+  const keyDetails = getProviderKeyDetails(provider);
+  const apiKey = keyDetails.value;
 
   if (!apiKey) {
     throw new AiServiceError(
@@ -159,6 +170,8 @@ export async function createAiChatCompletion(
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
+      keySource: keyDetails.source,
+      keyFingerprints: keyDetails.fingerprints,
       keyFingerprint: getKeyFingerprint(apiKey),
       body
     }));
@@ -195,6 +208,8 @@ export async function createAiChatCompletion(
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
+      keySource: keyDetails.source,
+      keyFingerprints: keyDetails.fingerprints,
       keyFingerprint: getKeyFingerprint(apiKey),
       body
     }));
@@ -203,7 +218,7 @@ export async function createAiChatCompletion(
       'upstream_error',
       'AI service temporarily unavailable',
       502,
-      `provider=${provider}; status=${response.status}; key=${getKeyFingerprint(apiKey)}; body=${body}`
+      `provider=${provider}; status=${response.status}; keySource=${keyDetails.source}; key=${getKeyFingerprint(apiKey)}; envKeys=${JSON.stringify(keyDetails.fingerprints)}; body=${body}`
     );
   }
 
