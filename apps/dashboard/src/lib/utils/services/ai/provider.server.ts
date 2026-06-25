@@ -55,7 +55,7 @@ const DEFAULT_MAX_OUTPUT_TOKENS = clamp(
 
 const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
   deepseek: {
-    baseUrl: 'https://api.deepseek.com',
+    baseUrl: env.PRIVATE_DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com',
     model: env.PRIVATE_DEEPSEEK_MODEL?.trim() || 'deepseek-chat',
     keyEnvVars: ['PRIVATE_DEEPSEEK_API_KEY'],
     defaultModel: 'deepseek-chat'
@@ -132,6 +132,22 @@ export async function createAiChatCompletion(
   });
 
   if (!response.ok) {
+    let body = '';
+    try {
+      body = (await response.text()).slice(0, 800);
+    } catch {
+      body = 'Unable to read upstream error body';
+    }
+
+    console.error('AI upstream request failed', {
+      provider,
+      status: response.status,
+      statusText: response.statusText,
+      model: config.model,
+      baseUrl: config.baseUrl,
+      body
+    });
+
     throw new AiServiceError(
       'upstream_error',
       'AI service temporarily unavailable',
