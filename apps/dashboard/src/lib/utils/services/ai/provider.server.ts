@@ -116,17 +116,23 @@ export async function createAiChatCompletion(
     );
   }
 
-  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+  const requestBody = {
+    model: config.model,
+    messages,
+    max_tokens: Math.min(options.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS),
+    temperature: options.temperature ?? 0.5
+  };
+
+  const requestHeaders = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`
+  };
+
+  let response = await fetch(`${config.baseUrl}/chat/completions`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
-    },
+    headers: requestHeaders,
     body: JSON.stringify({
-      model: config.model,
-      messages,
-      max_tokens: Math.min(options.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS),
-      temperature: options.temperature ?? 0.5,
+      ...requestBody,
       ...(options.responseFormat ? { response_format: options.responseFormat } : {})
     })
   });
@@ -139,14 +145,50 @@ export async function createAiChatCompletion(
       body = 'Unable to read upstream error body';
     }
 
-    console.error('AI upstream request failed', {
+    console.error(JSON.stringify({
+      event: 'ai_upstream_request_failed',
       provider,
       status: response.status,
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
       body
-    });
+    }));
+
+    if (options.responseFormat) {
+      response = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: requestHeaders,
+        body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+        console.warn(JSON.stringify({
+          event: 'ai_upstream_response_format_retry_succeeded',
+          provider,
+          model: config.model
+        }));
+      }
+    }
+  }
+
+  if (!response.ok) {
+    let body = '';
+    try {
+      body = (await response.text()).slice(0, 800);
+    } catch {
+      body = 'Unable to read upstream error body';
+    }
+
+    console.error(JSON.stringify({
+      event: 'ai_upstream_request_failed_after_retry',
+      provider,
+      status: response.status,
+      statusText: response.statusText,
+      model: config.model,
+      baseUrl: config.baseUrl,
+      body
+    }));
 
     throw new AiServiceError(
       'upstream_error',
