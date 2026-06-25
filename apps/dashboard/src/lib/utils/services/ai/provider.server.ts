@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { createHash } from 'node:crypto';
 
 export type AiRole = 'system' | 'user' | 'assistant';
 
@@ -85,6 +86,10 @@ function getProviderKey(provider: AiProvider): string | undefined {
   return undefined;
 }
 
+function getKeyFingerprint(apiKey: string) {
+  return createHash('sha256').update(apiKey).digest('hex').slice(0, 12);
+}
+
 export function pickProvider(preferred?: AiProvider): AiProvider {
   if (preferred) {
     const key = getProviderKey(preferred);
@@ -154,6 +159,7 @@ export async function createAiChatCompletion(
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
+      keyFingerprint: getKeyFingerprint(apiKey),
       body
     }));
 
@@ -189,6 +195,7 @@ export async function createAiChatCompletion(
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
+      keyFingerprint: getKeyFingerprint(apiKey),
       body
     }));
 
@@ -196,7 +203,7 @@ export async function createAiChatCompletion(
       'upstream_error',
       'AI service temporarily unavailable',
       502,
-      `provider=${provider}; status=${response.status}; body=${body}`
+      `provider=${provider}; status=${response.status}; key=${getKeyFingerprint(apiKey)}; body=${body}`
     );
   }
 
