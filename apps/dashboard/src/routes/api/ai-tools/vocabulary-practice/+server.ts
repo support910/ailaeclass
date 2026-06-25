@@ -103,8 +103,7 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({ items: parsed.items });
   } catch (err) {
     if (err instanceof AiServiceError) {
-      const includeDetails = request.headers.get('x-ai-debug') === '1';
-      return jsonError(err.message, err.code, err.status, includeDetails ? err.details : undefined);
+      return jsonError(err.message, err.code, err.status);
     }
     console.error('Vocabulary practice endpoint failed:', err instanceof Error ? err.message : 'unknown');
     return jsonError('Internal error', 'internal_error', 500);

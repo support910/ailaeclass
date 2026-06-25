@@ -55,7 +55,6 @@ ENV PRIVATE_DEEPSEEK_BASE_URL=${PRIVATE_DEEPSEEK_BASE_URL}
 ENV PRIVATE_AI_MAX_TOKENS=${PRIVATE_AI_MAX_TOKENS:-800}
 # Never let a local developer .env override Railway variables during build.
 RUN rm -f ./apps/dashboard/.env ./apps/dashboard/.env.local ./apps/dashboard/.env.production
-RUN node -e "const crypto=require('crypto'); for (const k of ['PRIVATE_DEEPSEEK_API_KEY_RUNTIME','PRIVATE_DEEPSEEK_API_KEY']) { const v=(process.env[k]||'').trim(); console.log(k+'_BUILD_FP='+(v ? crypto.createHash('sha256').update(v).digest('hex').slice(0,12) : 'missing')); }"
 
 # Build API first (dashboard depends on @cio/api/rpc-types)
 RUN NODE_OPTIONS="--max-old-space-size=3072" pnpm --filter @cio/api build
