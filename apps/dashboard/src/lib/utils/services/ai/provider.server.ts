@@ -60,7 +60,7 @@ const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
   deepseek: {
     baseUrl: env.PRIVATE_DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com',
     model: env.PRIVATE_DEEPSEEK_MODEL?.trim() || 'deepseek-chat',
-    keyEnvVars: ['PRIVATE_DEEPSEEK_API_KEY'],
+    keyEnvVars: ['PRIVATE_DEEPSEEK_API_KEY_RUNTIME', 'PRIVATE_DEEPSEEK_API_KEY'],
     defaultModel: 'deepseek-chat'
   },
   kimi: {
