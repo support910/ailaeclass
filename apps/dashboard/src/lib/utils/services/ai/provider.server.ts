@@ -39,6 +39,7 @@ interface ProviderConfig {
   model: string;
   keyEnvVars: string[];
   defaultModel: string;
+  disableThinking?: boolean;
 }
 
 function getNumberEnv(name: string, fallback: number) {
@@ -51,7 +52,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 const DEFAULT_MAX_OUTPUT_TOKENS = clamp(
-  getNumberEnv('PRIVATE_AI_MAX_TOKENS', getNumberEnv('PRIVATE_DEEPSEEK_MAX_TOKENS', 800)),
+  getNumberEnv('PRIVATE_AI_MAX_TOKENS', getNumberEnv('PRIVATE_DEEPSEEK_MAX_TOKENS', 700)),
   128,
   1200
 );
@@ -59,9 +60,10 @@ const DEFAULT_MAX_OUTPUT_TOKENS = clamp(
 const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
   deepseek: {
     baseUrl: env.PRIVATE_DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com',
-    model: env.PRIVATE_DEEPSEEK_MODEL?.trim() || 'deepseek-chat',
+    model: env.PRIVATE_DEEPSEEK_MODEL?.trim() || 'deepseek-v4-flash',
     keyEnvVars: ['PRIVATE_DEEPSEEK_API_KEY_RUNTIME', 'PRIVATE_DEEPSEEK_API_KEY'],
-    defaultModel: 'deepseek-chat'
+    defaultModel: 'deepseek-v4-flash',
+    disableThinking: true
   },
   kimi: {
     baseUrl: env.PRIVATE_KIMI_BASE_URL?.trim() || 'https://api.moonshot.cn/v1',
@@ -138,7 +140,8 @@ export async function createAiChatCompletion(
     model: config.model,
     messages,
     max_tokens: Math.min(options.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS),
-    temperature: options.temperature ?? 0.5
+    temperature: options.temperature ?? 0.5,
+    ...(config.disableThinking ? { thinking: { type: 'disabled' } } : {})
   };
 
   const requestHeaders = {
@@ -170,9 +173,6 @@ export async function createAiChatCompletion(
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
-      keySource: keyDetails.source,
-      keyFingerprints: keyDetails.fingerprints,
-      keyFingerprint: getKeyFingerprint(apiKey),
       body
     }));
 
@@ -208,9 +208,6 @@ export async function createAiChatCompletion(
       statusText: response.statusText,
       model: config.model,
       baseUrl: config.baseUrl,
-      keySource: keyDetails.source,
-      keyFingerprints: keyDetails.fingerprints,
-      keyFingerprint: getKeyFingerprint(apiKey),
       body
     }));
 
@@ -218,7 +215,7 @@ export async function createAiChatCompletion(
       'upstream_error',
       'AI service temporarily unavailable',
       502,
-      `provider=${provider}; status=${response.status}; keySource=${keyDetails.source}; key=${getKeyFingerprint(apiKey)}; envKeys=${JSON.stringify(keyDetails.fingerprints)}; body=${body}`
+      `provider=${provider}; status=${response.status}; body=${body}`
     );
   }
 

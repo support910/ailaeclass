@@ -41,6 +41,7 @@ docker/run-local.sh
 .env.production.local
 _LOCAL_SECRETS_DO_NOT_COMMIT/
 新建 文本文档.txt
+NewApi.txt
 
 # turbo
 .turbo
