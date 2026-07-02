@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Select, SelectItem } from 'carbon-components-svelte';
-  import TextField from '$lib/components/Form/TextField.svelte';
   import TextArea from '$lib/components/Form/TextArea.svelte';
   import Checkbox from '$lib/components/Form/Checkbox.svelte';
   import RadioItem from '$lib/components/Form/RadioItem.svelte';
@@ -224,10 +223,12 @@
     >
       <div class="flex justify-between items-center gap-4">
         <div class="flex-1">
-          <TextField
+          <TextArea
             placeholder={$t('components.exam.question_placeholder')}
             bind:value={question.title}
             isRequired={true}
+            rows={5}
+            className="exam-question-title"
             onChange={() => handleQuestionFieldChange(question.id, 'title', question.title)}
           />
           <QuestionImageUpload
@@ -411,3 +412,11 @@
     />
   </div>
 </div>
+
+<style>
+  :global(.exam-question-title textarea) {
+    min-height: 9rem;
+    resize: vertical;
+    line-height: 1.6;
+  }
+</style>

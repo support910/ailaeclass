@@ -58,7 +58,10 @@ const getStoredAccessToken = () => {
       if (!raw) continue;
 
       const parsed = JSON.parse(raw);
-      const token = parsed?.access_token || parsed?.currentSession?.access_token;
+      const token =
+        parsed?.access_token ||
+        parsed?.currentSession?.access_token ||
+        parsed?.session?.access_token;
       if (token) return token;
     }
   } catch {
