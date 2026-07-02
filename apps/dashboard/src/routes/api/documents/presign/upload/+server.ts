@@ -5,7 +5,8 @@ import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 import {
   ALLOWED_DOCUMENT_TYPES,
   DOCUMENT_UPLOAD_BUCKET,
-  MAX_DOCUMENT_SIZE
+  MAX_DOCUMENT_SIZE,
+  getDocumentUploadMimeType
 } from '$lib/utils/constants/documentUpload';
 
 function getBearerToken(request: Request) {
@@ -66,12 +67,13 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const { fileName, fileType, fileSize } = await request.json();
+  const resolvedFileType = getDocumentUploadMimeType(fileName, fileType);
 
-  if (!fileName || !fileType || typeof fileSize !== 'number') {
+  if (!fileName || typeof fileSize !== 'number') {
     return json({ success: false, message: 'Missing file metadata' }, { status: 400 });
   }
 
-  if (!(ALLOWED_DOCUMENT_TYPES as readonly string[]).includes(fileType)) {
+  if (!resolvedFileType || !(ALLOWED_DOCUMENT_TYPES as readonly string[]).includes(resolvedFileType)) {
     return json({ success: false, message: 'Unsupported document type' }, { status: 400 });
   }
 

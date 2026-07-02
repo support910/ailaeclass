@@ -299,6 +299,7 @@ export type LessonDocument = {
   name: string;
   link: string;
   size?: number;
+  mimeType?: string;
   key: string;
 };
 

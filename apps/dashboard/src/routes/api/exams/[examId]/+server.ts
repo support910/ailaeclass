@@ -142,11 +142,6 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       return json({ success: false, message: 'Exam does not belong to this course' }, { status: 403 });
     }
 
-    // Verify published
-    if (!examRow.published_at) {
-      return json({ success: false, message: 'Exam not published' }, { status: 403 });
-    }
-
     // Guard: reject empty exams for everyone (prevent student from starting an exam with no questions)
     const totalQuestions = (questionsData || []).length;
     if (totalQuestions === 0) {
@@ -176,6 +171,10 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
 
     const groupMemberId = userMembership?.id || null;
     const isPreview = !isStudent;
+
+    if (isStudent && !examRow.published_at) {
+      return json({ success: false, message: 'Exam not published' }, { status: 403 });
+    }
 
     const isQuickPractice = examRow.settings?.exam_mode === 'quick_practice';
 

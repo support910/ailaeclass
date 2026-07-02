@@ -183,6 +183,16 @@
     return null;
   }
 
+  function emptyToNull(value: any) {
+    return value === '' || value === undefined ? null : value;
+  }
+
+  function optionalNumber(value: any) {
+    if (value === '' || value === undefined || value === null) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : value;
+  }
+
   function getLocalDraftKey() {
     return `ailaeclass:exam-editor-draft:${examId}`;
   }
@@ -278,15 +288,15 @@
     const { error: saveError } = await updateExamSettings(examId, {
       title: exam.title,
       description: exam.description,
-      duration_minutes: exam.duration_minutes,
+      duration_minutes: optionalNumber(exam.duration_minutes),
       attempts_allowed:
         exam.attempts_allowed === '' || exam.attempts_allowed === undefined
           ? null
-          : exam.attempts_allowed,
-      passing_score: exam.passing_score,
+          : optionalNumber(exam.attempts_allowed),
+      passing_score: optionalNumber(exam.passing_score),
       show_result_policy: exam.show_result_policy,
-      available_from: exam.available_from,
-      available_until: exam.available_until,
+      available_from: emptyToNull(exam.available_from),
+      available_until: emptyToNull(exam.available_until),
       shuffle_questions: exam.shuffle_questions,
       shuffle_options: exam.shuffle_options,
       settings: {

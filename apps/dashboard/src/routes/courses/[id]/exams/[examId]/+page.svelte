@@ -305,6 +305,7 @@
         onStart={handleStart}
         onStartShuffled={() => handleStart({ shuffle: true })}
         {isStarting}
+        {isPreview}
       />
     {:else if view === 'runner'}
       {#if getExamMode(exam) === 'quick_practice'}

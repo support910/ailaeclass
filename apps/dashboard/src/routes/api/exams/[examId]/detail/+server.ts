@@ -20,6 +20,17 @@ function mergeOptionImagesFromQuestionMetadata(question: any) {
   });
 }
 
+function getOptionMetadata(question: any, option: any) {
+  const optionImages = question?.metadata?.optionImages || {};
+  const key = option?.value ? String(option.value) : option?.id ? String(option.id) : '';
+  const sidecarImage = key ? optionImages[key] : null;
+
+  return {
+    ...(option.metadata || {}),
+    ...(sidecarImage && !option.metadata?.image ? { image: sidecarImage } : {})
+  };
+}
+
 /**
  * GET /api/exams/[examId]/detail
  *
@@ -40,7 +51,8 @@ export const GET: RequestHandler = async ({ params, request }) => {
   try {
     const supabase = getServerSupabase();
 
-    // 1. Fetch exam with questions and options
+    // 1. Fetch exam, questions, and options separately. This avoids brittle nested
+    // PostgREST relationship/schema-cache failures on the editor page.
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
       .select(
@@ -48,8 +60,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
         id, title, description, lesson_id, assessment_type, published_at,
         available_from, available_until, due_by, duration_minutes, attempts_allowed,
         passing_score, show_result_policy, shuffle_questions, shuffle_options,
-        settings,
-        questions:question(*, options:option(*), question_type:question_type_id(id, label))
+        settings
       `
       )
       .eq('id', examId)
@@ -60,6 +71,67 @@ export const GET: RequestHandler = async ({ params, request }) => {
       console.error('fetchExamDetail error:', examError);
       return json({ success: false, message: 'Exam not found' }, { status: 404 });
     }
+
+    const { data: questionsData, error: questionsError } = await supabase
+      .from('question')
+      .select('id, name, title, question_type_id, points, order, exercise_id, metadata')
+      .eq('exercise_id', examId);
+
+    if (questionsError) {
+      console.error('fetchExamDetail questions error:', questionsError);
+      return json({ success: false, message: 'Failed to load exam questions' }, { status: 500 });
+    }
+
+    const questionIds = (questionsData || []).map((q: any) => q.id);
+    let optionsMap: Record<string, any[]> = {};
+
+    if (questionIds.length > 0) {
+      let optionsData: any[] | null = null;
+      let optionsError: any = null;
+
+      const res1 = await supabase
+        .from('option')
+        .select('id, value, label, question_id, is_correct, metadata')
+        .in('question_id', questionIds);
+      optionsData = res1.data;
+      optionsError = res1.error;
+
+      if (optionsError) {
+        const errMsg = optionsError.message || '';
+        const isMetadataIssue =
+          errMsg.includes('metadata') ||
+          errMsg.includes('column') ||
+          errMsg.includes('schema') ||
+          (optionsError as any).code === '42703';
+        if (isMetadataIssue) {
+          const res2 = await supabase
+            .from('option')
+            .select('id, value, label, question_id, is_correct')
+            .in('question_id', questionIds);
+          optionsData = res2.data;
+          optionsError = res2.error;
+        }
+      }
+
+      if (optionsError) {
+        console.error('fetchExamDetail options error:', optionsError);
+        return json({ success: false, message: 'Failed to load exam options' }, { status: 500 });
+      }
+
+      (optionsData || []).forEach((option: any) => {
+        if (!optionsMap[option.question_id]) optionsMap[option.question_id] = [];
+        optionsMap[option.question_id].push(option);
+      });
+    }
+
+    (examRow as any).questions = (questionsData || []).map((question: any) => ({
+      ...question,
+      question_type: { id: question.question_type_id },
+      options: (optionsMap[question.id] || []).map((option: any) => ({
+        ...option,
+        metadata: getOptionMetadata(question, option)
+      }))
+    }));
 
     // 2. Verify user is teacher/admin of this course
     const { data: lessonRow } = await supabase

@@ -14,16 +14,18 @@
   export let onStart: () => void;
   export let onStartShuffled: (() => void) | null = null;
   export let isStarting = false;
+  export let isPreview = false;
 
   $: remainingAttempts =
     attemptsAllowed !== undefined && attemptsAllowed !== null
       ? Math.max(0, attemptsAllowed - attemptCount)
       : Infinity;
 
-  $: canStart = remainingAttempts > 0;
+  $: canStart = isPreview || remainingAttempts > 0;
 
   $: now = new Date();
   $: isAvailable =
+    isPreview ||
     (!exam.available_from || new Date(exam.available_from) <= now) &&
     (!exam.available_until || new Date(exam.available_until) > now);
 

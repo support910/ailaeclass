@@ -1,14 +1,44 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { isSingleOrgMode } from '$lib/utils/config/singleOrg';
-  import { hasSession } from '$lib/utils/functions/supabase';
+  import { getSingleOrgSiteName, isSingleOrgMode } from '$lib/utils/config/singleOrg';
+  import { getSupabase, hasSession } from '$lib/utils/functions/supabase';
   import { BRAND } from '$lib/utils/config/brand';
   import AilaeDistrictMap from '$lib/components/Landing/AilaeDistrictMap.svelte';
+  import { getOrganizations } from '$lib/utils/services/org';
+  import { ROLE } from '$lib/utils/constants/roles';
 
-  onMount(() => {
-    if (isSingleOrgMode()) {
-      goto(hasSession() ? '/lms' : '/login');
+  onMount(async () => {
+    if (!isSingleOrgMode()) return;
+
+    if (!(await hasSession())) {
+      goto('/login');
+      return;
+    }
+
+    const {
+      data: { user }
+    } = await getSupabase().auth.getUser();
+
+    if (!user?.id) {
+      goto('/login');
+      return;
+    }
+
+    const orgRes = await getOrganizations(user.id, true, getSingleOrgSiteName() || undefined);
+    const currentOrg = orgRes.currentOrg;
+
+    if (!currentOrg?.id) {
+      goto('/signup');
+      return;
+    }
+
+    if (currentOrg.role_id === ROLE.STUDENT) {
+      goto('/lms');
+    } else if (currentOrg.role_id === ROLE.TUTOR && currentOrg.verified === false) {
+      goto('/teacher-pending');
+    } else {
+      goto(`/org/${currentOrg.siteName}`);
     }
   });
 </script>
@@ -17,7 +47,11 @@
   <title>{BRAND.name} — 18 District School Center</title>
 </svelte:head>
 
-{#if !isSingleOrgMode()}
+{#if isSingleOrgMode()}
+  <div class="flex min-h-screen items-center justify-center bg-white text-sm text-gray-500">
+    Loading...
+  </div>
+{:else}
   <section class="landing-shell">
     <main class="landing-content">
       <div class="brand-lockup" aria-label="5GNU Multimedia Limited">

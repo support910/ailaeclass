@@ -9,6 +9,7 @@
   import isEmpty from 'lodash/isEmpty';
   import { createEventDispatcher } from 'svelte';
   import type { LessonDocument } from '$lib/utils/types';
+  import { isInlinePreviewDocument } from '$lib/utils/constants/documentUpload';
 
   const dispatch = createEventDispatcher();
 
@@ -30,8 +31,8 @@
     }
   }
 
-  function handleViewPDF(document: LessonDocument) {
-    dispatch('viewPDF', document);
+  function handlePreviewDocument(document: LessonDocument) {
+    dispatch('previewDocument', document);
   }
 </script>
 
@@ -71,13 +72,15 @@
                 {/if}
               </div>
               <div class="flex gap-3">
-                {#if document.type === 'pdf'}
+                {#if isInlinePreviewDocument(document.type, document.name)}
                   <button
-                    on:click={() => handleViewPDF(document)}
+                    on:click={() => handlePreviewDocument(document)}
                     class="text-sm text-blue-600 underline hover:text-blue-800"
                   >
                     <EyeIcon size={16} class="mr-1 inline" />
-                    {$t('course.navItem.lessons.materials.tabs.document.view_pdf')}
+                    {document.type === 'pdf'
+                      ? $t('course.navItem.lessons.materials.tabs.document.view_pdf')
+                      : $t('course.navItem.lessons.materials.tabs.document.view_document')}
                   </button>
                 {:else}
                   <a
@@ -135,14 +138,16 @@
               {/if}
             </div>
             <div class="flex gap-3">
-              {#if document.type === 'pdf'}
+              {#if isInlinePreviewDocument(document.type, document.name)}
                 <PrimaryButton
                   variant={VARIANTS.CONTAINED_DARK}
-                  onClick={() => handleViewPDF(document)}
+                  onClick={() => handlePreviewDocument(document)}
                   {isLoading}
                 >
                   <EyeIcon size={16} class="mr-1 inline" />
-                  {$t('course.navItem.lessons.materials.tabs.document.view_pdf')}
+                  {document.type === 'pdf'
+                    ? $t('course.navItem.lessons.materials.tabs.document.view_pdf')
+                    : $t('course.navItem.lessons.materials.tabs.document.view_document')}
                 </PrimaryButton>
               {:else}
                 <a

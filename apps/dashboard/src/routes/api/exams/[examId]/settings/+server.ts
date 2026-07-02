@@ -3,6 +3,19 @@ import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 
+function emptyToNull(value: unknown) {
+  return value === '' || value === undefined ? null : value;
+}
+
+function optionalNumber(value: unknown, fieldName: string): number | null {
+  if (value === '' || value === undefined || value === null) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${fieldName} must be a valid number`);
+  }
+  return parsed;
+}
+
 /**
  * PATCH /api/exams/[examId]/settings
  *
@@ -76,9 +89,8 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 
     // 3. Build update payload
     const allowedFields = [
-      'title', 'description', 'duration_minutes',
-      'passing_score', 'show_result_policy', 'shuffle_questions',
-      'shuffle_options', 'available_from', 'available_until'
+      'title', 'description', 'show_result_policy', 'shuffle_questions',
+      'shuffle_options'
     ];
 
     const payload: Record<string, any> = {};
@@ -86,6 +98,36 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
       if (body[key] !== undefined) {
         payload[key] = body[key];
       }
+    }
+
+    try {
+      if (body.duration_minutes !== undefined) {
+        const duration = optionalNumber(body.duration_minutes, 'Duration');
+        if (duration !== null && duration <= 0) {
+          return json({ success: false, message: 'Duration must be greater than 0' }, { status: 400 });
+        }
+        payload.duration_minutes = duration;
+      }
+
+      if (body.passing_score !== undefined) {
+        const passingScore = optionalNumber(body.passing_score, 'Passing score');
+        if (passingScore !== null && passingScore < 0) {
+          return json({ success: false, message: 'Passing score must be at least 0' }, { status: 400 });
+        }
+        payload.passing_score = passingScore;
+      }
+    } catch (err) {
+      return json(
+        { success: false, message: err instanceof Error ? err.message : 'Invalid numeric field' },
+        { status: 400 }
+      );
+    }
+
+    if (body.available_from !== undefined) {
+      payload.available_from = emptyToNull(body.available_from);
+    }
+    if (body.available_until !== undefined) {
+      payload.available_until = emptyToNull(body.available_until);
     }
 
     const existingSettings =

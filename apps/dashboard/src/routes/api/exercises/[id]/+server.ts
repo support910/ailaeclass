@@ -69,6 +69,12 @@ function applyAutoQuestionPoints(questions: any[]) {
   });
 }
 
+function toNumberOrNull(value: unknown) {
+  if (value === '' || value === undefined || value === null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 /**
  * POST /api/exercises/[id]
  *
@@ -190,8 +196,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
         id: isNew(id) ? undefined : id,
         name: isNew(id) ? undefined : name,
         title: qTitle || '',
-        points,
-        order,
+        points: toNumberOrNull(points) ?? 0,
+        order: toNumberOrNull(order) ?? 0,
         question_type_id: question_type?.id,
         exercise_id: exerciseId,
         metadata: question.metadata || {}

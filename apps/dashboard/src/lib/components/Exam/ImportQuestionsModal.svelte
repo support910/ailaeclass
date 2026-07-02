@@ -31,75 +31,227 @@
 
   const TYPE_MAP: Record<string, number> = {
     RADIO: QUESTION_TYPE.RADIO,
+    SINGLE: QUESTION_TYPE.RADIO,
+    SINGLE_CHOICE: QUESTION_TYPE.RADIO,
+    MULTIPLE_CHOICE: QUESTION_TYPE.CHECKBOX,
     CHECKBOX: QUESTION_TYPE.CHECKBOX,
+    MULTI: QUESTION_TYPE.CHECKBOX,
     TEXTAREA: QUESTION_TYPE.TEXTAREA,
-    TRUE_FALSE: QUESTION_TYPE.TRUE_FALSE
+    SHORT_ANSWER: QUESTION_TYPE.TEXTAREA,
+    ESSAY: QUESTION_TYPE.TEXTAREA,
+    TRUE_FALSE: QUESTION_TYPE.TRUE_FALSE,
+    TF: QUESTION_TYPE.TRUE_FALSE,
+    '單選': QUESTION_TYPE.RADIO,
+    '单选': QUESTION_TYPE.RADIO,
+    '選擇題': QUESTION_TYPE.RADIO,
+    '选择题': QUESTION_TYPE.RADIO,
+    '單項選擇': QUESTION_TYPE.RADIO,
+    '单项选择': QUESTION_TYPE.RADIO,
+    '多選': QUESTION_TYPE.CHECKBOX,
+    '多选': QUESTION_TYPE.CHECKBOX,
+    '多項選擇': QUESTION_TYPE.CHECKBOX,
+    '多项选择': QUESTION_TYPE.CHECKBOX,
+    '問答': QUESTION_TYPE.TEXTAREA,
+    '问答': QUESTION_TYPE.TEXTAREA,
+    '簡答': QUESTION_TYPE.TEXTAREA,
+    '简答': QUESTION_TYPE.TEXTAREA,
+    '填空': QUESTION_TYPE.TEXTAREA,
+    '判斷': QUESTION_TYPE.TRUE_FALSE,
+    '判断': QUESTION_TYPE.TRUE_FALSE,
+    '是非': QUESTION_TYPE.TRUE_FALSE,
+    '對錯': QUESTION_TYPE.TRUE_FALSE,
+    '对错': QUESTION_TYPE.TRUE_FALSE
   };
 
-  const OPTION_KEYS = ['option_a', 'option_b', 'option_c', 'option_d'];
-  const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+  const OPTION_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+  const HEADER_ALIASES: Record<string, string> = {
+    questiontype: 'question_type',
+    type: 'question_type',
+    題型: 'question_type',
+    题型: 'question_type',
+    題目類型: 'question_type',
+    题目类型: 'question_type',
+    question: 'title',
+    questiontitle: 'title',
+    title: 'title',
+    題目: 'title',
+    题目: 'title',
+    問題: 'title',
+    问题: 'title',
+    題幹: 'title',
+    题干: 'title',
+    correct: 'correct_answer',
+    answer: 'correct_answer',
+    correctanswer: 'correct_answer',
+    standardanswer: 'correct_answer',
+    答案: 'correct_answer',
+    正確答案: 'correct_answer',
+    正确答案: 'correct_answer',
+    標準答案: 'correct_answer',
+    标准答案: 'correct_answer',
+    points: 'points',
+    point: 'points',
+    score: 'points',
+    marks: 'points',
+    分數: 'points',
+    分数: 'points',
+    得分: 'points',
+    explanation: 'explanation',
+    analysis: 'explanation',
+    rationale: 'explanation',
+    解析: 'explanation',
+    解釋: 'explanation',
+    解释: 'explanation',
+    答案解析: 'explanation'
+  };
+
+  const OPTION_HEADER_ALIASES: Record<string, string> = {
+    option: 'option',
+    choice: 'option',
+    選項: 'option',
+    选项: 'option'
+  };
 
   function makeId() {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  function normalizeText(value: unknown) {
+    return String(value ?? '')
+      .replace(/^\uFEFF/, '')
+      .replace(/\u00A0/g, ' ')
+      .trim();
+  }
+
+  function normalizeHeader(header: string) {
+    const raw = normalizeText(header);
+    const compact = raw
+      .toLowerCase()
+      .replace(/[()\[\]{}（）【】]/g, '')
+      .replace(/[\s_\-./\\:：]+/g, '');
+
+    if (/^(option|choice|選項|选项)?[a-z]$/i.test(compact)) {
+      const letter = compact.slice(-1).toUpperCase();
+      return `option_${letter.toLowerCase()}`;
+    }
+
+    const optionMatch = compact.match(/^(option|choice|選項|选项)([a-z])$/i);
+    if (optionMatch) {
+      return `option_${optionMatch[2].toLowerCase()}`;
+    }
+
+    const alias = HEADER_ALIASES[compact];
+    if (alias) return alias;
+
+    for (const [prefix, canonical] of Object.entries(OPTION_HEADER_ALIASES)) {
+      if (compact.startsWith(prefix) && compact.length === prefix.length + 1) {
+        const letter = compact.slice(-1).toUpperCase();
+        if (OPTION_LETTERS.includes(letter)) return `${canonical}_${letter.toLowerCase()}`;
+      }
+    }
+
+    return raw.toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function normalizeType(typeRaw: string, row: Record<string, string>) {
+    const normalized = normalizeText(typeRaw)
+      .replace(/[（）()]/g, '')
+      .trim();
+    const compact = normalized.toUpperCase().replace(/[\s_\-]+/g, '_');
+    if (TYPE_MAP[compact]) return TYPE_MAP[compact];
+    if (TYPE_MAP[normalized]) return TYPE_MAP[normalized];
+
+    const optionCount = getOptionRows(row).length;
+    if (!normalized) {
+      if (optionCount >= 2) return QUESTION_TYPE.RADIO;
+      return QUESTION_TYPE.TEXTAREA;
+    }
+
+    return undefined;
+  }
+
+  function normalizeCorrectToken(token: string) {
+    const value = normalizeText(token).toUpperCase();
+    const trueTokens = new Set(['TRUE', 'T', 'YES', 'Y', '對', '对', '正確', '正确', '是', '啱']);
+    const falseTokens = new Set(['FALSE', 'F', 'NO', 'N', '錯', '错', '錯誤', '错误', '否', '唔啱']);
+    if (trueTokens.has(value)) return 'TRUE';
+    if (falseTokens.has(value)) return 'FALSE';
+    const letterMatch = value.match(/[A-Z]/);
+    return letterMatch ? letterMatch[0] : value;
+  }
+
+  function parseCorrectAnswers(correctRaw: string) {
+    return normalizeText(correctRaw)
+      .split(/[;,，；、|/\\\s]+/)
+      .map(normalizeCorrectToken)
+      .filter(Boolean);
+  }
+
+  function getOptionRows(row: Record<string, string>) {
+    return OPTION_LETTERS.map((letter) => {
+      const key = `option_${letter.toLowerCase()}`;
+      return {
+        letter,
+        label: normalizeText(row[key])
+      };
+    }).filter((option) => option.label);
+  }
+
+  function makeOption(label: string, isCorrect: boolean) {
+    return {
+      id: makeId(),
+      label,
+      value: label.split(' ').join('-'),
+      is_correct: isCorrect,
+      metadata: {},
+      is_dirty: true
+    };
+  }
+
   function validateRow(row: Record<string, string>, rowIndex: number): ParseResult {
     const errors: string[] = [];
-    const typeRaw = (row.question_type || '').trim().toUpperCase();
-    const typeId = TYPE_MAP[typeRaw];
+    const typeId = normalizeType(row.question_type || '', row);
 
     if (!typeId) {
       errors.push($t('components.exam.import.error_invalid_type'));
     }
 
-    const title = (row.title || '').trim();
+    const title = normalizeText(row.title);
     if (!title) {
       errors.push($t('components.exam.import.error_empty_title'));
     }
 
-    const pointsRaw = (row.points || '').trim();
+    const pointsRaw = normalizeText(row.points);
     const points = pointsRaw ? parseFloat(pointsRaw) : 1;
     if (pointsRaw && (isNaN(points) || points < 0)) {
       errors.push($t('components.exam.import.error_invalid_points'));
     }
 
     let options: any[] = [];
-    const correctRaw = (row.correct_answer || '').trim().toUpperCase();
+    const correctRaw = normalizeText(row.correct_answer);
+    const correctTokens = parseCorrectAnswers(correctRaw);
+    const optionRows = getOptionRows(row);
 
     if (typeId === QUESTION_TYPE.RADIO) {
-      const opts = OPTION_KEYS.map((k, i) => ({
-        letter: OPTION_LETTERS[i],
-        label: (row[k] || '').trim()
-      })).filter((o) => o.label);
-
-      if (opts.length < 2) {
+      if (optionRows.length < 2) {
         errors.push($t('components.exam.import.error_not_enough_options'));
       }
 
-      if (correctRaw && !OPTION_LETTERS.includes(correctRaw)) {
+      const correct = correctTokens[0];
+      if (!correct || !OPTION_LETTERS.includes(correct)) {
         errors.push($t('components.exam.import.error_invalid_correct'));
       }
 
-      if (opts.length >= 2 && OPTION_LETTERS.includes(correctRaw)) {
-        const correctIndex = OPTION_LETTERS.indexOf(correctRaw);
-        options = opts.map((o, i) => ({
-          id: makeId(),
-          label: o.label,
-          value: o.label.split(' ').join('-'),
-          is_correct: i === correctIndex
-        }));
+      if (optionRows.length >= 2 && OPTION_LETTERS.includes(correct)) {
+        options = optionRows.map((option) => makeOption(option.label, option.letter === correct));
       }
     } else if (typeId === QUESTION_TYPE.CHECKBOX) {
-      const opts = OPTION_KEYS.map((k, i) => ({
-        letter: OPTION_LETTERS[i],
-        label: (row[k] || '').trim()
-      })).filter((o) => o.label);
-
-      if (opts.length < 2) {
+      if (optionRows.length < 2) {
         errors.push($t('components.exam.import.error_not_enough_options'));
       }
 
-      const correctSet = new Set(correctRaw.split(';').map((s) => s.trim()).filter(Boolean));
+      const correctSet = new Set(correctTokens);
       if (correctSet.size === 0) {
         errors.push($t('components.exam.import.error_no_correct'));
       } else {
@@ -109,21 +261,19 @@
         }
       }
 
-      if (opts.length >= 2) {
-        options = opts.map((o, i) => ({
-          id: makeId(),
-          label: o.label,
-          value: o.label.split(' ').join('-'),
-          is_correct: correctSet.has(OPTION_LETTERS[i])
-        }));
+      if (optionRows.length >= 2) {
+        options = optionRows.map((option) => makeOption(option.label, correctSet.has(option.letter)));
       }
     } else if (typeId === QUESTION_TYPE.TRUE_FALSE) {
-      if (correctRaw && correctRaw !== 'TRUE' && correctRaw !== 'FALSE') {
+      const correct = correctTokens[0];
+      if (!correct) {
+        errors.push($t('components.exam.import.error_no_correct'));
+      } else if (correct !== 'TRUE' && correct !== 'FALSE') {
         errors.push($t('components.exam.import.error_invalid_correct'));
       }
       options = [
-        { id: makeId(), label: 'True', value: 'true', is_correct: correctRaw === 'TRUE' },
-        { id: makeId(), label: 'False', value: 'false', is_correct: correctRaw === 'FALSE' }
+        makeOption('True', correct === 'TRUE'),
+        makeOption('False', correct === 'FALSE')
       ];
     }
 
@@ -139,6 +289,9 @@
       order: existingCount + rowIndex,
       question_type: { id: typeId },
       options,
+      metadata: {
+        explanation: normalizeText(row.explanation)
+      },
       is_dirty: true
     };
 
@@ -169,7 +322,8 @@
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (h: string) => h.trim().toLowerCase(),
+      transformHeader: normalizeHeader,
+      transform: normalizeText,
       complete: (results) => {
         const rows = results.data as Record<string, string>[];
         parseResults = rows.map((row, i) => validateRow(row, i));

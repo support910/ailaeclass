@@ -7,7 +7,10 @@ import {
 import axios from 'axios';
 import { appApi } from '$lib/utils/services/api';
 import { getAccessToken, getSupabase } from '$lib/utils/functions/supabase';
-import { DOCUMENT_UPLOAD_BUCKET } from '$lib/utils/constants/documentUpload';
+import {
+  DOCUMENT_UPLOAD_BUCKET,
+  getDocumentUploadMimeType
+} from '$lib/utils/constants/documentUpload';
 import { IMAGE_UPLOAD_BUCKET } from '$lib/utils/constants/imageUpload';
 
 export type UploadType = 'document' | 'video' | 'generic';
@@ -154,6 +157,7 @@ export class DocumentUploader extends GenericUploader {
 
   async getPresignedUrl(file: File) {
     const token = await getAccessToken();
+    const fileType = getDocumentUploadMimeType(file?.name, file?.type);
     const response = await fetch('/api/documents/presign/upload', {
       method: 'POST',
       headers: {
@@ -162,7 +166,7 @@ export class DocumentUploader extends GenericUploader {
       },
       body: JSON.stringify({
         fileName: file?.name,
-        fileType: file?.type,
+        fileType,
         fileSize: file?.size
       })
     });
@@ -181,6 +185,7 @@ export class DocumentUploader extends GenericUploader {
     if (!this.signedUpload) {
       throw new Error('Missing signed upload token');
     }
+    const fileType = getDocumentUploadMimeType(params.file?.name, params.file?.type);
 
     this.uploadStore.update((state) => ({
       ...state,
@@ -191,7 +196,7 @@ export class DocumentUploader extends GenericUploader {
       .storage
       .from(DOCUMENT_UPLOAD_BUCKET)
       .uploadToSignedUrl(this.signedUpload.path, this.signedUpload.token, params.file, {
-        contentType: params.file.type
+        contentType: fileType || params.file.type
       });
 
     if (error) {

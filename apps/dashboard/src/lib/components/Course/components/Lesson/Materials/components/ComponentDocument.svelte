@@ -16,6 +16,7 @@
   import { t } from '$lib/utils/functions/translations';
   import type { LessonDocument } from '$lib/utils/types';
   import { snackbar } from '$lib/components/Snackbar/store';
+  import { getDocumentExtension } from '$lib/utils/constants/documentUpload';
 
   export let mode = MODES.view;
 
@@ -32,6 +33,12 @@
   let pdfjsLib: any = null;
   let renderTimeout: any = null;
   let currentRenderTask: any = null;
+  let textViewerOpen = false;
+  let viewingTextDocument: LessonDocument | null = null;
+  let textDocumentContent = '';
+  let textDocumentType = '';
+  let textDocumentLoading = false;
+  let textDocumentError: string | null = null;
 
   onMount(() => {
     // Load PDF.js dynamically
@@ -236,8 +243,53 @@
     debouncedRender();
   }
 
-  function handleViewPDF(event: CustomEvent<LessonDocument>) {
-    viewPDF(event.detail);
+  function getPreviewDocumentType(doc: LessonDocument) {
+    const type = String(doc.type || '').toLowerCase();
+    if (type === 'pdf' || type === 'html' || type === 'md' || type === 'txt') return type;
+
+    const ext = getDocumentExtension(doc.name);
+    if (ext === 'htm') return 'html';
+    if (ext === 'markdown') return 'md';
+    if (ext === 'html' || ext === 'md' || ext === 'txt' || ext === 'pdf') return ext;
+    return type;
+  }
+
+  async function viewTextDocument(doc: LessonDocument) {
+    viewingTextDocument = doc;
+    textDocumentType = getPreviewDocumentType(doc);
+    textViewerOpen = true;
+    textDocumentLoading = true;
+    textDocumentError = null;
+    textDocumentContent = '';
+
+    try {
+      const response = await fetch(doc.link);
+      if (!response.ok) throw new Error('Failed to fetch document');
+      textDocumentContent = await response.text();
+    } catch (err) {
+      console.error('Error loading text document:', err);
+      textDocumentError = 'course.navItem.lessons.materials.tabs.document.failed_to_load_document';
+    } finally {
+      textDocumentLoading = false;
+    }
+  }
+
+  function handlePreviewDocument(event: CustomEvent<LessonDocument>) {
+    const doc = event.detail;
+    if (getPreviewDocumentType(doc) === 'pdf') {
+      viewPDF(doc);
+      return;
+    }
+
+    viewTextDocument(doc);
+  }
+
+  function closeTextViewer() {
+    textViewerOpen = false;
+    viewingTextDocument = null;
+    textDocumentContent = '';
+    textDocumentType = '';
+    textDocumentError = null;
   }
 
   function closePDFViewer() {
@@ -262,6 +314,11 @@
     renderTimeout = null;
   }
   function handleKeydown(event: KeyboardEvent) {
+    if (textViewerOpen && event.key === 'Escape') {
+      closeTextViewer();
+      return;
+    }
+
     if (!pdfViewerOpen) return;
 
     switch (event.key) {
@@ -311,7 +368,7 @@
   {openDocumentUploadModal}
   {deleteDocument}
   {downloadDocument}
-  on:viewPDF={handleViewPDF}
+  on:previewDocument={handlePreviewDocument}
 />
 
 <!-- PDF Viewer Modal -->
@@ -445,6 +502,61 @@
         </p>
       </div>
     {/if}
+  </div>
+{/if}
+
+<!-- Text / HTML Document Preview Modal -->
+{#if textViewerOpen}
+  <div class="fixed inset-0 z-50 flex flex-col bg-white dark:bg-neutral-800">
+    <div
+      class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:bg-neutral-800"
+    >
+      <h2 class="max-w-2xl truncate text-lg font-semibold text-gray-900 dark:text-gray-300">
+        {viewingTextDocument?.name}
+      </h2>
+
+      <IconButton onClick={closeTextViewer} toolTipProps={{ title: 'Close (Esc)', hotkeys: ['Esc'] }}>
+        <CloseIcon size={20} class="carbon-icon" />
+      </IconButton>
+    </div>
+
+    <div class="flex-1 overflow-auto bg-gray-100 p-4 dark:bg-neutral-900">
+      {#if textDocumentLoading}
+        <div class="flex h-full items-center justify-center">
+          <div class="text-center">
+            <div
+              class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"
+            ></div>
+            <p class="text-gray-600 dark:text-gray-300">
+              {$t('course.navItem.lessons.materials.tabs.document.loading_document')}
+            </p>
+          </div>
+        </div>
+      {:else if textDocumentError}
+        <div class="flex h-full items-center justify-center">
+          <div class="text-center">
+            <p class="mb-3 text-red-600">{$t(textDocumentError)}</p>
+            <button
+              on:click={() => viewingTextDocument && viewTextDocument(viewingTextDocument)}
+              class="text-blue-600 underline hover:text-blue-800"
+            >
+              {$t('course.navItem.lessons.materials.tabs.document.try_again')}
+            </button>
+          </div>
+        </div>
+      {:else if textDocumentType === 'html'}
+        <iframe
+          title={viewingTextDocument?.name || 'HTML document preview'}
+          sandbox=""
+          srcdoc={textDocumentContent}
+          class="h-full min-h-[70vh] w-full rounded-md border border-gray-200 bg-white shadow-sm"
+        ></iframe>
+      {:else}
+        <pre
+          class="min-h-[70vh] whitespace-pre-wrap break-words rounded-md border border-gray-200 bg-white p-6 text-sm leading-7 text-gray-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-100"
+        >{textDocumentContent}</pre>
+      {/if}
+    </div>
   </div>
 {/if}
 

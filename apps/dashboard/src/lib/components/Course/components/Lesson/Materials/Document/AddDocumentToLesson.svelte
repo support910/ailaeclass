@@ -11,8 +11,10 @@
   import { onDestroy } from 'svelte';
   import { lesson } from '../../store/lessons';
   import {
-    ALLOWED_DOCUMENT_TYPES,
-    MAX_DOCUMENT_SIZE
+    MAX_DOCUMENT_SIZE,
+    getDocumentUploadMimeType,
+    getLessonDocumentType,
+    isAllowedDocumentUpload
   } from '$lib/utils/constants/documentUpload';
   import { getAccessToken } from '$lib/utils/functions/supabase';
 
@@ -26,17 +28,6 @@
 
   const documentUploader = new DocumentUploader();
 
-  function getFileType(file: File): 'pdf' | 'docx' | 'doc' | 'pptx' | 'ppt' {
-    if (file.type === 'application/pdf') return 'pdf';
-    if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-      return 'docx';
-    if (file.type === 'application/msword') return 'doc';
-    if (file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
-      return 'pptx';
-    if (file.type === 'application/vnd.ms-powerpoint') return 'ppt';
-    return 'pdf'; // fallback
-  }
-
   function formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -46,7 +37,7 @@
   }
 
   function validateFile(file: File): string | null {
-    if (!(ALLOWED_DOCUMENT_TYPES as readonly string[]).includes(file.type)) {
+    if (!isAllowedDocumentUpload(file.name, file.type)) {
       return $t('course.navItem.lessons.materials.tabs.document.file_type_error');
     }
 
@@ -127,11 +118,12 @@
       const { urls: presignedUrls } = await documentUploader.getDownloadPresignedUrl([fileKey]);
 
       const document = {
-        type: getFileType(selectedFile),
+        type: getLessonDocumentType(selectedFile.name, selectedFile.type),
         name: selectedFile.name,
         link: presignedUrls[fileKey],
         key: fileKey,
-        size: selectedFile.size
+        size: selectedFile.size,
+        mimeType: getDocumentUploadMimeType(selectedFile.name, selectedFile.type)
       };
 
       lesson.update((state) => ({
@@ -188,6 +180,7 @@
   function getFileIcon(type: string) {
     switch (type) {
       case 'application/pdf':
+      case 'pdf':
         return PdfIcon;
       default:
         return DocumentIcon;
@@ -254,7 +247,7 @@
         bind:this={fileInput}
         disabled={isDisabled}
         type="file"
-        accept=".pdf,.docx,.doc,.pptx,.ppt"
+        accept=".pdf,.docx,.doc,.pptx,.ppt,.html,.htm,.md,.markdown,.txt"
         on:change={handleFileSelect}
         class="hidden"
       />
