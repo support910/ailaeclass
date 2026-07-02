@@ -179,3 +179,47 @@
   - 教师：课程内容、人员、日志、提交、考试、分析。
   - 学生：LMS、探索、我的学习、AI 工具、课程内容、课程考试、成绩；直连提交页会回到课程内容。
 - 备注：并发跑三个角色时公司域名偶发 `/login` 超时；顺序跑稳定通过，属于线上冷启动/网络并发敏感，不是业务逻辑失败。
+
+## 2026-07-02 — 部署路径校正与上线确认
+
+### 问题
+- 用户反馈推送后线上网页打不开。
+- 初步排查时 Railway 账号里存在两个连接同一 GitHub 仓库的项目，容易查错服务。
+
+### 最终确认的正确生产路径
+- GitHub：`https://github.com/support910/ailaeclass.git`
+- Railway 生产项目：`attractive-harmony`
+- Project ID：`d5f08192-ace8-4d1e-8fb1-1475b4dbb63b`
+- Environment：`production`
+- Service：`ailaeclass`
+- Service ID：`dc5d5935-1b0f-4a09-b901-95b5a7ca8be3`
+- 线上域名：`https://ailaeclass.5gnumultimedia.com`
+- Railway 域名：`https://ailaeclass-production.up.railway.app`
+- 域名目标端口：`3082`
+- 生产部署分支：`main`
+
+### 需要避免的错误路径
+- Railway 项目 `overflowing-upliftment` / Project ID `2cc9aa17-a56a-44e9-816a-6080dc798c9c` 也连接了同一个 repo，但不是公司域名背后的生产服务。
+- 下次不要用这个项目判断公司域名是否部署成功。
+
+### 本次最终状态
+- 最新生产 commit：`fbd4babb8bcbb73634d87882444859fc223e6aa1`
+- commit message：`fix: harden exam csv import and role boundaries`
+- Railway deployment：`SUCCESS`
+- Running replicas：`1`
+- Crashed replicas：`0`
+- 域名端口：`3082`
+- HTTP 验证：
+  - `/`：200
+  - `/login`：200
+  - `/org/admin`：200
+  - `/_app/version.json`：200
+- 浏览器 smoke：
+  - `/login` 返回 200。
+  - 页面标题为 `Welcome back to admin`。
+  - 邮箱输入框可见。
+  - 无 request failure。
+
+### 新增文档
+- `PRODUCTION_DEPLOYMENT_RUNBOOK.md`
+- 该文件写明了后续部署、Railway 检查、域名端口修复、HTTP 验证和 Supabase 注意事项。

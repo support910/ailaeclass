@@ -254,6 +254,52 @@ E:\Class\.archive\old-top-level
 
 These were present during v5 work and are not blockers.
 
+## 2026-07-02 Production Deployment Path Update
+
+Use `PRODUCTION_DEPLOYMENT_RUNBOOK.md` before deploying or debugging production. It records the exact Railway project, service, domain ports, and verification commands.
+
+Correct production Railway target:
+
+```text
+Project: attractive-harmony
+Project ID: d5f08192-ace8-4d1e-8fb1-1475b4dbb63b
+Environment: production
+Service: ailaeclass
+Service ID: dc5d5935-1b0f-4a09-b901-95b5a7ca8be3
+Production URL: https://ailaeclass.5gnumultimedia.com
+Railway URL: https://ailaeclass-production.up.railway.app
+Domain target port: 3082
+Deploy branch: main
+```
+
+Do not use the similarly named Railway project `overflowing-upliftment` for production checks. It is connected to the same GitHub repository but is not the service behind `ailaeclass.5gnumultimedia.com`.
+
+Latest verified production commit:
+
+```text
+fbd4babb8bcbb73634d87882444859fc223e6aa1
+fix: harden exam csv import and role boundaries
+```
+
+Verification after deployment:
+- Railway deployment status: `SUCCESS`.
+- Running replicas: `1`.
+- Crashed replicas: `0`.
+- `https://ailaeclass.5gnumultimedia.com/`: `200`.
+- `https://ailaeclass.5gnumultimedia.com/login`: `200`.
+- `https://ailaeclass.5gnumultimedia.com/org/admin`: `200`.
+- `https://ailaeclass.5gnumultimedia.com/_app/version.json`: `200`.
+- Browser login smoke: login page loads, email field visible, no request failures.
+
+Supabase project remains:
+
+```text
+Project ref: kiqzanfkpivkuvlvxqsp
+Dashboard: https://supabase.com/dashboard/project/kiqzanfkpivkuvlvxqsp
+```
+
+No Supabase migration was required for the 2026-07-02 exam CSV / role-boundary deployment.
+
 ## 2026-06-22 Production Hotfixes
 
 Latest deployed commits:
