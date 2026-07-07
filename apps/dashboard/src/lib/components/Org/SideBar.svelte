@@ -26,6 +26,8 @@
   import TextChip from '$lib/components/Chip/Text.svelte';
   import TaskIcon from 'carbon-icons-svelte/lib/Task.svelte';
   import JoinIcon from 'carbon-icons-svelte/lib/Education.svelte';
+  import LicenseDraft from 'carbon-icons-svelte/lib/LicenseDraft.svelte';
+  import Explore from 'carbon-icons-svelte/lib/Explore.svelte';
 
   interface menuItems {
     label: string;
@@ -34,8 +36,26 @@
     isActive: boolean;
   }
 
+  interface FutureMenuItem {
+    label: string;
+    path: string;
+    icon: any;
+  }
+
   let menuItems: menuItems[] = [];
   let showHelpModal = false;
+
+  const futureManagementItems: FutureMenuItem[] = [
+    { label: '校长驾驶舱', path: '/coming-soon/principal-dashboard', icon: Explore },
+    { label: '班级管理', path: '/coming-soon/class-management', icon: JoinIcon },
+    { label: '成绩录入与分析', path: '/coming-soon/grade-analysis', icon: TaskIcon },
+    { label: '考勤与纪律', path: '/coming-soon/attendance-discipline', icon: TaskIcon },
+    { label: 'AI评语/推荐信', path: '/coming-soon/ai-comments-recommendation', icon: Chat },
+    { label: '教务通知', path: '/coming-soon/academic-notice', icon: LicenseDraft },
+    { label: 'AI教务报告', path: '/coming-soon/ai-academic-report', icon: LicenseDraft },
+    { label: '考试计划', path: '/coming-soon/exam-plan', icon: TaskIcon },
+    { label: '课程资源中心', path: '/coming-soon/course-resource-center', icon: LicenseDraft }
+  ];
 
   function isActive(pagePath: string, itemPath: string) {
     const pageLinkItems = pagePath.split('/');
@@ -92,6 +112,12 @@
       path: '/agent',
       label: $t('org_navigation.agent'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/agent`),
+      show: true
+    },
+    {
+      path: '/guide',
+      label: '使用引导',
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/guide`),
       show: true
     },
     {
@@ -158,6 +184,8 @@
                     <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/agent'}
                     <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                  {:else if menuItem.path === '/guide'}
+                    <HelpIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/quiz'}
                     <QuizIcon />
                   {:else if menuItem.path === '/exams'}
@@ -175,6 +203,35 @@
             {/if}
           {/each}
         </ul>
+
+        {#if $isOrgAdmin}
+          <div class="mt-3 border-t border-gray-200 px-4 pt-3 dark:border-neutral-700">
+            <div class="mb-2 flex items-center justify-between px-2.5">
+              <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">管理端待开放</p>
+              <TextChip value="未开放" size="sm" className="text-xs text-gray-600" />
+            </div>
+            <ul>
+              {#each futureManagementItems as item}
+                <a
+                  href="{$currentOrgPath}{item.path}"
+                  class="text-black no-underline"
+                  on:click={toggleSidebar}
+                >
+                  <li
+                    class="mb-1 flex cursor-pointer items-center gap-2.5 px-2.5 py-2 {NavClasses.item} {$page.url.pathname.includes(
+                      `${$currentOrgPath}${item.path}`
+                    )
+                      ? NavClasses.active
+                      : 'text-gray-500 dark:text-neutral-300'}"
+                  >
+                    <svelte:component this={item.icon} size={20} class="carbon-icon dark:fill-[#fff]" />
+                    <p class="truncate text-sm font-medium">{item.label}</p>
+                  </li>
+                </a>
+              {/each}
+            </ul>
+          </div>
+        {/if}
       </div>
       <span class="flex-grow" />
 
@@ -233,4 +290,5 @@
       </a>
     </div>
   </Modal>
+
 </div>
