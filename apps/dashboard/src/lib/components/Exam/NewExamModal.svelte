@@ -219,24 +219,28 @@
   modalHeading={$t('components.exam.create_exam')}
 >
   <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-    <TextField
-      label={$t('components.exam.exam_title')}
-      bind:value={$createExamModal.title}
-      autofocus={true}
-      placeholder={$t('components.exam.placeholder')}
-      isRequired={true}
-      errorMessage={errors.title || ''}
-      autoComplete={false}
-    />
+    <div data-guide-target="exam-modal-title">
+      <TextField
+        label={$t('components.exam.exam_title')}
+        bind:value={$createExamModal.title}
+        autofocus={true}
+        placeholder={$t('components.exam.placeholder')}
+        isRequired={true}
+        errorMessage={errors.title || ''}
+        autoComplete={false}
+      />
+    </div>
 
-    <TextArea
-      label={$t('components.exam.description')}
-      bind:value={$createExamModal.description}
-      placeholder=""
-      className="mb-2"
-    />
+    <div data-guide-target="exam-modal-description">
+      <TextArea
+        label={$t('components.exam.description')}
+        bind:value={$createExamModal.description}
+        placeholder=""
+        className="mb-2"
+      />
+    </div>
 
-    <div>
+    <div data-guide-target="exam-modal-mode">
       <p class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.mode_label')}</p>
       <Dropdown
         class="w-full bg-gray-100 dark:bg-neutral-800"
@@ -250,7 +254,7 @@
       </p>
     </div>
 
-    <div>
+    <div data-guide-target="exam-modal-course">
       <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.course')}</label>
       <Dropdown
         class="w-full bg-gray-100 dark:bg-neutral-800"
@@ -262,7 +266,7 @@
       {#if errors.course}<p class="text-red-500 text-xs mt-1">{errors.course}</p>{/if}
     </div>
 
-    <div>
+    <div data-guide-target="exam-modal-lesson">
       <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.lesson')}</label>
       <Dropdown
         class="w-full bg-gray-100 dark:bg-neutral-800"
@@ -283,7 +287,7 @@
       {/if}
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div data-guide-target="exam-modal-rules" class="grid grid-cols-2 gap-4">
       <div>
         <TextField
           label={$t('components.exam.duration')}
@@ -305,7 +309,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div data-guide-target="exam-modal-result" class="grid grid-cols-2 gap-4">
       <div>
         <TextField
           label={$t('components.exam.passing_score')}
@@ -326,7 +330,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div data-guide-target="exam-modal-time" class="grid grid-cols-2 gap-4">
       <div>
         <TextField
           label={$t('components.exam.available_from')}
@@ -344,7 +348,7 @@
     </div>
     {#if errors.dates}<p class="text-red-500 text-xs mt-1">{errors.dates}</p>{/if}
 
-    <div class="mt-5 flex items-center justify-end">
+    <div data-guide-target="exam-modal-continue" class="mt-5 flex items-center justify-end">
       <PrimaryButton
         className="px-6 py-3"
         label={$t('components.exam.continue')}

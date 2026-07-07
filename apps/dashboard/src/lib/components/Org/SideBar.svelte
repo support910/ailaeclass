@@ -44,6 +44,11 @@
 
   let menuItems: menuItems[] = [];
   let showHelpModal = false;
+  $: futureOrgItems =
+    $currentOrg.role_id === ROLE.ADMIN || $currentOrg.role_id === ROLE.TUTOR
+      ? futureManagementItems
+      : [];
+  $: futureOrgTitle = $currentOrg.role_id === ROLE.ADMIN ? '管理端待开放' : '教师端待开放';
 
   const futureManagementItems: FutureMenuItem[] = [
     { label: '校长驾驶舱', path: '/coming-soon/principal-dashboard', icon: Explore },
@@ -204,14 +209,14 @@
           {/each}
         </ul>
 
-        {#if $isOrgAdmin}
+        {#if futureOrgItems.length}
           <div class="mt-3 border-t border-gray-200 px-4 pt-3 dark:border-neutral-700">
             <div class="mb-2 flex items-center justify-between px-2.5">
-              <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">管理端待开放</p>
+              <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">{futureOrgTitle}</p>
               <TextChip value="未开放" size="sm" className="text-xs text-gray-600" />
             </div>
             <ul>
-              {#each futureManagementItems as item}
+              {#each futureOrgItems as item}
                 <a
                   href="{$currentOrgPath}{item.path}"
                   class="text-black no-underline"

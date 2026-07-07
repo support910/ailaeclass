@@ -1,6 +1,7 @@
 <script>
   import { page } from '$app/stores';
   import AddOrgModal from '$lib/components/Org/AddOrgModal/AddOrgModal.svelte';
+  import FeatureGuide from '$lib/components/Guide/FeatureGuide.svelte';
   import { isQuizPage } from '$lib/utils/functions/app';
   import OrgSideBar from '$lib/components/Org/SideBar.svelte';
   import VerifyEmailModal from '$lib/components/Org/VerifyEmail/VerifyEmailModal.svelte';
@@ -35,4 +36,7 @@
       <slot />
     {/if}
   </div>
+  {#if data.orgName !== '*' && !isQuizPage($page.url?.pathname)}
+    <FeatureGuide scope="org" />
+  {/if}
 </div>

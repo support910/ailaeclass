@@ -35,13 +35,13 @@ export const currentOrg: Writable<CurrentOrg> = writable(defaultCurrentOrgState)
 export const orgAudience = writable<OrgAudience[]>([]);
 export const orgTeam = writable<OrgTeamMember[]>([]);
 export const isOrgAdmin = derived(currentOrg, ($currentOrg) => {
-  if ($currentOrg.role_id === 0) return null;
+  if (!$currentOrg.role_id) return null;
 
   return $currentOrg.role_id === ROLE.ADMIN && $currentOrg.verified === true;
 });
 
 export const isOrgTeacher = derived(currentOrg, ($currentOrg) => {
-  if ($currentOrg.role_id === 0) return null;
+  if (!$currentOrg.role_id) return null;
 
   return ($currentOrg.role_id === ROLE.ADMIN || $currentOrg.role_id === ROLE.TUTOR) && $currentOrg.verified === true;
 });

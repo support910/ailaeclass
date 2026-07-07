@@ -119,17 +119,23 @@
 <section class="w-full max-w-6xl mx-auto">
   <div class="py-10 px-5">
     <div class="flex items-center justify-between mb-10">
-      <h1 class="dark:text-white text-2xl md:text-3xl font-bold">{$t('components.exam.title')}</h1>
+      <h1 data-guide-target="exam-page-title" class="dark:text-white text-2xl md:text-3xl font-bold">
+        {$t('components.exam.title')}
+      </h1>
       {#if $isMobile}
-        <PrimaryButton isDisabled={!$isOrgTeacher} onClick={() => ($createExamModal.open = true)}>
-          <Add size={24} />
-        </PrimaryButton>
+        <span data-guide-target="exam-create" class="inline-flex">
+          <PrimaryButton isDisabled={!$isOrgTeacher} onClick={() => ($createExamModal.open = true)}>
+            <Add size={24} />
+          </PrimaryButton>
+        </span>
       {:else}
-        <PrimaryButton
-          label={$t('components.exam.create_exam')}
-          isDisabled={!$isOrgTeacher}
-          onClick={() => ($createExamModal.open = true)}
-        />
+        <span data-guide-target="exam-create" class="inline-flex">
+          <PrimaryButton
+            label={$t('components.exam.create_exam')}
+            isDisabled={!$isOrgTeacher}
+            onClick={() => ($createExamModal.open = true)}
+          />
+        </span>
       {/if}
     </div>
 
@@ -152,7 +158,7 @@
         <p class="dark:text-white w-1/3 text-center">{$t('components.exam.create_first')}</p>
       </Box>
     {:else}
-      <div class="space-y-8">
+      <div data-guide-target="exam-mode-sections" class="space-y-8">
         {#each [
           { mode: 'traditional', exams: traditionalExams },
           { mode: 'quick_practice', exams: quickPracticeExams }
@@ -212,6 +218,7 @@
                         {/if}
                         <span>{$t('components.exam.updated')}: {calDateDiff(exam.updated_at || exam.created_at)}</span>
                         <a
+                          data-guide-target="exam-submissions"
                           href="{$currentOrgPath}/exams/{exam.id}/submissions"
                           class="text-primary-700 hover:underline font-medium"
                         >
