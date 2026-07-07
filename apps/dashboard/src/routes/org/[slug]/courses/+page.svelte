@@ -103,22 +103,28 @@
 <section class="w-full md:max-w-6xl md:mx-auto">
   <div class="py-2 md:py-10 px-2 md:px-5">
     <div class="flex items-center justify-between mb-5">
-      <h1 class="dark:text-white text-2xl md:text-3xl font-bold">{$t('courses.heading')}</h1>
+      <h1 data-guide-target="courses-title" class="dark:text-white text-2xl md:text-3xl font-bold">
+        {$t('courses.heading')}
+      </h1>
       {#if $isMobile}
-        <PrimaryButton isDisabled={!$isOrgAdmin} onClick={openNewCourseModal}>
-          <Add size={24} />
-        </PrimaryButton>
+        <span data-guide-target="courses-create" class="inline-flex">
+          <PrimaryButton isDisabled={!$isOrgAdmin} onClick={openNewCourseModal}>
+            <Add size={24} />
+          </PrimaryButton>
+        </span>
       {:else}
-        <PrimaryButton
-          label={$t('courses.heading_button')}
-          variant={VARIANTS.CONTAINED_DARK}
-          isDisabled={!$isOrgAdmin}
-          onClick={openNewCourseModal}
-        />
+        <span data-guide-target="courses-create" class="inline-flex">
+          <PrimaryButton
+            label={$t('courses.heading_button')}
+            variant={VARIANTS.CONTAINED_DARK}
+            isDisabled={!$isOrgAdmin}
+            onClick={openNewCourseModal}
+          />
+        </span>
       {/if}
     </div>
     <div class="flex flex-row-reverse mb-5">
-      <div class="filter-containter flex items-end justify-start">
+      <div data-guide-target="courses-filter" class="filter-containter flex items-end justify-start">
         <Search
           placeholder={$t('courses.search_placeholder')}
           bind:value={searchValue}
@@ -147,7 +153,9 @@
     </div>
 
     <NewCourseModal />
-    <Courses bind:courses={filteredCourses} />
+    <div data-guide-target="courses-list">
+      <Courses bind:courses={filteredCourses} />
+    </div>
   </div>
 </section>
 
