@@ -16,11 +16,18 @@
   import { ChevronRight } from 'carbon-icons-svelte';
   import ProfileMenu from '$lib/components/Org/ProfileMenu/index.svelte';
   import Modal from '$lib/components/Modal/index.svelte';
+
   interface SideLinks {
     name: string;
     icon: any;
     link: string;
     show?: () => boolean;
+  }
+
+  interface FutureSideLink {
+    name: string;
+    link: string;
+    icon: any;
   }
 
   function isActive(pagePath: string, itemPath: string) {
@@ -36,6 +43,17 @@
 
   let sideLinks: SideLinks[] = [];
   let showHelpModal = false;
+
+  const futureStudentLinks: FutureSideLink[] = [
+    { name: '智能错题本', link: '/lms/coming-soon/smart-wrongbook', icon: LicenseDraft },
+    { name: 'AI今日推荐练习', link: '/lms/coming-soon/ai-daily-practice', icon: Chat },
+    { name: '学习数据摘要', link: '/lms/coming-soon/learning-summary', icon: Explore },
+    { name: '成长雷达', link: '/lms/coming-soon/growth-radar', icon: Explore },
+    { name: '强弱科目提示', link: '/lms/coming-soon/subject-strength', icon: LicenseDraft },
+    { name: '学习通知', link: '/lms/coming-soon/learning-notice', icon: LicenseDraft },
+    { name: '证书成长档案', link: '/lms/coming-soon/certificate-portfolio', icon: LicenseDraft },
+    { name: '低空学习路径', link: '/lms/coming-soon/low-altitude-path', icon: Explore }
+  ];
 
   $: sideLinks = [
     {
@@ -73,6 +91,11 @@
       name: $t('lms_navigation.agent'),
       icon: Chat,
       link: '/lms/agent'
+    },
+    {
+      name: '使用引导',
+      icon: HelpIcon,
+      link: '/lms/guide'
     },
     {
       name: $t('lms_navigation.explore'),
@@ -131,6 +154,34 @@
             </a>
           {/each}
         </ul>
+
+        <div class="mt-3 border-t border-gray-200 pt-3 dark:border-neutral-700">
+          <div class="mb-2 flex items-center justify-between px-4">
+            <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">学生端待开放</p>
+            <span
+              class="rounded-md bg-gray-200 px-2 py-1 text-xs text-gray-600 dark:bg-neutral-800 dark:text-neutral-300"
+            >
+              未开放
+            </span>
+          </div>
+          <ul>
+            {#each futureStudentLinks as item}
+              <a href={item.link} class="text-black" on:click={toggleSidebar}>
+                <li
+                  class="mb-1 flex cursor-pointer items-center rounded px-4 py-3 {isActive(
+                    $page.url.pathname,
+                    item.link
+                  )
+                    ? NavClasses.active
+                    : 'text-gray-500 dark:text-neutral-300'}"
+                >
+                  <svelte:component this={item.icon} size={22} class="carbon-icon dark:fill-[#fff]" />
+                  <p class="ml-2 truncate">{item.name}</p>
+                </li>
+              </a>
+            {/each}
+          </ul>
+        </div>
       </div>
       <span class="flex-grow" />
       <ul class="my-5 pb-5 px-4">
@@ -183,4 +234,5 @@
       </a>
     </div>
   </Modal>
+
 </div>

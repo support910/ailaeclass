@@ -1,0 +1,12 @@
+node_modules
+.git
+.svelte-kit
+build
+.turbo
+backups
+outputs
+tools
+*.xlsx
+*.png
+*.pdf
+_LOCAL_SECRETS_DO_NOT_COMMIT
