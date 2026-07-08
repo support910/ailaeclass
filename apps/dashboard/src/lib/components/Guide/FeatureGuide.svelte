@@ -3,7 +3,6 @@
   import { page } from '$app/stores';
   import HelpIcon from 'carbon-icons-svelte/lib/Help.svelte';
   import { locale } from '$lib/utils/functions/translations';
-  import OpenCC from 'opencc-js';
 
   export let scope: 'org' | 'lms' = 'org';
 
@@ -40,8 +39,24 @@
   let targetElement: HTMLElement | null = null;
   let highlightRect: HighlightRect | null = null;
   let panelStyle = '';
+  let toTraditional = (value: string) => value;
+  let traditionalConverterLoading = false;
+  let traditionalConverterLoaded = false;
 
-  const toTraditional = OpenCC.Converter({ from: 'cn', to: 'tw' });
+  async function loadTraditionalConverter() {
+    if (!browser || traditionalConverterLoading || traditionalConverterLoaded) return;
+
+    traditionalConverterLoading = true;
+    try {
+      const OpenCC = await import('opencc-js');
+      toTraditional = OpenCC.default.Converter({ from: 'cn', to: 'tw' });
+      traditionalConverterLoaded = true;
+    } catch (error) {
+      console.warn('Unable to load Traditional Chinese converter:', error);
+    } finally {
+      traditionalConverterLoading = false;
+    }
+  }
 
   const englishText: Record<string, string> = {
     管理端首页: 'Admin Home',
@@ -601,7 +616,7 @@
     }
 
     if (/\/courses(\/|$)/.test(pathname)) return orgGuides.courses;
-    if (/\/exams(\/|$)/.test(pathname)) return orgGuides.exams;
+    if (/\/org\/[^/]+\/exams\/?$/.test(pathname)) return orgGuides.exams;
     if (/\/community(\/|$)/.test(pathname)) return orgGuides.community;
     if (/\/ai-tools(\/|$)/.test(pathname)) return orgGuides.aiTools;
     if (/\/agent(\/|$)/.test(pathname)) return orgGuides.agent;
@@ -761,6 +776,9 @@
   $: currentStep = guide?.steps[currentIndex] || null;
   $: firstExampleIndex = guide?.steps.findIndex((step) => !!step.example) ?? -1;
   $: currentExample = firstExampleIndex === currentIndex ? currentStep?.example : '';
+  $: if (browser && $locale === 'zh-TW') {
+    loadTraditionalConverter();
+  }
 
   $: if (browser && guide && activeGuideId !== guide.id) {
     activeGuideId = guide.id;
