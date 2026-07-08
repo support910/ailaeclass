@@ -1,7 +1,8 @@
 <script lang="ts">
   import OpenCC from 'opencc-js';
-  import { currentOrgPath } from '$lib/utils/store/org';
+  import { currentOrg, currentOrgPath } from '$lib/utils/store/org';
   import { locale } from '$lib/utils/functions/translations';
+  import { ROLE } from '$lib/utils/constants/roles';
 
   let query = '';
   let activeGroup = '全部';
@@ -20,13 +21,27 @@
     faq: string;
   }
 
-  const quickStart = [
-    '确认当前机构和账号角色是否正确。',
-    '先建立课程，再补充章节、课时和学习资料。',
-    '需要测评时创建考试，并关联课程或课时。',
-    '用社区沉淀答疑，用 AI 工具生成草稿后人工检查。',
-    '管理员再处理成员、受众和系统设置。'
-  ];
+  $: isTeacherGuide = $currentOrg.role_id === ROLE.TUTOR;
+  $: guideTitle = isTeacherGuide ? '教师端使用引导' : '管理端使用引导';
+  $: searchLabel = isTeacherGuide ? '搜索教师端引导' : '搜索管理端引导';
+  $: searchPlaceholder = isTeacherGuide
+    ? '搜索功能、任务或问题，例如：创建课程、考试、AI'
+    : '搜索功能、任务或问题，例如：创建课程、考试、成员';
+  $: quickStart = isTeacherGuide
+    ? [
+        '确认当前机构和教师账号是否正确。',
+        '进入课程，维护自己负责的课程、章节、课时和学习资料。',
+        '需要测评时创建考试，并关联课程或课时。',
+        '用社区沉淀答疑，用 AI 工具生成草稿后人工检查。',
+        '如果需要成员、受众或系统设置权限，请联系管理员处理。'
+      ]
+    : [
+        '确认当前机构和账号角色是否正确。',
+        '先建立课程，再补充章节、课时和学习资料。',
+        '需要测评时创建考试，并关联课程或课时。',
+        '用社区沉淀答疑，用 AI 工具生成草稿后人工检查。',
+        '管理员再处理成员、受众和系统设置。'
+      ];
 
   $: features = [
     {
@@ -34,9 +49,9 @@
       path: $currentOrgPath,
       group: '开始',
       summary: '查看机构概览、课程数量、学生数量和近期学习动态。',
-      when: '刚进入管理端、需要确认机构状态时。',
+      when: isTeacherGuide ? '刚进入教师端、需要确认自己负责的课程状态时。' : '刚进入管理端、需要确认机构状态时。',
       steps: ['查看左上角机构名称', '检查课程和学生统计', '从左侧进入要处理的模块'],
-      example: '发现课程数为 0 时，下一步进入“课程”创建第一门课。',
+      example: isTeacherGuide ? '进入后先查看自己负责的课程，再进入课程维护内容。' : '发现课程数为 0 时，下一步进入“课程”创建第一门课。',
       faq: '如果数据为空，先确认账号是否在正确机构内。'
     },
     {
@@ -109,7 +124,7 @@
       example: '修改机构展示名称后保存，再刷新首页确认显示正确。',
       faq: '只有管理端账号通常能看到完整设置项。'
     }
-  ] satisfies GuideFeature[];
+  ].filter((feature) => !isTeacherGuide || feature.group !== '管理') satisfies GuideFeature[];
 
   $: groups = ['全部', ...Array.from(new Set(features.map((feature) => feature.group)))];
   $: normalizedQuery = query.trim().toLowerCase();
@@ -122,23 +137,23 @@
 </script>
 
 <svelte:head>
-  <title>{text('管理端使用引导')}</title>
+  <title>{text(guideTitle)}</title>
 </svelte:head>
 
 <section class="mx-auto max-w-6xl px-4 py-6">
   <div class="border-b border-gray-200 pb-6 dark:border-neutral-800">
     <p class="text-sm font-semibold text-primary-700 dark:text-primary-300">ailaeclass Docs</p>
-    <h1 class="mt-2 text-2xl font-bold text-[#040F2D] dark:text-white md:text-3xl">{text('管理端使用引导')}</h1>
+    <h1 class="mt-2 text-2xl font-bold text-[#040F2D] dark:text-white md:text-3xl">{text(guideTitle)}</h1>
     <p class="mt-2 max-w-3xl text-sm leading-6 text-gray-600 dark:text-neutral-300">
       {text('按任务查找当前已上线功能的使用方式。待开放模块可以点击查看 demo 框架，正式功能会在后续版本开放。')}
     </p>
 
     <label class="mt-5 block max-w-2xl">
-      <span class="sr-only">{text('搜索管理端引导')}</span>
+      <span class="sr-only">{text(searchLabel)}</span>
       <input
         bind:value={query}
         type="search"
-        placeholder={text('搜索功能、任务或问题，例如：创建课程、考试、成员')}
+        placeholder={text(searchPlaceholder)}
         class="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-primary-700 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
       />
     </label>

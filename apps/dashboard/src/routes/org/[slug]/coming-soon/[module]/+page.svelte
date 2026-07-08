@@ -1,5 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { currentOrg } from '$lib/utils/store/org';
+  import { ROLE } from '$lib/utils/constants/roles';
 
   const moduleNames: Record<string, string> = {
     'principal-dashboard': '校长驾驶舱',
@@ -15,6 +17,7 @@
 
   $: moduleKey = $page.params.module || '';
   $: moduleTitle = moduleNames[moduleKey] || '待开放模块';
+  $: moduleScope = $currentOrg.role_id === ROLE.TUTOR ? '教师端 Demo' : '管理端 Demo';
 </script>
 
 <svelte:head>
@@ -24,7 +27,7 @@
 <section class="mx-auto max-w-6xl p-5">
   <div class="mb-6 flex flex-col justify-between gap-4 border-b border-gray-200 pb-5 dark:border-neutral-800 md:flex-row md:items-center">
     <div>
-      <p class="mb-2 text-sm font-medium text-primary-700 dark:text-primary-300">管理端 Demo</p>
+      <p class="mb-2 text-sm font-medium text-primary-700 dark:text-primary-300">{moduleScope}</p>
       <h1 class="text-2xl font-bold text-[#040F2D] dark:text-white md:text-3xl">{moduleTitle}</h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-neutral-300">另一个版本开放，本版本暂未开发。</p>
     </div>
