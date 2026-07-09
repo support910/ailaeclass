@@ -23,13 +23,17 @@ export const GET: RequestHandler = async ({ params, request }) => {
 
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
-      .select('id, title, lesson_id, assessment_type')
+      .select('*')
       .eq('id', examId)
       .eq('assessment_type', 'exam')
       .single();
 
     if (examError || !examRow) {
       return json({ success: false, message: 'Exam not found' }, { status: 404 });
+    }
+
+    if ((examRow as any).deleted_at) {
+      return json({ success: false, message: 'Exam has been moved to the recycle bin' }, { status: 410 });
     }
 
     const { data: lessonRow } = await supabase

@@ -26,8 +26,13 @@
   let parseResults: ParseResult[] = [];
   let isParsing = false;
   let parseError: string | null = null;
+  let parseNotice: string | null = null;
+  let detectedEncoding = '';
+  let aiPromptCopied = false;
+  let aiPromptCopyTimer: ReturnType<typeof setTimeout> | null = null;
 
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_IMPORT_QUESTIONS = 20;
 
   const TYPE_MAP: Record<string, number> = {
     RADIO: QUESTION_TYPE.RADIO,
@@ -112,21 +117,41 @@
     question: 'title',
     questiontitle: 'title',
     title: 'title',
+    prompt: 'title',
+    stem: 'title',
     題目: 'title',
     题目: 'title',
     問題: 'title',
     问题: 'title',
     題幹: 'title',
     题干: 'title',
+    image: 'image_url',
+    imageurl: 'image_url',
+    questionimage: 'image_url',
+    questionimageurl: 'image_url',
+    promptimage: 'image_url',
+    stemimage: 'image_url',
+    圖片: 'image_url',
+    图片: 'image_url',
+    題目圖片: 'image_url',
+    题目图片: 'image_url',
+    題目圖片連結: 'image_url',
+    题目图片链接: 'image_url',
+    圖片連結: 'image_url',
+    图片链接: 'image_url',
     correct: 'correct_answer',
     answer: 'correct_answer',
     correctanswer: 'correct_answer',
+    correctoption: 'correct_answer',
+    correctchoice: 'correct_answer',
     standardanswer: 'correct_answer',
     rightanswer: 'correct_answer',
     key: 'correct_answer',
     答案: 'correct_answer',
     正確答案: 'correct_answer',
     正确答案: 'correct_answer',
+    正確選項: 'correct_answer',
+    正确选项: 'correct_answer',
     標準答案: 'correct_answer',
     标准答案: 'correct_answer',
     參考答案: 'correct_answer',
@@ -135,8 +160,10 @@
     point: 'points',
     score: 'points',
     marks: 'points',
+    weight: 'points',
     分數: 'points',
     分数: 'points',
+    分值: 'points',
     得分: 'points',
     explanation: 'explanation',
     analysis: 'explanation',
@@ -144,12 +171,22 @@
     solution: 'explanation',
     reason: 'explanation',
     feedback: 'explanation',
+    options: 'option_text',
+    optionlist: 'option_text',
+    choices: 'option_text',
+    choicelist: 'option_text',
+    選項: 'option_text',
+    选项: 'option_text',
+    選項列表: 'option_text',
+    选项列表: 'option_text',
     解析: 'explanation',
     詳解: 'explanation',
     详解: 'explanation',
     解釋: 'explanation',
     解释: 'explanation',
     答案解析: 'explanation',
+    參考解析: 'explanation',
+    参考解析: 'explanation',
     答案詳解: 'explanation',
     答案详解: 'explanation',
     解題思路: 'explanation',
@@ -169,6 +206,66 @@
     return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  function translateOr(key: string, fallback: string) {
+    const translated = $t(key);
+    return translated === key ? fallback : translated;
+  }
+
+  function formatImportLimitNotice(remaining: number) {
+    return translateOr(
+      'components.exam.import.limit_notice',
+      'Up to {max} questions can be imported at once. The first {max} questions were read and {remaining} were skipped.'
+    )
+      .replaceAll('{max}', String(MAX_IMPORT_QUESTIONS))
+      .replace('{remaining}', String(remaining));
+  }
+
+  function getAiPromptText() {
+    return translateOr(
+      'components.exam.import.ai_prompt_text',
+      `Please convert the questions I provide into a CSV that can be imported into Ailaeclass.
+
+Output rules:
+1. Return CSV only. Do not add explanations before or after the CSV.
+2. Use this exact header row:
+题型,题目,题目图片,选项A,选项A图片,选项B,选项B图片,选项C,选项C图片,选项D,选项D图片,选项E,选项E图片,选项F,选项F图片,答案,分数,答案解析
+3. Supported question types: 单选题, 多选题, 判断题, 问答题.
+4. For 单选题, the answer must be one option, such as A.
+5. For 多选题, separate answers with semicolons, such as A;C;D.
+6. For 判断题, use 选项A=对 and 选项B=错, and set 答案 to 对 or 错.
+7. For 问答题, leave option columns and 答案 empty, and put marking guidance in 答案解析.
+8. 分数 must be a number. Use 1 if no score is provided.
+9. If a question or option needs an image, put an accessible https image URL in 题目图片 or 选项图片 columns. CSV cannot embed local image files.
+10. Escape commas, quotes, and line breaks correctly according to CSV rules.
+
+Now convert the following content into this CSV format:`
+    );
+  }
+
+  async function copyAiPrompt() {
+    const text = getAiPromptText();
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', 'true');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      aiPromptCopied = true;
+      if (aiPromptCopyTimer) clearTimeout(aiPromptCopyTimer);
+      aiPromptCopyTimer = setTimeout(() => (aiPromptCopied = false), 1800);
+    } catch (err) {
+      console.error('Copy AI import prompt failed:', err);
+    }
+  }
+
   function normalizeText(value: unknown) {
     return String(value ?? '')
       .replace(/^\uFEFF/, '')
@@ -180,8 +277,9 @@
     const raw = normalizeText(header);
     const compact = raw
       .toLowerCase()
+      .replace(/[（(【\[].*?[）)】\]]/g, '')
       .replace(/[()\[\]{}（）【】]/g, '')
-      .replace(/[\s_\-./\\:：]+/g, '');
+      .replace(/[\s_\-./\\:：,，;；|]+/g, '');
 
     if (/^(option|choice|選項|选项)?[a-z]$/i.test(compact)) {
       const letter = compact.slice(-1).toUpperCase();
@@ -198,6 +296,15 @@
       return `option_${optionMatch[2].toLowerCase()}`;
     }
 
+    const optionNumberMatch = compact.match(/^(option|choice|選項|选项)?([1-9]|1[0-9]|2[0-6])$/i);
+    if (optionNumberMatch) {
+      const letter = OPTION_LETTERS[Number(optionNumberMatch[2]) - 1];
+      return `option_${letter.toLowerCase()}`;
+    }
+
+    const optionImageLetter = getOptionImageHeaderLetter(compact);
+    if (optionImageLetter) return `option_${optionImageLetter.toLowerCase()}_image_url`;
+
     const alias = HEADER_ALIASES[compact];
     if (alias) return alias;
 
@@ -209,6 +316,23 @@
     }
 
     return raw.toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function getOptionImageHeaderLetter(compact: string) {
+    const patterns = [
+      /^(?:option|choice)([a-z])(?:image|img|imageurl)$/i,
+      /^(?:選項|选项)([a-z])(?:圖片|图片|圖片連結|图片链接)$/i,
+      /^([a-z])(?:image|img|imageurl|圖片|图片|圖片連結|图片链接)$/i,
+      /^(?:image|img|imageurl|圖片|图片|圖片連結|图片链接)([a-z])$/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = compact.match(pattern);
+      const letter = match?.[1]?.toUpperCase();
+      if (letter && OPTION_LETTERS.includes(letter)) return letter;
+    }
+
+    return '';
   }
 
   function normalizeType(typeRaw: string, row: Record<string, string>) {
@@ -232,7 +356,9 @@
       });
 
     if (!normalized) {
-      if (hasTrueFalseAnswer && (optionCount === 0 || looksTrueFalseOptions)) return QUESTION_TYPE.TRUE_FALSE;
+      if ((hasTrueFalseAnswer || looksTrueFalseOptions) && (optionCount === 0 || looksTrueFalseOptions)) {
+        return QUESTION_TYPE.TRUE_FALSE;
+      }
       if (correctTokens.length > 1 && optionCount >= 2) return QUESTION_TYPE.CHECKBOX;
       if (optionCount >= 2) return QUESTION_TYPE.RADIO;
       return QUESTION_TYPE.TEXTAREA;
@@ -253,8 +379,8 @@
 
   function stripOptionPrefix(value: string) {
     return normalizeText(value)
-      .replace(/^[A-Z]\s*[.、．):：-]\s*/i, '')
-      .replace(/^[（(]\s*[A-Z]\s*[）)]\s*/i, '')
+      .replace(/^[A-Z0-9]+\s*[.、．):：-]\s*/i, '')
+      .replace(/^[（(]\s*[A-Z0-9]+\s*[）)]\s*/i, '')
       .trim();
   }
 
@@ -277,7 +403,11 @@
     const raw = normalizeText(correctRaw);
     if (!raw) return [];
 
-    let tokens = raw.split(/[;,，；、|/\\]+/).map(normalizeText).filter(Boolean);
+    let tokens = raw
+      .replace(/[，、]/g, ';')
+      .split(/[;；|/\\]+/)
+      .map(normalizeText)
+      .filter(Boolean);
     if (tokens.length === 1 && /^[A-Za-z]{2,}$/.test(tokens[0])) {
       tokens = tokens[0].split('');
     }
@@ -296,6 +426,11 @@
           return rawLetter;
         }
 
+        if (/^([1-9]|1[0-9]|2[0-6])$/.test(rawLetter)) {
+          const letter = OPTION_LETTERS[Number(rawLetter) - 1];
+          if (optionRows.some((option) => option.letter === letter)) return letter;
+        }
+
         const normalized = normalizeCorrectToken(token);
         if (OPTION_LETTERS.includes(normalized) || normalized === 'TRUE' || normalized === 'FALSE') {
           return normalized;
@@ -308,13 +443,51 @@
   }
 
   function getOptionRows(row: Record<string, string>) {
-    return OPTION_LETTERS.map((letter) => {
+    const explicitOptions = OPTION_LETTERS.map((letter) => {
       const key = `option_${letter.toLowerCase()}`;
       return {
         letter,
         label: normalizeText(row[key])
       };
     }).filter((option) => option.label);
+
+    if (explicitOptions.length > 0) return explicitOptions;
+    return parseCombinedOptions(row.option_text || '');
+  }
+
+  function parseCombinedOptions(value: string) {
+    const raw = normalizeText(value);
+    if (!raw) return [];
+
+    const markerPattern = /(?:^|[\s;；|\n])([A-Z]|[1-9]|1[0-9]|2[0-6])\s*[.、．):：-]\s*/gi;
+    const matches = Array.from(raw.matchAll(markerPattern));
+
+    if (matches.length > 0) {
+      return matches
+        .map((match, index) => {
+          const start = (match.index || 0) + match[0].length;
+          const end = index + 1 < matches.length ? matches[index + 1].index || raw.length : raw.length;
+          const marker = match[1].toUpperCase();
+          const numeric = Number(marker);
+          const letter = Number.isFinite(numeric) && numeric > 0 ? OPTION_LETTERS[numeric - 1] : marker;
+          return {
+            letter,
+            label: stripOptionPrefix(raw.slice(start, end).replace(/^[;；|\s]+|[;；|\s]+$/g, ''))
+          };
+        })
+        .filter((option) => OPTION_LETTERS.includes(option.letter) && option.label);
+    }
+
+    return raw
+      .split(/[;；|\n]+/)
+      .map(normalizeText)
+      .filter(Boolean)
+      .slice(0, OPTION_LETTERS.length)
+      .map((label, index) => ({
+        letter: OPTION_LETTERS[index],
+        label: stripOptionPrefix(label)
+      }))
+      .filter((option) => option.label);
   }
 
   function makeOption(label: string, isCorrect: boolean) {
@@ -328,12 +501,43 @@
     };
   }
 
+  function makeImage(value: string, alt: string) {
+    const url = normalizeText(value);
+    if (!url) return null;
+    if (!/^https?:\/\//i.test(url) && !url.startsWith('data:image/')) return null;
+
+    return {
+      url,
+      key: url,
+      alt: alt || 'Imported image'
+    };
+  }
+
+  function getQuestionTypeLabel(typeId?: number) {
+    if (typeId === QUESTION_TYPE.RADIO) return $t('course.navItem.lessons.exercises.all_exercises.edit_mode.question_types.single');
+    if (typeId === QUESTION_TYPE.CHECKBOX) return $t('course.navItem.lessons.exercises.all_exercises.edit_mode.question_types.multiple');
+    if (typeId === QUESTION_TYPE.TEXTAREA) return $t('course.navItem.lessons.exercises.all_exercises.edit_mode.question_types.paragraph');
+    if (typeId === QUESTION_TYPE.TRUE_FALSE) return $t('components.exam.question_type.true_false');
+    return '-';
+  }
+
+  function countImages(result: ParseResult) {
+    const questionImages = result.question?.metadata?.image?.url ? 1 : 0;
+    const optionImages = (result.question?.options || []).filter((option) => option.metadata?.image?.url).length;
+    return questionImages + optionImages;
+  }
+
+  function getOptionImage(row: Record<string, string>, letter: string, optionLabel: string) {
+    return makeImage(row[`option_${letter.toLowerCase()}_image_url`], optionLabel || `Option ${letter}`);
+  }
+
   function validateRow(row: Record<string, string>, rowIndex: number): ParseResult {
     const errors: string[] = [];
     let typeId = normalizeType(row.question_type || '', row);
 
     const title = normalizeText(row.title);
-    if (!title) {
+    const questionImage = makeImage(row.image_url, title || `Question ${rowIndex + 1}`);
+    if (!title && !questionImage) {
       errors.push($t('components.exam.import.error_empty_title'));
     }
 
@@ -367,7 +571,13 @@
       }
 
       if (optionRows.length >= 2 && OPTION_LETTERS.includes(correct)) {
-        options = optionRows.map((option) => makeOption(stripOptionPrefix(option.label), option.letter === correct));
+        options = optionRows.map((option) => {
+          const label = stripOptionPrefix(option.label);
+          const created = makeOption(label, option.letter === correct);
+          const image = getOptionImage(row, option.letter, label);
+          if (image) created.metadata = { ...created.metadata, image };
+          return created;
+        });
       }
     } else if (typeId === QUESTION_TYPE.CHECKBOX) {
       if (optionRows.length < 2) {
@@ -385,19 +595,34 @@
       }
 
       if (optionRows.length >= 2) {
-        options = optionRows.map((option) => makeOption(stripOptionPrefix(option.label), correctSet.has(option.letter)));
+        options = optionRows.map((option) => {
+          const label = stripOptionPrefix(option.label);
+          const created = makeOption(label, correctSet.has(option.letter));
+          const image = getOptionImage(row, option.letter, label);
+          if (image) created.metadata = { ...created.metadata, image };
+          return created;
+        });
       }
     } else if (typeId === QUESTION_TYPE.TRUE_FALSE) {
-      const correct = correctTokens[0];
+      let correct = correctTokens[0];
+      const matchedOption = optionRows.find((option) => option.letter === correct);
+      if (matchedOption) {
+        correct = normalizeCorrectToken(matchedOption.label);
+      }
       if (!correct) {
         errors.push($t('components.exam.import.error_no_correct'));
       } else if (correct !== 'TRUE' && correct !== 'FALSE') {
         errors.push($t('components.exam.import.error_invalid_correct'));
       }
       options = [
-        makeOption('True', correct === 'TRUE'),
-        makeOption('False', correct === 'FALSE')
-      ];
+        makeOption(stripOptionPrefix(optionRows[0]?.label || 'True'), correct === 'TRUE'),
+        makeOption(stripOptionPrefix(optionRows[1]?.label || 'False'), correct === 'FALSE')
+      ].map((option, index) => {
+        const letter = OPTION_LETTERS[index];
+        const image = getOptionImage(row, letter, option.label);
+        if (image) option.metadata = { ...option.metadata, image };
+        return option;
+      });
     }
 
     if (errors.length > 0) {
@@ -413,12 +638,101 @@
       question_type: { id: typeId },
       options,
       metadata: {
-        explanation: normalizeText(row.explanation)
+        explanation: normalizeText(row.explanation),
+        ...(questionImage ? { image: questionImage } : {})
       },
       is_dirty: true
     };
 
     return { row: rowIndex + 1, valid: true, errors: [], question, raw: row };
+  }
+
+  function hasMeaningfulRow(row: Record<string, string>) {
+    return Object.entries(row).some(([key, value]) => key !== '__parsed_extra' && normalizeText(value));
+  }
+
+  function countReplacementChars(value: string) {
+    return (value.match(/\uFFFD/g) || []).length;
+  }
+
+  function scoreDecodedText(value: string) {
+    const firstLine = normalizeText(value.split(/\r?\n/).find((line) => normalizeText(line)) || '');
+    const headers = firstLine.split(/[,\t;，]/).map(normalizeHeader);
+    const recognizedHeaders = headers.filter((header) =>
+      ['question_type', 'title', 'correct_answer', 'points', 'explanation', 'option_text'].includes(header) ||
+      /^option_[a-z]$/.test(header)
+    ).length;
+    return recognizedHeaders * 20 - countReplacementChars(value) * 5 - (value.includes('锟') ? 10 : 0);
+  }
+
+  async function decodeFile(fileToDecode: File) {
+    const buffer = await fileToDecode.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    const candidates: { label: string; text: string; score: number }[] = [];
+    const encodings =
+      bytes[0] === 0xff && bytes[1] === 0xfe
+        ? ['utf-16le']
+        : bytes[0] === 0xfe && bytes[1] === 0xff
+          ? ['utf-16be']
+          : ['utf-8', 'gb18030', 'big5'];
+
+    for (const label of encodings) {
+      try {
+        const text = new TextDecoder(label).decode(buffer).replace(/^\uFEFF/, '');
+        candidates.push({ label, text, score: scoreDecodedText(text) });
+      } catch {
+        // Some browsers may not support every legacy encoding label.
+      }
+    }
+
+    candidates.sort((a, b) => b.score - a.score);
+    const best = candidates[0] || { label: 'utf-8', text: await fileToDecode.text(), score: 0 };
+    detectedEncoding = best.label.toUpperCase();
+    return best.text;
+  }
+
+  function parseTextRows(text: string) {
+    const parsed = Papa.parse<Record<string, string>>(text, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: normalizeHeader,
+      transform: normalizeText
+    });
+
+    const rows = (parsed.data || []).filter(hasMeaningfulRow);
+    const fields = parsed.meta.fields || [];
+    const hasRecognizedHeader = fields.some((field) =>
+      ['question_type', 'title', 'correct_answer', 'points', 'explanation', 'option_text'].includes(field) ||
+      /^option_[a-z]$/.test(field)
+    );
+
+    if (hasRecognizedHeader) {
+      return { rows, errors: parsed.errors };
+    }
+
+    const fallback = Papa.parse<string[]>(text, {
+      header: false,
+      skipEmptyLines: 'greedy',
+      transform: normalizeText
+    });
+    const fallbackRows = (fallback.data || [])
+      .filter((row) => row.some((cell) => normalizeText(cell)))
+      .map((row) => ({
+        question_type: row[0] || '',
+        title: row[1] || '',
+        option_a: row[2] || '',
+        option_b: row[3] || '',
+        option_c: row[4] || '',
+        option_d: row[5] || '',
+        option_e: row[6] || '',
+        option_f: row[7] || '',
+        correct_answer: row[8] || '',
+        points: row[9] || '',
+        explanation: row[10] || ''
+      }))
+      .filter(hasMeaningfulRow);
+
+    return { rows: fallbackRows, errors: fallback.errors };
   }
 
   function handleFileSelect(e: Event) {
@@ -432,32 +746,38 @@
         return;
       }
       parseError = null;
+      parseNotice = null;
       file = selected;
       parseFile();
     }
   }
 
-  function parseFile() {
+  async function parseFile() {
     if (!file) return;
     isParsing = true;
     parseResults = [];
+    parseError = null;
+    parseNotice = null;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: normalizeHeader,
-      transform: normalizeText,
-      complete: (results) => {
-        const rows = results.data as Record<string, string>[];
-        parseResults = rows.map((row, i) => validateRow(row, i));
-        isParsing = false;
-      },
-      error: (err) => {
-        console.error('CSV parse error', err);
+    try {
+      const text = await decodeFile(file);
+      const { rows, errors } = parseTextRows(text);
+      const importRows = rows.slice(0, MAX_IMPORT_QUESTIONS);
+      parseResults = importRows.map((row, i) => validateRow(row, i));
+
+      if (rows.length > MAX_IMPORT_QUESTIONS) {
+        parseNotice = formatImportLimitNotice(rows.length - MAX_IMPORT_QUESTIONS);
+      } else if (rows.length === 0) {
         parseError = $t('components.exam.import.error_parse_failed');
-        isParsing = false;
+      } else if (errors.length > 0) {
+        parseNotice = errors[0]?.message || $t('components.exam.import.error_parse_failed');
       }
-    });
+    } catch (err) {
+      console.error('CSV parse error', err);
+      parseError = $t('components.exam.import.error_parse_failed');
+    } finally {
+      isParsing = false;
+    }
   }
 
   function handleImport() {
@@ -472,14 +792,19 @@
       {
         题型: '单选题',
         题目: '5 + 2 等于多少？',
+        题目图片: '',
         选项A: '5',
+        选项A图片: '',
         选项B: '6',
+        选项B图片: '',
         选项C: '7',
+        选项C图片: '',
         选项D: '8',
+        选项D图片: '',
         选项E: '',
+        选项E图片: '',
         选项F: '',
-        选项G: '',
-        选项H: '',
+        选项F图片: '',
         答案: 'C',
         分数: '1',
         答案解析: '5 + 2 = 7，所以正确答案是 C。'
@@ -487,14 +812,19 @@
       {
         题型: '多选题',
         题目: '以下哪些是质数？',
+        题目图片: '',
         选项A: '2',
+        选项A图片: '',
         选项B: '3',
+        选项B图片: '',
         选项C: '4',
+        选项C图片: '',
         选项D: '5',
+        选项D图片: '',
         选项E: '6',
+        选项E图片: '',
         选项F: '7',
-        选项G: '',
-        选项H: '',
+        选项F图片: '',
         答案: 'A;B;D;F',
         分数: '2',
         答案解析: '2、3、5、7 只能被 1 和它本身整除，所以是质数。'
@@ -502,14 +832,19 @@
       {
         题型: '判断题',
         题目: '香港位于中国南部。',
+        题目图片: '',
         选项A: '对',
+        选项A图片: '',
         选项B: '错',
+        选项B图片: '',
         选项C: '',
+        选项C图片: '',
         选项D: '',
+        选项D图片: '',
         选项E: '',
+        选项E图片: '',
         选项F: '',
-        选项G: '',
-        选项H: '',
+        选项F图片: '',
         答案: '对',
         分数: '1',
         答案解析: '香港位于中国南部、珠江口以东。'
@@ -517,14 +852,19 @@
       {
         题型: '问答题',
         题目: '请简单解释光合作用。',
+        题目图片: '',
         选项A: '',
+        选项A图片: '',
         选项B: '',
+        选项B图片: '',
         选项C: '',
+        选项C图片: '',
         选项D: '',
+        选项D图片: '',
         选项E: '',
+        选项E图片: '',
         选项F: '',
-        选项G: '',
-        选项H: '',
+        选项F图片: '',
         答案: '',
         分数: '5',
         答案解析: '参考要点：植物利用阳光、水和二氧化碳制造养分，并释放氧气。'
@@ -532,17 +872,42 @@
       {
         题型: '',
         题目: '没有填写题型时，若有多个答案，系统会自动识别为多选。',
+        题目图片: '',
         选项A: '红色',
+        选项A图片: '',
         选项B: '蓝色',
+        选项B图片: '',
         选项C: '绿色',
+        选项C图片: '',
         选项D: '声音',
+        选项D图片: '',
         选项E: '',
+        选项E图片: '',
         选项F: '',
-        选项G: '',
-        选项H: '',
+        选项F图片: '',
         答案: '红色;蓝色;绿色',
         分数: '2',
         答案解析: '答案也可以直接写完整选项文字，不一定要写 A、B、C。'
+      },
+      {
+        题型: '单选题',
+        题目: '如果需要图片题，请在题目图片列填写可访问的 https 图片 URL。',
+        题目图片: '',
+        选项A: '无人机',
+        选项A图片: '',
+        选项B: '显微镜',
+        选项B图片: '',
+        选项C: '天文望远镜',
+        选项C图片: '',
+        选项D: '示波器',
+        选项D图片: '',
+        选项E: '',
+        选项E图片: '',
+        选项F: '',
+        选项F图片: '',
+        答案: 'A',
+        分数: '1',
+        答案解析: '图片题可以在题目图片列填写可访问的 https 图片 URL。'
       }
     ];
     const template = `\uFEFF${Papa.unparse(templateRows)}`;
@@ -558,6 +923,9 @@
     file = null;
     parseResults = [];
     parseError = null;
+    parseNotice = null;
+    detectedEncoding = '';
+    aiPromptCopied = false;
   }
 
   $: totalRows = parseResults.length;
@@ -574,25 +942,58 @@
   }}
   modalHeading={$t('components.exam.import.title')}
   width="w-11/12 max-w-4xl"
-  containerClass="flex flex-col !max-h-[85vh] overflow-hidden"
+  containerClass="flex h-[85vh] flex-col !max-h-[85vh] overflow-hidden"
 >
-  <div class="flex flex-col h-full overflow-hidden">
-    <!-- File upload -->
-    <div class="mb-4">
-      <label
-        class="flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+  <div class="flex min-h-0 h-full flex-col overflow-hidden">
+    <div class="min-h-0 flex-1 overflow-y-auto pr-1">
+      <!-- AI prompt copy helper -->
+      <div
+        class="mb-4 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100"
       >
-        <input type="file" accept=".csv" class="hidden" on:change={handleFileSelect} />
-        <UploadIcon size={24} class="text-gray-500 dark:text-gray-400" />
-        <span class="text-sm text-gray-600 dark:text-gray-300">
-          {#if file}
-            {file.name}
-          {:else}
-            {$t('components.exam.import.upload_hint')}
-          {/if}
-        </span>
-      </label>
-    </div>
+        <div class="mb-2 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p class="font-semibold">{$t('components.exam.import.ai_prompt_title')}</p>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {$t('components.exam.import.ai_prompt_desc')}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="shrink-0 rounded-md border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-800 hover:bg-primary-50 dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-800"
+            on:click={copyAiPrompt}
+          >
+            {aiPromptCopied
+              ? $t('components.exam.import.ai_prompt_copied')
+              : $t('components.exam.import.ai_prompt_copy')}
+          </button>
+        </div>
+        <textarea
+          readonly
+          rows="5"
+          class="w-full resize-y rounded-md border border-gray-200 bg-white p-2 text-xs leading-5 text-gray-700 dark:border-neutral-700 dark:bg-black dark:text-gray-200"
+          value={getAiPromptText()}
+        />
+        <p class="mt-2 text-xs text-amber-700 dark:text-amber-200">
+          {$t('components.exam.import.csv_image_note')}
+        </p>
+      </div>
+
+      <!-- File upload -->
+      <div class="mb-4">
+        <label
+          class="flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+        >
+          <input type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" class="hidden" on:change={handleFileSelect} />
+          <UploadIcon size={24} class="text-gray-500 dark:text-gray-400" />
+          <span class="text-sm text-gray-600 dark:text-gray-300">
+            {#if file}
+              {file.name}
+            {:else}
+              {$t('components.exam.import.upload_hint')}
+            {/if}
+          </span>
+        </label>
+      </div>
 
     <!-- Parse error -->
     {#if parseError}
@@ -602,12 +1003,31 @@
       </div>
     {/if}
 
+    {#if parseNotice}
+      <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md text-sm text-amber-800 dark:text-amber-200 flex items-center gap-2">
+        <WarningIcon size={18} />
+        <span>{parseNotice}</span>
+      </div>
+    {/if}
+
     <!-- Template download -->
     <div
       class="mb-4 rounded-md border border-cyan-100 bg-cyan-50 p-3 text-sm text-cyan-900 dark:border-cyan-900/60 dark:bg-cyan-950/30 dark:text-cyan-100"
     >
       {$t('components.exam.import.how_it_works')}
+      <div class="mt-1">
+        {translateOr(
+      'components.exam.import.limit_hint',
+          'Up to 20 questions can be imported at once. CSV and TSV files are supported; save Excel files as CSV before uploading. For images, enter accessible image URLs.'
+        )}
+      </div>
     </div>
+
+    {#if detectedEncoding}
+      <div class="mb-4 text-xs text-gray-500 dark:text-gray-400">
+        {translateOr('components.exam.import.detected_encoding', 'Detected encoding')}: {detectedEncoding}
+      </div>
+    {/if}
 
     <div class="mb-4 text-right">
       <button
@@ -633,16 +1053,18 @@
       </div>
     {/if}
 
-    <!-- Preview -->
-    {#if parseResults.length > 0}
-      <div class="flex-1 overflow-y-auto border border-gray-200 dark:border-neutral-600 rounded-md">
-        <table class="w-full text-sm">
+      <!-- Preview -->
+      {#if parseResults.length > 0}
+        <div class="min-h-[14rem] max-h-[42vh] overflow-auto rounded-md border border-gray-200 dark:border-neutral-600">
+        <table class="min-w-[900px] w-full text-sm">
           <thead class="bg-gray-50 dark:bg-neutral-800 sticky top-0">
             <tr>
               <th class="px-3 py-2 text-left w-12">#</th>
               <th class="px-3 py-2 text-left">{$t('components.exam.import.row_status')}</th>
               <th class="px-3 py-2 text-left">{$t('components.exam.import.row_type')}</th>
               <th class="px-3 py-2 text-left">{$t('components.exam.import.row_title')}</th>
+              <th class="px-3 py-2 text-left">{$t('components.exam.import.row_options')}</th>
+              <th class="px-3 py-2 text-left">{$t('components.exam.import.row_images')}</th>
               <th class="px-3 py-2 text-left">{$t('components.exam.import.row_explanation')}</th>
               <th class="px-3 py-2 text-left">{$t('components.exam.import.row_errors')}</th>
             </tr>
@@ -664,8 +1086,12 @@
                     </span>
                   {/if}
                 </td>
-                <td class="px-3 py-2 dark:text-white">{result.raw.question_type || '-'}</td>
+                <td class="px-3 py-2 dark:text-white">
+                  {getQuestionTypeLabel(result.question?.question_type?.id)}
+                </td>
                 <td class="px-3 py-2 dark:text-white truncate max-w-xs">{result.raw.title || '-'}</td>
+                <td class="px-3 py-2 dark:text-white">{result.question?.options?.length || 0}</td>
+                <td class="px-3 py-2 dark:text-white">{countImages(result)}</td>
                 <td class="px-3 py-2 dark:text-white truncate max-w-xs">
                   {result.raw.explanation || '-'}
                 </td>
@@ -676,15 +1102,16 @@
             {/each}
           </tbody>
         </table>
-      </div>
-    {:else if isParsing}
-      <div class="flex items-center justify-center py-10">
-        <p class="dark:text-white">{$t('components.exam.import.parsing')}</p>
-      </div>
-    {/if}
+        </div>
+      {:else if isParsing}
+        <div class="flex items-center justify-center py-10">
+          <p class="dark:text-white">{$t('components.exam.import.parsing')}</p>
+        </div>
+      {/if}
+    </div>
 
     <!-- Footer -->
-    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-600 flex justify-end gap-3">
+    <div class="shrink-0 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-600 flex justify-end gap-3">
       <PrimaryButton
         variant={VARIANTS.OUTLINED}
         onClick={() => {

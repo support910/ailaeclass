@@ -234,7 +234,7 @@
           <QuestionImageUpload
             image={question.metadata?.image || null}
             onChange={(img) => handleQuestionMetadataChange(question.id, { image: img })}
-            label="Question image (optional)"
+            label={$t('components.exam.question_image_optional')}
           />
           <TextArea
             label={$t('components.exam.explanation_label')}

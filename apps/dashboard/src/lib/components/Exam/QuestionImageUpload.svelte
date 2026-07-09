@@ -18,10 +18,10 @@
 
   function validateFile(file: File): string | null {
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      return 'Only JPEG, PNG, WebP, GIF images are allowed';
+      return $t('components.exam.image_upload.invalid_type');
     }
     if (file.size > MAX_IMAGE_SIZE) {
-      return 'Image must be under 5MB';
+      return $t('components.exam.image_upload.too_large');
     }
     return null;
   }
@@ -59,10 +59,10 @@
         alt: file.name
       });
 
-      snackbar.success('Image uploaded');
+      snackbar.success($t('components.exam.image_upload.success'));
     } catch (err) {
       console.error('Image upload error:', err);
-      snackbar.error('Failed to upload image');
+      snackbar.error($t('components.exam.image_upload.error'));
     } finally {
       isUploading = false;
       if (fileInput) fileInput.value = '';
@@ -83,14 +83,14 @@
     <div class="relative inline-block group">
       <img
         src={image.url}
-        alt={image.alt || 'Question image'}
+        alt={image.alt || $t('components.exam.question_image_alt')}
         class="max-h-48 rounded-md border border-gray-200 dark:border-gray-700 object-contain"
       />
       <button
         type="button"
         on:click={handleRemove}
         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-        title="Remove image"
+        title={$t('components.exam.image_upload.remove')}
       >
         <TrashCanIcon size={14} />
       </button>
@@ -103,7 +103,11 @@
       class="flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
     >
       <ImageIcon size={16} />
-      <span>{isUploading ? `Uploading ${uploadProgress}%...` : 'Add image'}</span>
+      <span>
+        {isUploading
+          ? $t('components.exam.image_upload.uploading').replace('{progress}', String(uploadProgress))
+          : $t('components.exam.image_upload.add')}
+      </span>
     </button>
   {/if}
 

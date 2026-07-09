@@ -194,6 +194,15 @@
     return Number.isFinite(parsed) ? parsed : value;
   }
 
+  function getQuestionReference(question: any, index: number) {
+    const title = (question.title || '').trim() || $t('components.exam.unnamed_question');
+    const shortTitle = title.length > 48 ? `${title.slice(0, 48)}...` : title;
+    return $t('components.exam.question_reference', {
+      number: String(index + 1),
+      title: shortTitle
+    });
+  }
+
   function getLocalDraftKey() {
     return `ailaeclass:exam-editor-draft:${examId}`;
   }
@@ -246,43 +255,106 @@
     }
   }
 
-  function validateBeforePublish(allQuestions: any[]): string | null {
-    const active = getActiveQuestions(allQuestions);
-    if (active.length === 0) {
-      return $t('components.exam.error_publish_no_questions');
-    }
+  function validatePublishSettingsIssues() {
+    const issues: string[] = [];
 
-    for (const q of active) {
-      if (!hasQuestionContent(q)) {
-        return $t('components.exam.error_publish_empty_title');
+    if (exam.attempts_allowed !== undefined && exam.attempts_allowed !== null && exam.attempts_allowed !== '') {
+      const val = Number(exam.attempts_allowed);
+      if (isNaN(val) || val < 1) {
+        issues.push($t('components.exam.error_attempts_min'));
       }
     }
 
-    const objectiveTypes = [QUESTION_TYPE.RADIO, QUESTION_TYPE.TRUE_FALSE];
-    for (const q of active) {
+    if (exam.duration_minutes !== undefined && exam.duration_minutes !== null) {
+      const val = Number(exam.duration_minutes);
+      if (isNaN(val) || val <= 0) {
+        issues.push($t('components.exam.error_duration_min'));
+      }
+    }
+
+    if (exam.passing_score !== undefined && exam.passing_score !== null) {
+      const val = Number(exam.passing_score);
+      if (isNaN(val) || val < 0) {
+        issues.push($t('components.exam.error_passing_score_min'));
+      }
+    }
+
+    if (exam.available_from && exam.available_until) {
+      const fromDate = new Date(exam.available_from).getTime();
+      const untilDate = new Date(exam.available_until).getTime();
+      if (untilDate <= fromDate) {
+        issues.push($t('components.exam.error_dates'));
+      }
+    }
+
+    return issues.map((issue) => $t('components.exam.error_publish_settings_issue', { issue }));
+  }
+
+  function validateBeforePublish(allQuestions: any[]) {
+    const issues: string[] = [...validatePublishSettingsIssues()];
+    const active = getActiveQuestions(allQuestions);
+    if (active.length === 0) {
+      return [$t('components.exam.error_publish_no_questions')];
+    }
+
+    for (const [index, q] of active.entries()) {
+      const questionRef = getQuestionReference(q, index);
+      if (!hasQuestionContent(q)) {
+        issues.push($t('components.exam.error_publish_empty_title_at', { question: questionRef }));
+      }
+
       const typeId = q.question_type?.id;
+      if (!typeId) {
+        issues.push($t('components.exam.error_publish_invalid_question_type_at', { question: questionRef }));
+        continue;
+      }
+
+      const objectiveTypes = [QUESTION_TYPE.RADIO, QUESTION_TYPE.TRUE_FALSE];
       if (typeId === QUESTION_TYPE.CHECKBOX || objectiveTypes.includes(typeId)) {
         const activeOptions = getActiveOptions(q);
         const contentOptions = activeOptions.filter(hasOptionContent);
         if (contentOptions.length < 2) {
-          return $t('components.exam.error_publish_not_enough_options').replace('{title}', q.title || $t('components.exam.unnamed_question'));
+          issues.push($t('components.exam.error_publish_not_enough_options_at', { question: questionRef }));
         }
 
-        const correctCount = activeOptions.filter((o) => o.is_correct).length;
+        const firstEmptyOptionIndex = activeOptions.findIndex((option) => !hasOptionContent(option));
+        if (firstEmptyOptionIndex >= 0) {
+          issues.push(
+            $t('components.exam.error_publish_empty_option_at', {
+              question: questionRef,
+              option: String(firstEmptyOptionIndex + 1)
+            })
+          );
+        }
+
+        const correctCount = contentOptions.filter((o) => o.is_correct).length;
         if (typeId === QUESTION_TYPE.CHECKBOX) {
           if (correctCount < 1) {
-            return $t('components.exam.error_publish_no_correct_answer').replace('{title}', q.title || $t('components.exam.unnamed_question'));
+            issues.push($t('components.exam.error_publish_no_correct_answer_at', { question: questionRef }));
           }
         } else {
           // RADIO / TRUE_FALSE: exactly 1 correct answer
           if (correctCount !== 1) {
-            return $t('components.exam.error_publish_exactly_one_correct').replace('{title}', q.title || $t('components.exam.unnamed_question'));
+            issues.push($t('components.exam.error_publish_exactly_one_correct_at', { question: questionRef }));
           }
         }
       }
     }
 
-    return null;
+    return issues;
+  }
+
+  function formatPublishIssues(issues: string[]) {
+    const maxVisible = 8;
+    const visibleIssues = issues.slice(0, maxVisible).map((issue) => `- ${issue}`);
+    if (issues.length > maxVisible) {
+      visibleIssues.push(
+        `- ${$t('components.exam.error_publish_more_issues', {
+          count: String(issues.length - maxVisible)
+        })}`
+      );
+    }
+    return `${$t('components.exam.error_publish_blocked_title')}\n${visibleIssues.join('\n')}`;
   }
 
   async function saveExamDraft() {
@@ -351,12 +423,10 @@
 
   function handleSettingsChange() {
     settingsDirty = true;
-    publishFeedback = '';
     scheduleLocalDraftSave();
   }
 
   function handleQuestionsChange(newQuestions: any[]) {
-    publishFeedback = '';
     questions = normalizeQuestionsForScoreMode(newQuestions);
     scheduleLocalDraftSave();
   }
@@ -387,17 +457,10 @@
     if (isSaving || isPublishing) return;
     publishFeedback = '';
 
-    const settingsError = validateSettings();
-    if (settingsError) {
-      publishFeedback = settingsError;
-      snackbar.error(settingsError);
-      return;
-    }
-
-    const validationError = validateBeforePublish(questions);
-    if (validationError) {
-      publishFeedback = validationError;
-      snackbar.error(validationError);
+    const validationIssues = validateBeforePublish(questions);
+    if (validationIssues.length > 0) {
+      publishFeedback = formatPublishIssues(validationIssues);
+      snackbar.error($t('components.exam.error_publish_blocked_toast'));
       return;
     }
 
@@ -407,8 +470,11 @@
       await saveExamDraft();
     } catch (err) {
       console.error('save before publish error', err);
-      publishFeedback = $t('components.exam.save_error');
-      snackbar.error(publishFeedback);
+      const detail = err instanceof Error ? err.message : '';
+      publishFeedback = detail
+        ? `${$t('components.exam.save_error')}\n${detail}`
+        : $t('components.exam.save_error');
+      snackbar.error($t('components.exam.save_error'));
       isPublishing = false;
       return;
     }
@@ -531,7 +597,7 @@
 
     {#if publishFeedback}
       <div
-        class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-100"
+        class="mb-4 whitespace-pre-line rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-100"
         role="alert"
       >
         {publishFeedback}

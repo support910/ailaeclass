@@ -904,7 +904,7 @@ export async function unpublishExam(exerciseId: Exercise['id']) {
 }
 
 /**
- * Delete an exam permanently (teacher/admin only).
+ * Move a draft exam to the recycle bin (teacher/admin only).
  */
 export async function deleteExam(exerciseId: Exercise['id']) {
   try {
@@ -922,15 +922,77 @@ export async function deleteExam(exerciseId: Exercise['id']) {
     if (!res.ok || !result.success) {
       console.error('deleteExam API error:', result);
       return {
+        data: null,
         error: { message: result.message || 'Failed to delete exam' } as PostgrestError
+      };
+    }
+
+    return { data: result.exam || null, error: null };
+  } catch (err) {
+    console.error('deleteExam network error:', err);
+    return {
+      data: null,
+      error: { message: 'Network error while deleting exam' } as PostgrestError
+    };
+  }
+}
+
+export async function restoreExam(exerciseId: Exercise['id']) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/restore`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('restoreExam API error:', result);
+      return {
+        data: null,
+        error: { message: result.message || 'Failed to restore exam' } as PostgrestError
+      };
+    }
+
+    return { data: result.exam, error: null };
+  } catch (err) {
+    console.error('restoreExam network error:', err);
+    return {
+      data: null,
+      error: { message: 'Network error while restoring exam' } as PostgrestError
+    };
+  }
+}
+
+export async function purgeExam(exerciseId: Exercise['id']) {
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`/api/exams/${exerciseId}/purge`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      console.error('purgeExam API error:', result);
+      return {
+        error: { message: result.message || 'Failed to permanently delete exam' } as PostgrestError
       };
     }
 
     return { error: null };
   } catch (err) {
-    console.error('deleteExam network error:', err);
+    console.error('purgeExam network error:', err);
     return {
-      error: { message: 'Network error while deleting exam' } as PostgrestError
+      error: { message: 'Network error while permanently deleting exam' } as PostgrestError
     };
   }
 }

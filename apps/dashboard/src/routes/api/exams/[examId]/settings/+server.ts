@@ -46,13 +46,17 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
     // 1. Verify exam exists
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
-      .select('lesson_id, settings')
+      .select('*')
       .eq('id', examId)
       .eq('assessment_type', 'exam')
       .single();
 
     if (examError || !examRow) {
       return json({ success: false, message: 'Exam not found' }, { status: 404 });
+    }
+
+    if ((examRow as any).deleted_at) {
+      return json({ success: false, message: 'Restore the exam before editing it' }, { status: 409 });
     }
 
     // 2. Verify user is teacher/admin

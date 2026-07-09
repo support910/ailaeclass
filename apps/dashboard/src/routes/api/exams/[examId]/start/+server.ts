@@ -46,18 +46,17 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // 1. Verify exam exists, is published, belongs to course
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
-      .select(
-        `
-        id, lesson_id, published_at, available_from, available_until,
-        duration_minutes, attempts_allowed, settings
-      `
-      )
+      .select('*')
       .eq('id', examId)
       .eq('assessment_type', 'exam')
       .single();
 
     if (examError || !examRow) {
       return json({ success: false, message: 'Exam not found' }, { status: 404 });
+    }
+
+    if ((examRow as any).deleted_at) {
+      return json({ success: false, message: 'Exam has been moved to the recycle bin' }, { status: 410 });
     }
 
     const { data: lessonRow, error: lessonError } = await supabase

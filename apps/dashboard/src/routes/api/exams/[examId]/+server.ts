@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
+import { getRecycleDeleteAfter } from '$lib/utils/functions/examRecycleBin.server';
 
 const SUBMISSION_STATUS = {
   SUBMITTED: 1,
@@ -55,13 +56,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
     // nested queries (questions:question(...options:option(...))) and merge manually.
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
-      .select(
-        `
-        id, title, description, lesson_id, assessment_type, published_at,
-        available_from, available_until, due_by, duration_minutes, attempts_allowed,
-        passing_score, show_result_policy, shuffle_questions, shuffle_options, settings
-      `
-      )
+      .select('*')
       .eq('id', examId)
       .eq('assessment_type', 'exam')
       .single();
@@ -69,6 +64,10 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
     if (examError || !examRow) {
       console.error('GET /api/exams/[examId] exercise fetch error:', examError);
       return json({ success: false, message: 'Exam not found' }, { status: 404 });
+    }
+
+    if ((examRow as any).deleted_at) {
+      return json({ success: false, message: 'Exam has been moved to the recycle bin' }, { status: 410 });
     }
 
     // Fetch questions separately to avoid PostgREST nested FK issues
@@ -343,7 +342,7 @@ function shouldShowResult(exam: any, submission: any): boolean {
 /**
  * DELETE /api/exams/[examId]
  *
- * Teacher/Admin only: permanently delete a draft exam and all its questions/options.
+ * Teacher/Admin only: move a draft exam to the recycle bin.
  */
 export const DELETE: RequestHandler = async ({ params, request }) => {
   const examId = params.examId;
@@ -410,48 +409,25 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       return json({ success: false, message: 'Only teachers can delete exams' }, { status: 403 });
     }
 
-    const { data: submissions, error: submissionsError } = await supabase
-      .from('submission')
-      .select('id')
-      .eq('exercise_id', examId);
-
-    if (submissionsError) {
-      console.error('deleteExam submissions fetch error:', submissionsError);
-      return json({ success: false, message: submissionsError.message }, { status: 500 });
-    }
-
-    // 3. Delete in correct order: options -> question answers -> questions -> exercise
-    const submissionIds = submissions?.map((s) => s.id) || [];
-    const { data: questions } = await supabase
-      .from('question')
-      .select('id')
-      .eq('exercise_id', examId);
-
-    const questionIds = questions?.map((q) => q.id) || [];
-
-    if (submissionIds.length > 0) {
-      await supabase.from('question_answer').delete().in('submission_id', submissionIds);
-    }
-
-    if (questionIds.length > 0) {
-      await supabase.from('option').delete().in('question_id', questionIds);
-      await supabase.from('question_answer').delete().in('question_id', questionIds);
-      await supabase.from('question').delete().in('id', questionIds);
-    }
-
-    await supabase.from('submission').delete().eq('exercise_id', examId);
-
-    const { error: deleteError } = await supabase
+    const now = new Date().toISOString();
+    const { data: deletedExam, error: deleteError } = await supabase
       .from('exercise')
-      .delete()
-      .match({ id: examId, assessment_type: 'exam' });
+      .update({
+        deleted_at: now,
+        deleted_by: userId,
+        delete_after: getRecycleDeleteAfter(new Date(now)),
+        updated_at: now
+      })
+      .match({ id: examId, assessment_type: 'exam' })
+      .select()
+      .single();
 
     if (deleteError) {
       console.error('deleteExam error:', deleteError);
       return json({ success: false, message: deleteError.message }, { status: 500 });
     }
 
-    return json({ success: true, message: 'Draft exam deleted' });
+    return json({ success: true, message: 'Draft exam moved to recycle bin', exam: deletedExam });
   } catch (err) {
     console.error('DELETE /api/exams/[examId] error:', err);
     const message = err instanceof Error ? err.message : 'Internal server error';
