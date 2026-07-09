@@ -33,6 +33,7 @@
   let isSaving = false;
   let isPublishing = false;
   let settingsDirty = false;
+  let publishFeedback = '';
   let localDraftTimer: ReturnType<typeof setTimeout> | null = null;
   let scoreMode: 'auto' | 'manual' = 'auto';
 
@@ -350,10 +351,12 @@
 
   function handleSettingsChange() {
     settingsDirty = true;
+    publishFeedback = '';
     scheduleLocalDraftSave();
   }
 
   function handleQuestionsChange(newQuestions: any[]) {
+    publishFeedback = '';
     questions = normalizeQuestionsForScoreMode(newQuestions);
     scheduleLocalDraftSave();
   }
@@ -382,15 +385,18 @@
 
   async function handlePublish() {
     if (isSaving || isPublishing) return;
+    publishFeedback = '';
 
     const settingsError = validateSettings();
     if (settingsError) {
+      publishFeedback = settingsError;
       snackbar.error(settingsError);
       return;
     }
 
     const validationError = validateBeforePublish(questions);
     if (validationError) {
+      publishFeedback = validationError;
       snackbar.error(validationError);
       return;
     }
@@ -401,7 +407,8 @@
       await saveExamDraft();
     } catch (err) {
       console.error('save before publish error', err);
-      snackbar.error($t('components.exam.save_error'));
+      publishFeedback = $t('components.exam.save_error');
+      snackbar.error(publishFeedback);
       isPublishing = false;
       return;
     }
@@ -409,9 +416,11 @@
     const { error } = await publishExam(examId);
     if (error) {
       console.error('publishExam error', error);
-      snackbar.error(error.message || $t('components.exam.publish_error'));
+      publishFeedback = error.message || $t('components.exam.publish_error');
+      snackbar.error(publishFeedback);
     } else {
       exam.published_at = new Date().toISOString();
+      publishFeedback = '';
       snackbar.success($t('components.exam.publish_success'));
     }
     isPublishing = false;
@@ -427,6 +436,7 @@
       snackbar.error(error.message || $t('components.exam.unpublish_error'));
     } else {
       exam.published_at = null;
+      publishFeedback = '';
       snackbar.success($t('components.exam.unpublish_success'));
     }
     isPublishing = false;
@@ -518,6 +528,15 @@
         </span>
       {/if}
     </div>
+
+    {#if publishFeedback}
+      <div
+        class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-100"
+        role="alert"
+      >
+        {publishFeedback}
+      </div>
+    {/if}
 
     <!-- Settings -->
     <ExamSettingsPanel bind:exam onChange={handleSettingsChange} />
