@@ -374,6 +374,9 @@ export interface Exercise {
   assessment_type?: string;
   settings?: any;
   published_at?: string | null;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
+  delete_after?: string | null;
   available_from?: string | null;
   available_until?: string | null;
   duration_minutes?: number | null;

@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { ROLE } from '$lib/utils/constants/roles';
 import { getOrgAccess } from '$lib/utils/functions/authz.server';
+import { purgeExpiredDeletedExams } from '$lib/utils/functions/examRecycleBin.server';
 
 /**
  * GET /api/org/{id}/exams
@@ -104,7 +105,12 @@ export const GET: RequestHandler = async ({ request, params }) => {
     const lessonById = new Map((lessons || []).map((lesson: any) => [lesson.id, lesson]));
     const lessonIds = lessons.map((l) => l.id);
 
-    // 3. Get exam exercises
+    const purgeError = await purgeExpiredDeletedExams(supabase, lessonIds);
+    if (purgeError) {
+      console.error('fetchOrgExams purge recycle bin error:', purgeError);
+    }
+
+    // 4. Get exam exercises, including non-expired items in the recycle bin.
     const { data, error } = await supabase
       .from('exercise')
       .select('*')

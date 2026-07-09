@@ -5,7 +5,7 @@
   import NewExamModal from '$lib/components/Exam/NewExamModal.svelte';
   import Box from '$lib/components/Box/index.svelte';
   import CoursesEmptyIcon from '$lib/components/Icons/CoursesEmptyIcon.svelte';
-  import { fetchOrgExams, deleteExam } from '$lib/utils/services/courses';
+  import { fetchOrgExams, deleteExam, restoreExam, purgeExam } from '$lib/utils/services/courses';
   import {
     currentOrg,
     currentOrgPath,
@@ -14,7 +14,7 @@
     isOrgTeacher
   } from '$lib/utils/store/org';
   import { isMobile } from '$lib/utils/store/useMobile';
-  import { Add } from 'carbon-icons-svelte';
+  import { Add, TrashCan } from 'carbon-icons-svelte';
   import { t } from '$lib/utils/functions/translations';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { calDateDiff } from '$lib/utils/functions/date';
@@ -69,6 +69,9 @@
   }
 
   function getStatusLabel(exam: Exercise) {
+    if (exam.deleted_at) {
+      return $t('components.exam.status_deleted');
+    }
     if (exam.published_at) {
       return $t('components.exam.status_published');
     }
@@ -76,6 +79,9 @@
   }
 
   function getStatusClass(exam: Exercise) {
+    if (exam.deleted_at) {
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+    }
     if (exam.published_at) {
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
     }
@@ -88,8 +94,15 @@
       : 'traditional';
   }
 
-  $: traditionalExams = $examsStore.filter((exam) => getExamMode(exam) === 'traditional');
-  $: quickPracticeExams = $examsStore.filter((exam) => getExamMode(exam) === 'quick_practice');
+  $: activeExams = $examsStore.filter((exam) => !exam.deleted_at);
+  $: recycledExams = $examsStore.filter((exam) => exam.deleted_at);
+  $: traditionalExams = activeExams.filter((exam) => getExamMode(exam) === 'traditional');
+  $: quickPracticeExams = activeExams.filter((exam) => getExamMode(exam) === 'quick_practice');
+
+  function formatDate(value?: string | null) {
+    if (!value) return '-';
+    return new Date(value).toLocaleString();
+  }
 
   async function handleDelete(exam: Exercise) {
     if (!exam?.id) return;
@@ -101,12 +114,68 @@
     const confirmed = confirm($t('components.exam.delete_draft_confirm'));
     if (!confirmed) return;
 
-    const { error } = await deleteExam(exam.id);
+    const { data, error } = await deleteExam(exam.id);
     if (error) {
       console.error('deleteExam error', error);
       snackbar.error($t('components.exam.delete_error'));
     } else {
       snackbar.success($t('components.exam.delete_success'));
+      const fallbackDeletedAt = new Date().toISOString();
+      const fallbackDeleteAfter = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+      examsStore.update((list) =>
+        list.map((e) =>
+          e.id === exam.id
+            ? {
+                ...e,
+                ...(data || {}),
+                lesson: e.lesson,
+                deleted_at: data?.deleted_at || fallbackDeletedAt,
+                delete_after: data?.delete_after || fallbackDeleteAfter
+              }
+            : e
+        )
+      );
+    }
+  }
+
+  async function handleRestore(exam: Exercise) {
+    if (!exam?.id) return;
+
+    const { data, error } = await restoreExam(exam.id);
+    if (error) {
+      console.error('restoreExam error', error);
+      snackbar.error($t('components.exam.restore_error'));
+    } else {
+      snackbar.success($t('components.exam.restore_success'));
+      examsStore.update((list) =>
+        list.map((e) =>
+          e.id === exam.id
+            ? {
+                ...e,
+                ...(data || {}),
+                lesson: e.lesson,
+                deleted_at: null,
+                deleted_by: null,
+                delete_after: null
+              }
+            : e
+        )
+      );
+    }
+  }
+
+  async function handlePurge(exam: Exercise) {
+    if (!exam?.id) return;
+
+    const confirmed = confirm($t('components.exam.purge_confirm'));
+    if (!confirmed) return;
+
+    const { error } = await purgeExam(exam.id);
+    if (error) {
+      console.error('purgeExam error', error);
+      snackbar.error($t('components.exam.purge_error'));
+    } else {
+      snackbar.success($t('components.exam.purge_success'));
       examsStore.update((list) => list.filter((e) => e.id !== exam.id));
     }
   }
@@ -242,6 +311,73 @@
             {/if}
           </section>
         {/each}
+
+        <section data-guide-target="exam-recycle-bin">
+          <div class="mb-3 flex items-start gap-2">
+            <TrashCan size={20} class="mt-1 text-gray-700 dark:text-gray-200" />
+            <div>
+              <h2 class="text-lg font-bold text-black dark:text-white">
+                {$t('components.exam.recycle_bin')}
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {$t('components.exam.recycle_bin_hint')}
+              </p>
+            </div>
+          </div>
+
+          {#if recycledExams.length === 0}
+            <div
+              class="rounded-md border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-400"
+            >
+              {$t('components.exam.recycle_bin_empty')}
+            </div>
+          {:else}
+            <div class="space-y-4">
+              {#each recycledExams as exam}
+                <div
+                  class="w-full border border-red-100 rounded-lg bg-red-50 p-4 dark:border-red-900 dark:bg-neutral-900"
+                >
+                  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h4 class="dark:text-white text-lg font-bold capitalize">{exam.title}</h4>
+                        <span class="px-2 py-1 rounded-md text-xs font-medium {getStatusClass(exam)}">
+                          {getStatusLabel(exam)}
+                        </span>
+                      </div>
+                      {#if exam.lesson}
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                          {exam.lesson.course?.title || ''} / {exam.lesson.title || ''}
+                        </p>
+                      {/if}
+                      <div class="mt-3 flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
+                        <span>{$t('components.exam.deleted_at')}: {formatDate(exam.deleted_at)}</span>
+                        <span>{$t('components.exam.delete_after')}: {formatDate(exam.delete_after)}</span>
+                      </div>
+                    </div>
+
+                    {#if $isOrgTeacher}
+                      <div class="flex flex-wrap gap-3">
+                        <button
+                          class="rounded-md border border-primary-700 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 dark:hover:bg-neutral-800"
+                          on:click={() => handleRestore(exam)}
+                        >
+                          {$t('components.exam.restore')}
+                        </button>
+                        <button
+                          class="rounded-md border border-red-600 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100 dark:hover:bg-neutral-800"
+                          on:click={() => handlePurge(exam)}
+                        >
+                          {$t('components.exam.purge')}
+                        </button>
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </section>
       </div>
     {/if}
   </div>

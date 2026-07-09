@@ -55,14 +55,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
     // PostgREST relationship/schema-cache failures on the editor page.
     const { data: examRow, error: examError } = await supabase
       .from('exercise')
-      .select(
-        `
-        id, title, description, lesson_id, assessment_type, published_at,
-        available_from, available_until, due_by, duration_minutes, attempts_allowed,
-        passing_score, show_result_policy, shuffle_questions, shuffle_options,
-        settings
-      `
-      )
+      .select('*')
       .eq('id', examId)
       .eq('assessment_type', 'exam')
       .single();
@@ -70,6 +63,10 @@ export const GET: RequestHandler = async ({ params, request }) => {
     if (examError || !examRow) {
       console.error('fetchExamDetail error:', examError);
       return json({ success: false, message: 'Exam not found' }, { status: 404 });
+    }
+
+    if ((examRow as any).deleted_at) {
+      return json({ success: false, message: 'Exam has been moved to the recycle bin' }, { status: 410 });
     }
 
     const { data: questionsData, error: questionsError } = await supabase
