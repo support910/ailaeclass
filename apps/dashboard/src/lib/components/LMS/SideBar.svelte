@@ -45,14 +45,14 @@
   let showHelpModal = false;
 
   const futureStudentLinks: FutureSideLink[] = [
-    { name: '智能错题本', link: '/lms/coming-soon/smart-wrongbook', icon: LicenseDraft },
-    { name: 'AI今日推荐练习', link: '/lms/coming-soon/ai-daily-practice', icon: Chat },
-    { name: '学习数据摘要', link: '/lms/coming-soon/learning-summary', icon: Explore },
-    { name: '成长雷达', link: '/lms/coming-soon/growth-radar', icon: Explore },
-    { name: '强弱科目提示', link: '/lms/coming-soon/subject-strength', icon: LicenseDraft },
-    { name: '学习通知', link: '/lms/coming-soon/learning-notice', icon: LicenseDraft },
-    { name: '证书成长档案', link: '/lms/coming-soon/certificate-portfolio', icon: LicenseDraft },
-    { name: '低空学习路径', link: '/lms/coming-soon/low-altitude-path', icon: Explore }
+    { name: 'lms_navigation.future.smart_wrongbook', link: '/lms/coming-soon/smart-wrongbook', icon: LicenseDraft },
+    { name: 'lms_navigation.future.ai_daily_practice', link: '/lms/coming-soon/ai-daily-practice', icon: Chat },
+    { name: 'lms_navigation.future.learning_summary', link: '/lms/coming-soon/learning-summary', icon: Explore },
+    { name: 'lms_navigation.future.growth_radar', link: '/lms/coming-soon/growth-radar', icon: Explore },
+    { name: 'lms_navigation.future.subject_strength', link: '/lms/coming-soon/subject-strength', icon: LicenseDraft },
+    { name: 'lms_navigation.future.learning_notice', link: '/lms/coming-soon/learning-notice', icon: LicenseDraft },
+    { name: 'lms_navigation.future.certificate_portfolio', link: '/lms/coming-soon/certificate-portfolio', icon: LicenseDraft },
+    { name: 'lms_navigation.future.low_altitude_path', link: '/lms/coming-soon/low-altitude-path', icon: Explore }
   ];
 
   $: sideLinks = [
@@ -93,7 +93,12 @@
       link: '/lms/agent'
     },
     {
-      name: '使用引导',
+      name: $t('lms_navigation.simulator'),
+      icon: LicenseDraft,
+      link: '/lms/simulator'
+    },
+    {
+      name: $t('lms_navigation.guide'),
       icon: HelpIcon,
       link: '/lms/guide'
     },
@@ -157,11 +162,11 @@
 
         <div class="mt-3 border-t border-gray-200 pt-3 dark:border-neutral-700">
           <div class="mb-2 flex items-center justify-between px-4">
-            <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">学生端待开放</p>
+            <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">{$t('lms_navigation.future.title')}</p>
             <span
               class="rounded-md bg-gray-200 px-2 py-1 text-xs text-gray-600 dark:bg-neutral-800 dark:text-neutral-300"
             >
-              未开放
+              {$t('lms_navigation.future.unavailable')}
             </span>
           </div>
           <ul>
@@ -174,9 +179,9 @@
                   )
                     ? NavClasses.active
                     : 'text-gray-500 dark:text-neutral-300'}"
-                >
+                  >
                   <svelte:component this={item.icon} size={22} class="carbon-icon dark:fill-[#fff]" />
-                  <p class="ml-2 truncate">{item.name}</p>
+                  <p class="ml-2 truncate">{$t(item.name)}</p>
                 </li>
               </a>
             {/each}

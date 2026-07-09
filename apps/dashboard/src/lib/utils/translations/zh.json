@@ -318,7 +318,23 @@
     "unlock": "解锁无限功能并投资我们的未来",
     "upgrade": "立即升级",
     "ai_tools": "AI工具",
-    "agent": "ailaeclass Agent"
+    "agent": "ailaeclass Agent",
+    "simulator": "模拟系统",
+    "guide": "使用引导",
+    "future": {
+      "admin_title": "管理端待开放",
+      "teacher_title": "教师端待开放",
+      "unavailable": "未开放",
+      "principal_dashboard": "校长驾驶舱",
+      "class_management": "班级管理",
+      "grade_analysis": "成绩录入与分析",
+      "attendance_discipline": "考勤与纪律",
+      "ai_comments_recommendation": "AI评语/推荐信",
+      "academic_notice": "教务通知",
+      "ai_academic_report": "AI教务报告",
+      "exam_plan": "考试计划",
+      "course_resource_center": "课程资源中心"
+    }
   },
   "pricing": {
     "plan_names": {
@@ -484,11 +500,11 @@
       "available_until": "结束时间",
       "settings_title": "考试设置",
       "edit_title": "编辑考试",
-    "questions_title": "题目",
-    "score_auto": "自动分配分数",
-    "score_manual": "手动设置分数",
-    "score_auto_hint": "系统会根据当前有效题目数量自动分配为 100 分。",
-    "score_manual_hint": "教师可以自行设置每一道题的分数，总分为所有题目分数相加。",
+      "questions_title": "题目",
+      "score_auto": "自动分配分数",
+      "score_manual": "手动设置分数",
+      "score_auto_hint": "系统会根据当前有效题目数量自动分配为 100 分。",
+      "score_manual_hint": "教师可以自行设置每一道题的分数，总分为所有题目分数相加。",
       "publish": "发布",
       "unpublish": "取消发布",
       "save_success": "考试保存成功",
@@ -1493,22 +1509,22 @@
     "join": {
       "join_course": "加入课程",
       "title": "加入课程",
-        "description": "输入课程码以查找并加入课程。",
+      "description": "输入课程码以查找并加入课程。",
       "search_placeholder": "输入课程码（例如 A1B2C3）",
       "search_button": "搜索",
       "code_label": "课程码",
-        "apply": "加入课程",
-        "pending": "申请审核中",
-        "already_member": "已加入",
-        "submitted": "申请已提交",
-        "joined": "已加入课程",
-        "login_required": "请登录后再加入此课程。",
-        "go_back": "返回",
-        "code_hint": "学生可在“加入课程”中输入此课程码加入。",
-        "error_empty": "请输入课程码。",
-        "error_not_found": "未找到课程，请检查课程码后重试。",
-        "error_submit": "加入课程失败，请重试。",
-        "success_submit": "已成功加入课程。"
+      "apply": "加入课程",
+      "pending": "申请审核中",
+      "already_member": "已加入",
+      "submitted": "申请已提交",
+      "joined": "已加入课程",
+      "login_required": "请登录后再加入此课程。",
+      "go_back": "返回",
+      "code_hint": "学生可在“加入课程”中输入此课程码加入。",
+      "error_empty": "请输入课程码。",
+      "error_not_found": "未找到课程，请检查课程码后重试。",
+      "error_submit": "加入课程失败，请重试。",
+      "success_submit": "已成功加入课程。"
     },
     "people": {
       "join_requests": "加入申请",
@@ -1621,7 +1637,21 @@
     "help": "帮助",
     "settings": "设置",
     "ai_tools": "AI工具",
-    "agent": "ailaeclass Agent"
+    "agent": "ailaeclass Agent",
+    "simulator": "模拟系统",
+    "guide": "使用引导",
+    "future": {
+      "title": "学生端待开放",
+      "unavailable": "未开放",
+      "smart_wrongbook": "智能错题本",
+      "ai_daily_practice": "AI今日推荐练习",
+      "learning_summary": "学习数据摘要",
+      "growth_radar": "成长雷达",
+      "subject_strength": "强弱科目提示",
+      "learning_notice": "学习通知",
+      "certificate_portfolio": "证书成长档案",
+      "low_altitude_path": "低空学习路径"
+    }
   },
   "my_learning": {
     "heading": "我的学习",
@@ -2004,5 +2034,179 @@
     "web_sources": "网络来源",
     "web_label": "网络",
     "page": "页"
+  },
+  "simulator": {
+    "eyebrow": "无人机模拟评分",
+    "title": "模拟系统",
+    "description": "使用模拟飞行日志评估无人机训练动作，当前数据为演示数据，可用于查看八字飞行、悬停、航线和返航降落的评分方式。",
+    "stats": {
+      "subjects": "训练科目",
+      "current_score": "当前评分",
+      "penalty_items": "扣分项"
+    },
+    "labels": {
+      "aircraft": "机型",
+      "risk": "风险",
+      "duration": "时长",
+      "weather": "天气"
+    },
+    "risk": {
+      "low": "低",
+      "medium": "中"
+    },
+    "rating": {
+      "excellent": "优秀",
+      "good": "良好",
+      "practice": "需练习",
+      "high_risk": "风险较高"
+    },
+    "scoring": {
+      "title": "评分明细",
+      "weighted": "按权重自动计算"
+    },
+    "table": {
+      "metric": "指标",
+      "actual": "实测",
+      "target": "目标",
+      "weight": "权重",
+      "score": "得分",
+      "score_unit": "分",
+      "note": "说明"
+    },
+    "path": {
+      "title": "航迹偏差图",
+      "hint": "颜色越深偏差越大"
+    },
+    "penalty": {
+      "title": "扣分原因",
+      "none": "当前科目没有明显扣分项。",
+      "recommend": "建议下一轮训练重点修正。"
+    },
+    "events_title": "飞行事件",
+    "event_level": {
+      "normal": "正常",
+      "notice": "提示",
+      "penalty": "扣分"
+    },
+    "weather": {
+      "light_breeze_2_1": "微风 2.1m/s",
+      "gust_3_4": "阵风 3.4m/s",
+      "sunny_1_6": "晴，风 1.6m/s",
+      "light_breeze_1_2": "微风 1.2m/s"
+    },
+    "scenarios": {
+      "figure_eight": {
+        "title": "八字飞行",
+        "subtitle": "检查航迹对称、转弯半径、横向偏差和高度保持。",
+        "aircraft": "训练机 A-08",
+        "summary": "整体完成度较好，右侧回环外扩明显，建议加强入弯前减速和横滚修正。"
+      },
+      "hover": {
+        "title": "定点悬停",
+        "subtitle": "检查 GPS/视觉定位稳定性、油门控制和抗风修正。",
+        "aircraft": "训练机 H-12",
+        "summary": "悬停控制稳定，位置漂移小；阵风时有一次轻微高度下沉，未越过安全阈值。"
+      },
+      "route": {
+        "title": "矩形航线",
+        "subtitle": "检查航点通过精度、直线段偏航和转角控制。",
+        "aircraft": "训练机 R-21",
+        "summary": "航点通过率高，第三航段存在轻微蛇形修正，建议提高直线段方向保持。"
+      },
+      "landing": {
+        "title": "返航降落",
+        "subtitle": "检查返航航迹、下降率、落点精度和安全动作。",
+        "aircraft": "训练机 L-06",
+        "summary": "返航路径准确，最后 6 秒下降率偏大，落点偏差仍在合格范围内。"
+      }
+    },
+    "metrics": {
+      "avg_lateral_deviation": "平均横向偏差",
+      "max_altitude_deviation": "最大高度偏差",
+      "heading_error": "航向角误差",
+      "path_smoothness": "轨迹平滑度",
+      "task_completion": "任务完成率",
+      "horizontal_drift_radius": "水平漂移半径",
+      "altitude_fluctuation": "高度波动",
+      "nose_direction_error": "机头方向误差",
+      "wind_correction_rate": "抗风修正及时率",
+      "safety_boundary": "安全边界保持",
+      "waypoint_error": "航点通过误差",
+      "straight_heading_drift": "直线段偏航",
+      "turn_radius_error": "转角半径误差",
+      "speed_stability": "速度稳定性",
+      "return_path_deviation": "返航路径偏差",
+      "descent_rate_peak": "下降率峰值",
+      "landing_point_error": "落点偏差",
+      "attitude_stability": "姿态稳定性",
+      "safety_action_completion": "安全动作完成率"
+    },
+    "notes": {
+      "figure_eight_centerline": "八字中心线左右偏移",
+      "target_altitude_12m": "目标高度 12m",
+      "turn_exit_heading": "转弯出口航向稳定性",
+      "stick_input_smoothness": "遥杆输入是否突兀",
+      "complete_all_segments": "按路线完成全部航段",
+      "target_point_radius": "目标点半径范围",
+      "target_altitude_8m": "目标高度 8m",
+      "nose_north": "保持机头朝北",
+      "wind_recovery_speed": "风扰后恢复速度",
+      "no_boundary_alarm": "未触发边界告警",
+      "four_waypoints_avg": "4 个航点平均误差",
+      "route_angle_error": "目标航线夹角误差",
+      "corner_overshoot": "转角是否过冲",
+      "target_speed_3ms": "目标速度 3m/s",
+      "complete_all_waypoints": "完成全部航点",
+      "return_line_offset": "返航线平均偏移",
+      "final_descent_speed": "最后阶段下降速度",
+      "distance_to_landing_center": "距离降落中心点",
+      "pitch_roll_changes": "下降过程中俯仰横滚变化",
+      "return_slow_lock": "返航、减速、落锁完成"
+    },
+    "events": {
+      "figure_eight": {
+        "left_loop": "进入左侧回环，偏差 0.31m",
+        "right_loop_wide": "右侧回环外扩，最大偏差 0.96m",
+        "altitude_rise": "高度短时上浮 0.58m"
+      },
+      "hover": {
+        "enter_point": "进入悬停点，半径 0.18m",
+        "gust_sink": "阵风导致高度下沉 0.24m",
+        "recovered": "位置恢复到目标半径 0.12m"
+      },
+      "route": {
+        "waypoint_a": "通过航点 A，误差 0.42m",
+        "third_leg_correction": "第三航段出现蛇形修正",
+        "speed_stable": "返航前速度稳定"
+      },
+      "landing": {
+        "return_path": "返航路径偏差 0.33m",
+        "descent_peak": "下降率峰值 1.15m/s",
+        "touchdown_error": "落点偏差 0.72m"
+      }
+    }
+  },
+  "coming_soon": {
+    "module_title": "待开放模块",
+    "admin_demo": "管理端 Demo",
+    "teacher_demo": "教师端 Demo",
+    "student_demo": "学生端 Demo",
+    "description": "另一个版本开放，本版本暂未开发。",
+    "unavailable": "未开放",
+    "dashboard_frame": "数据看板框架",
+    "dashboard_note": "当前仅展示模块入口，不包含真实业务数据。",
+    "core_metrics": "核心指标",
+    "todo_items": "待办事项",
+    "business_list_frame": "业务列表框架",
+    "pending_config": "待配置",
+    "unavailable_in_version": "本版本暂未开放",
+    "admin_future_note": "后续版本接入真实数据、审批流程和权限控制。",
+    "feature_preview_frame": "功能预览框架",
+    "feature_preview_note": "当前仅展示入口和页面结构。",
+    "today_tasks": "今日任务",
+    "learning_progress": "学习进度",
+    "ai_suggestions": "AI建议",
+    "development_status": "开发状态",
+    "student_future_note": "后续版本接入真实数据、交互流程和权限控制。"
   }
 }

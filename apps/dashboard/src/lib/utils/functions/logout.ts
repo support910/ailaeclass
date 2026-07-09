@@ -1,12 +1,12 @@
 import posthog from 'posthog-js';
-import { supabase } from '$lib/utils/functions/supabase';
+import { getSupabase } from '$lib/utils/functions/supabase';
 import { capturePosthogEvent } from '$lib/utils/services/posthog';
 import { user, profile, defaultProfileState, defaultUserState } from '$lib/utils/store/user';
 import { orgs, currentOrg, defaultCurrentOrgState } from '$lib/utils/store/org';
 import { goto } from '$app/navigation';
 
 export async function logout(redirect = true) {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await getSupabase().auth.signOut();
 
   if (error) {
     console.error('Error logging out: ', error);

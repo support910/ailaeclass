@@ -190,7 +190,21 @@
     "settings": "Configurações",
     "explore": "Explorar",
     "ai_tools": "AI Tools",
-    "agent": "ailaeclass Agent"
+    "agent": "ailaeclass Agent",
+    "simulator": "Simulation System",
+    "guide": "User Guide",
+    "future": {
+      "title": "Student features coming soon",
+      "unavailable": "Not available",
+      "smart_wrongbook": "Smart Wrong-Answer Book",
+      "ai_daily_practice": "AI Daily Practice",
+      "learning_summary": "Learning Data Summary",
+      "growth_radar": "Growth Radar",
+      "subject_strength": "Subject Strength Tips",
+      "learning_notice": "Learning Notices",
+      "certificate_portfolio": "Certificate Portfolio",
+      "low_altitude_path": "Low-Altitude Learning Path"
+    }
   },
   "upgrade": {
     "certificate": "Atualize seu plano para gerar certificados",
@@ -1415,7 +1429,23 @@
     "unlock": "Desbloqueie recursos ilimitados e invista em nosso futuro",
     "upgrade": "Atualize agora",
     "ai_tools": "AI Tools",
-    "agent": "ailaeclass Agent"
+    "agent": "ailaeclass Agent",
+    "simulator": "Simulation System",
+    "guide": "User Guide",
+    "future": {
+      "admin_title": "Admin features coming soon",
+      "teacher_title": "Teacher features coming soon",
+      "unavailable": "Not available",
+      "principal_dashboard": "Principal Dashboard",
+      "class_management": "Class Management",
+      "grade_analysis": "Grade Entry & Analysis",
+      "attendance_discipline": "Attendance & Discipline",
+      "ai_comments_recommendation": "AI Comments / Recommendation Letters",
+      "academic_notice": "Academic Notices",
+      "ai_academic_report": "AI Academic Reports",
+      "exam_plan": "Exam Planning",
+      "course_resource_center": "Course Resource Center"
+    }
   },
   "settings": {
     "heading": "Configurações",
@@ -1959,5 +1989,179 @@
     "web_sources": "Web sources",
     "web_label": "Web",
     "page": "Page"
+  },
+  "simulator": {
+    "eyebrow": "Drone Simulation",
+    "title": "Simulation System",
+    "description": "Evaluate drone training maneuvers with simulated flight logs. The current data is demo data for reviewing figure-eight flight, hover, route, and return-to-land scoring.",
+    "stats": {
+      "subjects": "Training Subjects",
+      "current_score": "Current Score",
+      "penalty_items": "Penalty Items"
+    },
+    "labels": {
+      "aircraft": "Aircraft",
+      "risk": "Risk",
+      "duration": "Duration",
+      "weather": "Weather"
+    },
+    "risk": {
+      "low": "Low",
+      "medium": "Medium"
+    },
+    "rating": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "practice": "Needs Practice",
+      "high_risk": "High Risk"
+    },
+    "scoring": {
+      "title": "Scoring Details",
+      "weighted": "Automatically calculated by weight"
+    },
+    "table": {
+      "metric": "Metric",
+      "actual": "Actual",
+      "target": "Target",
+      "weight": "Weight",
+      "score": "Score",
+      "score_unit": "pts",
+      "note": "Notes"
+    },
+    "path": {
+      "title": "Flight Path Deviation Map",
+      "hint": "Darker colors indicate larger deviation"
+    },
+    "penalty": {
+      "title": "Deduction Reasons",
+      "none": "No obvious penalty items for the current subject.",
+      "recommend": "focus on correcting this in the next training round."
+    },
+    "events_title": "Flight Events",
+    "event_level": {
+      "normal": "Normal",
+      "notice": "Notice",
+      "penalty": "Penalty"
+    },
+    "weather": {
+      "light_breeze_2_1": "Light breeze 2.1m/s",
+      "gust_3_4": "Gusts 3.4m/s",
+      "sunny_1_6": "Sunny, wind 1.6m/s",
+      "light_breeze_1_2": "Light breeze 1.2m/s"
+    },
+    "scenarios": {
+      "figure_eight": {
+        "title": "Figure-Eight Flight",
+        "subtitle": "Checks path symmetry, turn radius, lateral deviation, and altitude holding.",
+        "aircraft": "Trainer A-08",
+        "summary": "Overall completion is solid, but the right loop expands outward. Slow before entering turns and strengthen roll correction."
+      },
+      "hover": {
+        "title": "Fixed-Point Hover",
+        "subtitle": "Checks GPS/vision positioning stability, throttle control, and wind correction.",
+        "aircraft": "Trainer H-12",
+        "summary": "Hover control is stable with little position drift. A brief altitude sink occurred during a gust but stayed within the safety threshold."
+      },
+      "route": {
+        "title": "Rectangular Route",
+        "subtitle": "Checks waypoint accuracy, heading drift on straight legs, and corner control.",
+        "aircraft": "Trainer R-21",
+        "summary": "Waypoint pass rate is high. The third leg shows slight weaving correction; improve direction holding on straight segments."
+      },
+      "landing": {
+        "title": "Return-To-Land",
+        "subtitle": "Checks return path, descent rate, landing accuracy, and safety actions.",
+        "aircraft": "Trainer L-06",
+        "summary": "Return path is accurate. Descent rate is high in the final 6 seconds, while landing point error remains within the passing range."
+      }
+    },
+    "metrics": {
+      "avg_lateral_deviation": "Average Lateral Deviation",
+      "max_altitude_deviation": "Maximum Altitude Deviation",
+      "heading_error": "Heading Error",
+      "path_smoothness": "Path Smoothness",
+      "task_completion": "Task Completion",
+      "horizontal_drift_radius": "Horizontal Drift Radius",
+      "altitude_fluctuation": "Altitude Fluctuation",
+      "nose_direction_error": "Nose Direction Error",
+      "wind_correction_rate": "Wind Correction Response Rate",
+      "safety_boundary": "Safety Boundary Hold",
+      "waypoint_error": "Waypoint Passing Error",
+      "straight_heading_drift": "Straight-Leg Heading Drift",
+      "turn_radius_error": "Turn Radius Error",
+      "speed_stability": "Speed Stability",
+      "return_path_deviation": "Return Path Deviation",
+      "descent_rate_peak": "Peak Descent Rate",
+      "landing_point_error": "Landing Point Error",
+      "attitude_stability": "Attitude Stability",
+      "safety_action_completion": "Safety Action Completion"
+    },
+    "notes": {
+      "figure_eight_centerline": "Left/right offset from the figure-eight centerline",
+      "target_altitude_12m": "Target altitude 12m",
+      "turn_exit_heading": "Heading stability at turn exits",
+      "stick_input_smoothness": "Whether stick input is abrupt",
+      "complete_all_segments": "Completed all route segments",
+      "target_point_radius": "Target point radius range",
+      "target_altitude_8m": "Target altitude 8m",
+      "nose_north": "Keep nose facing north",
+      "wind_recovery_speed": "Recovery speed after wind disturbance",
+      "no_boundary_alarm": "No boundary warning triggered",
+      "four_waypoints_avg": "Average error across 4 waypoints",
+      "route_angle_error": "Target route angle error",
+      "corner_overshoot": "Whether the corner overshoots",
+      "target_speed_3ms": "Target speed 3m/s",
+      "complete_all_waypoints": "Completed all waypoints",
+      "return_line_offset": "Average offset from return line",
+      "final_descent_speed": "Final-stage descent speed",
+      "distance_to_landing_center": "Distance to landing center point",
+      "pitch_roll_changes": "Pitch and roll changes during descent",
+      "return_slow_lock": "Return, deceleration, and lock completed"
+    },
+    "events": {
+      "figure_eight": {
+        "left_loop": "Entered left loop, deviation 0.31m",
+        "right_loop_wide": "Right loop expanded outward, maximum deviation 0.96m",
+        "altitude_rise": "Short altitude rise of 0.58m"
+      },
+      "hover": {
+        "enter_point": "Entered hover point, radius 0.18m",
+        "gust_sink": "Gust caused altitude sink of 0.24m",
+        "recovered": "Position recovered to target radius 0.12m"
+      },
+      "route": {
+        "waypoint_a": "Passed waypoint A, error 0.42m",
+        "third_leg_correction": "Weaving correction appeared on the third leg",
+        "speed_stable": "Speed stayed stable before return"
+      },
+      "landing": {
+        "return_path": "Return path deviation 0.33m",
+        "descent_peak": "Peak descent rate 1.15m/s",
+        "touchdown_error": "Landing point error 0.72m"
+      }
+    }
+  },
+  "coming_soon": {
+    "module_title": "Coming Soon Module",
+    "admin_demo": "Admin Demo",
+    "teacher_demo": "Teacher Demo",
+    "student_demo": "Student Demo",
+    "description": "This will open in another version. It is not developed in the current version.",
+    "unavailable": "Not available",
+    "dashboard_frame": "Dashboard Frame",
+    "dashboard_note": "This currently only shows the module entry and does not include real business data.",
+    "core_metrics": "Core Metrics",
+    "todo_items": "To-Do Items",
+    "business_list_frame": "Business List Frame",
+    "pending_config": "Pending config",
+    "unavailable_in_version": "Not available in this version",
+    "admin_future_note": "A later version will connect real data, approval flows, and permission control.",
+    "feature_preview_frame": "Feature Preview Frame",
+    "feature_preview_note": "This currently only shows the entry and page structure.",
+    "today_tasks": "Today Tasks",
+    "learning_progress": "Learning Progress",
+    "ai_suggestions": "AI Suggestions",
+    "development_status": "Development Status",
+    "student_future_note": "A later version will connect real data, interaction flows, and permission control."
   }
 }

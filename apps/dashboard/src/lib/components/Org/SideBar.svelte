@@ -48,18 +48,21 @@
     $currentOrg.role_id === ROLE.ADMIN || $currentOrg.role_id === ROLE.TUTOR
       ? futureManagementItems
       : [];
-  $: futureOrgTitle = $currentOrg.role_id === ROLE.ADMIN ? '管理端待开放' : '教师端待开放';
+  $: futureOrgTitle =
+    $currentOrg.role_id === ROLE.ADMIN
+      ? $t('org_navigation.future.admin_title')
+      : $t('org_navigation.future.teacher_title');
 
   const futureManagementItems: FutureMenuItem[] = [
-    { label: '校长驾驶舱', path: '/coming-soon/principal-dashboard', icon: Explore },
-    { label: '班级管理', path: '/coming-soon/class-management', icon: JoinIcon },
-    { label: '成绩录入与分析', path: '/coming-soon/grade-analysis', icon: TaskIcon },
-    { label: '考勤与纪律', path: '/coming-soon/attendance-discipline', icon: TaskIcon },
-    { label: 'AI评语/推荐信', path: '/coming-soon/ai-comments-recommendation', icon: Chat },
-    { label: '教务通知', path: '/coming-soon/academic-notice', icon: LicenseDraft },
-    { label: 'AI教务报告', path: '/coming-soon/ai-academic-report', icon: LicenseDraft },
-    { label: '考试计划', path: '/coming-soon/exam-plan', icon: TaskIcon },
-    { label: '课程资源中心', path: '/coming-soon/course-resource-center', icon: LicenseDraft }
+    { label: 'org_navigation.future.principal_dashboard', path: '/coming-soon/principal-dashboard', icon: Explore },
+    { label: 'org_navigation.future.class_management', path: '/coming-soon/class-management', icon: JoinIcon },
+    { label: 'org_navigation.future.grade_analysis', path: '/coming-soon/grade-analysis', icon: TaskIcon },
+    { label: 'org_navigation.future.attendance_discipline', path: '/coming-soon/attendance-discipline', icon: TaskIcon },
+    { label: 'org_navigation.future.ai_comments_recommendation', path: '/coming-soon/ai-comments-recommendation', icon: Chat },
+    { label: 'org_navigation.future.academic_notice', path: '/coming-soon/academic-notice', icon: LicenseDraft },
+    { label: 'org_navigation.future.ai_academic_report', path: '/coming-soon/ai-academic-report', icon: LicenseDraft },
+    { label: 'org_navigation.future.exam_plan', path: '/coming-soon/exam-plan', icon: TaskIcon },
+    { label: 'org_navigation.future.course_resource_center', path: '/coming-soon/course-resource-center', icon: LicenseDraft }
   ];
 
   function isActive(pagePath: string, itemPath: string) {
@@ -120,8 +123,14 @@
       show: true
     },
     {
+      path: '/simulator',
+      label: $t('org_navigation.simulator'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/simulator`),
+      show: true
+    },
+    {
       path: '/guide',
-      label: '使用引导',
+      label: $t('org_navigation.guide'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/guide`),
       show: true
     },
@@ -189,6 +198,8 @@
                     <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/agent'}
                     <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                  {:else if menuItem.path === '/simulator'}
+                    <TaskIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/guide'}
                     <HelpIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/quiz'}
@@ -213,7 +224,7 @@
           <div class="mt-3 border-t border-gray-200 px-4 pt-3 dark:border-neutral-700">
             <div class="mb-2 flex items-center justify-between px-2.5">
               <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">{futureOrgTitle}</p>
-              <TextChip value="未开放" size="sm" className="text-xs text-gray-600" />
+              <TextChip value={$t('org_navigation.future.unavailable')} size="sm" className="text-xs text-gray-600" />
             </div>
             <ul>
               {#each futureOrgItems as item}
@@ -230,7 +241,7 @@
                       : 'text-gray-500 dark:text-neutral-300'}"
                   >
                     <svelte:component this={item.icon} size={20} class="carbon-icon dark:fill-[#fff]" />
-                    <p class="truncate text-sm font-medium">{item.label}</p>
+                    <p class="truncate text-sm font-medium">{$t(item.label)}</p>
                   </li>
                 </a>
               {/each}

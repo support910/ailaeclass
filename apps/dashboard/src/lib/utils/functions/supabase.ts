@@ -35,40 +35,47 @@ export const hasSession = async () => {
 };
 
 export const isSupabaseTokenInLocalStorage = () => {
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key === null) continue; // Skip if null (shouldn't happen)
-    if (/sb-[\w-]+-auth-token/.test(key)) {
-      return true;
-    }
-  }
+  if (!browser) return false;
 
-  return false;
+  const storageKey = getSupabaseStorageKey();
+  return storageKey ? localStorage.getItem(storageKey) !== null : false;
+};
+
+const getSupabaseStorageKey = () => {
+  try {
+    const host = new URL(config.supabaseConfig.url).hostname;
+    const projectRef = host.split('.')[0];
+    return projectRef ? `sb-${projectRef}-auth-token` : '';
+  } catch {
+    return '';
+  }
+};
+
+const readAccessTokenFromStorageValue = (raw: string) => {
+  try {
+    const parsed = JSON.parse(raw);
+    return (
+      parsed?.access_token ||
+      parsed?.currentSession?.access_token ||
+      parsed?.session?.access_token ||
+      parsed?.[0]?.access_token ||
+      ''
+    );
+  } catch {
+    return '';
+  }
 };
 
 const getStoredAccessToken = () => {
   if (!browser) return '';
 
-  try {
-    for (let i = 0; i < localStorage.length; i += 1) {
-      const key = localStorage.key(i);
-      if (!key || !/^sb-[\w-]+-auth-token$/.test(key)) continue;
+  const storageKey = getSupabaseStorageKey();
+  if (!storageKey) return '';
 
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
+  const raw = localStorage.getItem(storageKey);
+  if (!raw) return '';
 
-      const parsed = JSON.parse(raw);
-      const token =
-        parsed?.access_token ||
-        parsed?.currentSession?.access_token ||
-        parsed?.session?.access_token;
-      if (token) return token;
-    }
-  } catch {
-    return '';
-  }
-
-  return '';
+  return readAccessTokenFromStorageValue(raw);
 };
 
 export const getAccessToken = async () => {

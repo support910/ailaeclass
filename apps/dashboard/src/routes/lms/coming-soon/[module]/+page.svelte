@@ -1,19 +1,20 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { t } from '$lib/utils/functions/translations';
 
   const moduleNames: Record<string, string> = {
-    'smart-wrongbook': '智能错题本',
-    'ai-daily-practice': 'AI今日推荐练习',
-    'learning-summary': '学习数据摘要',
-    'growth-radar': '成长雷达',
-    'subject-strength': '强弱科目提示',
-    'learning-notice': '学习通知',
-    'certificate-portfolio': '证书成长档案',
-    'low-altitude-path': '低空学习路径'
+    'smart-wrongbook': 'lms_navigation.future.smart_wrongbook',
+    'ai-daily-practice': 'lms_navigation.future.ai_daily_practice',
+    'learning-summary': 'lms_navigation.future.learning_summary',
+    'growth-radar': 'lms_navigation.future.growth_radar',
+    'subject-strength': 'lms_navigation.future.subject_strength',
+    'learning-notice': 'lms_navigation.future.learning_notice',
+    'certificate-portfolio': 'lms_navigation.future.certificate_portfolio',
+    'low-altitude-path': 'lms_navigation.future.low_altitude_path'
   };
 
   $: moduleKey = $page.params.module || '';
-  $: moduleTitle = moduleNames[moduleKey] || '待开放模块';
+  $: moduleTitle = $t(moduleNames[moduleKey] || 'coming_soon.module_title');
 </script>
 
 <svelte:head>
@@ -23,12 +24,12 @@
 <section class="mx-auto max-w-6xl p-5">
   <div class="mb-6 flex flex-col justify-between gap-4 border-b border-gray-200 pb-5 dark:border-neutral-800 md:flex-row md:items-center">
     <div>
-      <p class="mb-2 text-sm font-medium text-primary-700 dark:text-primary-300">学生端 Demo</p>
+      <p class="mb-2 text-sm font-medium text-primary-700 dark:text-primary-300">{$t('coming_soon.student_demo')}</p>
       <h1 class="text-2xl font-bold text-[#040F2D] dark:text-white md:text-3xl">{moduleTitle}</h1>
-      <p class="mt-2 text-sm text-gray-600 dark:text-neutral-300">另一个版本开放，本版本暂未开发。</p>
+      <p class="mt-2 text-sm text-gray-600 dark:text-neutral-300">{$t('coming_soon.description')}</p>
     </div>
     <span class="w-fit rounded-md bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 dark:bg-neutral-800 dark:text-neutral-200">
-      未开放
+      {$t('coming_soon.unavailable')}
     </span>
   </div>
 
@@ -36,23 +37,23 @@
     <div class="rounded-md border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
       <div class="mb-5 flex items-center justify-between">
         <div>
-          <p class="text-sm font-semibold text-gray-900 dark:text-white">功能预览框架</p>
-          <p class="mt-1 text-xs text-gray-500 dark:text-neutral-400">当前仅展示入口和页面结构。</p>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">{$t('coming_soon.feature_preview_frame')}</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-neutral-400">{$t('coming_soon.feature_preview_note')}</p>
         </div>
         <div class="h-8 w-24 rounded bg-gray-100 dark:bg-neutral-800" />
       </div>
 
       <div class="grid gap-3 sm:grid-cols-3">
         <div class="rounded border border-gray-200 p-4 dark:border-neutral-800">
-          <p class="text-xs text-gray-500 dark:text-neutral-400">今日任务</p>
+          <p class="text-xs text-gray-500 dark:text-neutral-400">{$t('coming_soon.today_tasks')}</p>
           <div class="mt-3 h-7 w-16 rounded bg-gray-100 dark:bg-neutral-800" />
         </div>
         <div class="rounded border border-gray-200 p-4 dark:border-neutral-800">
-          <p class="text-xs text-gray-500 dark:text-neutral-400">学习进度</p>
+          <p class="text-xs text-gray-500 dark:text-neutral-400">{$t('coming_soon.learning_progress')}</p>
           <div class="mt-3 h-7 w-20 rounded bg-gray-100 dark:bg-neutral-800" />
         </div>
         <div class="rounded border border-gray-200 p-4 dark:border-neutral-800">
-          <p class="text-xs text-gray-500 dark:text-neutral-400">AI建议</p>
+          <p class="text-xs text-gray-500 dark:text-neutral-400">{$t('coming_soon.ai_suggestions')}</p>
           <div class="mt-3 h-7 w-14 rounded bg-gray-100 dark:bg-neutral-800" />
         </div>
       </div>
@@ -72,10 +73,10 @@
     </div>
 
     <aside class="rounded-md border border-gray-200 bg-gray-50 p-5 dark:border-neutral-800 dark:bg-neutral-900">
-      <p class="text-sm font-semibold text-gray-900 dark:text-white">开发状态</p>
+      <p class="text-sm font-semibold text-gray-900 dark:text-white">{$t('coming_soon.development_status')}</p>
       <div class="mt-4 rounded border border-dashed border-gray-300 p-4 text-center dark:border-neutral-700">
-        <p class="text-base font-medium text-gray-900 dark:text-white">本版本暂未开放</p>
-        <p class="mt-2 text-sm text-gray-600 dark:text-neutral-300">后续版本接入真实数据、交互流程和权限控制。</p>
+        <p class="text-base font-medium text-gray-900 dark:text-white">{$t('coming_soon.unavailable_in_version')}</p>
+        <p class="mt-2 text-sm text-gray-600 dark:text-neutral-300">{$t('coming_soon.student_future_note')}</p>
       </div>
     </aside>
   </div>

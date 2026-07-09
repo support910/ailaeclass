@@ -258,10 +258,10 @@
       <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.course')}</label>
       <Dropdown
         class="w-full bg-gray-100 dark:bg-neutral-800"
-        selectedId={selectedCourseId}
+        selectedId={selectedCourseId || undefined}
         on:select={onSelectCourse}
         items={coursesList.map((c) => ({ id: c.id, text: c.title || 'Untitled' }))}
-        placeholder={$t('components.exam.select_course')}
+        label={$t('components.exam.select_course')}
       />
       {#if errors.course}<p class="text-red-500 text-xs mt-1">{errors.course}</p>{/if}
     </div>
@@ -270,10 +270,10 @@
       <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.lesson')}</label>
       <Dropdown
         class="w-full bg-gray-100 dark:bg-neutral-800"
-        selectedId={selectedLessonId}
+        selectedId={selectedLessonId || undefined}
         on:select={onSelectLesson}
         items={lessonsList.map((l) => ({ id: l.id, text: l.title || 'Untitled' }))}
-        placeholder={$t('components.exam.select_lesson')}
+        label={$t('components.exam.select_lesson')}
         disabled={isFetchingLessons || !selectedCourseId || lessonsList.length === 0}
       />
       {#if isFetchingLessons}
