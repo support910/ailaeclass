@@ -228,6 +228,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
           const optionSlots: any[] = [];
           const deletedOptionIds: string[] = [];
           const activeOptions: Array<{ slotIndex: number; source: any; row: any; isNewOption: boolean }> = [];
+          let nextOptionSlotIndex = 0;
 
           for (const option of options || []) {
             if (option.deleted_at) {
@@ -237,7 +238,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
               continue;
             }
 
-            const slotIndex = optionSlots.length;
+            const slotIndex = nextOptionSlotIndex;
+            nextOptionSlotIndex += 1;
             const newOption = {
               ...(isNew(option.id) ? {} : { id: option.id }),
               label: option.label || '',
