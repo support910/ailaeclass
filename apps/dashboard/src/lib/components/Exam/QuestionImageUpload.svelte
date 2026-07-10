@@ -38,24 +38,19 @@
     }
 
     isUploading = true;
-    uploadProgress = 0;
+    uploadProgress = 10;
 
     try {
-      const { url: presignedUrl, fileKey } = await imageUploader.getPresignedUrl(file);
-      uploadProgress = 30;
-
-      await imageUploader.uploadFile({ url: presignedUrl, file });
-      uploadProgress = 70;
-
-      const { urls: presignedUrls } = await imageUploader.getDownloadPresignedUrl([fileKey]);
+      const result = await imageUploader.uploadDirect(file);
       uploadProgress = 100;
 
-      const url = presignedUrls?.[fileKey];
-      if (!url) throw new Error('Presigned download URL missing for uploaded file');
+      if (!result.url || !result.fileKey) {
+        throw new Error('Uploaded image response is missing URL or key');
+      }
 
       onChange({
-        url,
-        key: fileKey,
+        url: result.url,
+        key: result.fileKey,
         alt: file.name
       });
 

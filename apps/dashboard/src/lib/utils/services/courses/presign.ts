@@ -261,6 +261,28 @@ export class ImageUploader extends GenericUploader {
     return data;
   }
 
+  async uploadDirect(file: File) {
+    const token = await getAccessToken();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/images/upload', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok || !result?.success) {
+      throw new Error(result?.message || 'Unable to upload image');
+    }
+
+    return result;
+  }
+
   async uploadFile(params: { url: string; file: File }) {
     if (!this.signedUpload) {
       throw new Error('Missing signed upload token');
