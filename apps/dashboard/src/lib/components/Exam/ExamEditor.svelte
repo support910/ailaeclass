@@ -4,8 +4,6 @@
   import { goto } from '$app/navigation';
   import ExamSettingsPanel from './ExamSettingsPanel.svelte';
   import ExamQuestionEditor from './ExamQuestionEditor.svelte';
-  import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
-  import { VARIANTS } from '$lib/components/PrimaryButton/constants.js';
   import {
     fetchExamById,
     updateExamSettings,
@@ -36,6 +34,8 @@
   let publishFeedback = '';
   let localDraftTimer: ReturnType<typeof setTimeout> | null = null;
   let scoreMode: 'auto' | 'manual' = 'auto';
+  const headerActionClass =
+    'flex items-center h-auto cursor-pointer hover:scale-95 px-5 py-[0.2rem] rounded-md min-h-[36px] w-fit justify-center sm:w-auto hover:shadow-xl transition-all delay-150 duration-300 ease-in-out disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100';
 
   // Defense-in-depth: redirect students away
   $: if ($currentOrg.role_id === ROLE.STUDENT && $currentOrg.id) {
@@ -212,6 +212,11 @@
     localStorage.removeItem(getLocalDraftKey());
   }
 
+  function getEditableExamDraft() {
+    const { published_at, deleted_at, created_at, updated_at, ...editableExam } = exam as any;
+    return editableExam;
+  }
+
   function scheduleLocalDraftSave() {
     if (!browser || isLoading || !examId) return;
     if (localDraftTimer) clearTimeout(localDraftTimer);
@@ -221,7 +226,7 @@
         JSON.stringify({
           savedAt: new Date().toISOString(),
           scoreMode,
-          exam,
+          exam: getEditableExamDraft(),
           questions
         })
       );
@@ -239,7 +244,7 @@
       const confirmed = window.confirm($t('components.exam.draft_restore_confirm'));
       if (!confirmed) return;
 
-      exam = draft.exam || exam;
+      exam = { ...exam, ...(draft.exam || {}) };
       scoreMode =
         draft.scoreMode === 'auto' || draft.scoreMode === 'manual'
           ? draft.scoreMode
@@ -499,10 +504,12 @@
     const { error } = await unpublishExam(examId);
     if (error) {
       console.error('unpublishExam error', error);
-      snackbar.error(error.message || $t('components.exam.unpublish_error'));
+      publishFeedback = error.message || $t('components.exam.unpublish_error');
+      snackbar.error(publishFeedback);
     } else {
-      exam.published_at = null;
+      exam = { ...exam, published_at: null };
       publishFeedback = '';
+      clearLocalDraft();
       snackbar.success($t('components.exam.unpublish_success'));
     }
     isPublishing = false;
@@ -549,32 +556,35 @@
 
       <div class="flex items-center gap-2 flex-wrap">
         {#if exam.published_at}
-          <PrimaryButton
-            variant={VARIANTS.OUTLINED}
-            onClick={handleUnpublish}
-            isLoading={isPublishing}
-            label={$t('components.exam.unpublish')}
+          <button
+            type="button"
+            class={`${headerActionClass} border border-black text-black hover:bg-neutral-600 hover:text-white dark:border-white dark:text-white`}
+            on:click={handleUnpublish}
+            disabled={isPublishing || isSaving}
           >
             <CircleDashIcon size={18} class="carbon-icon dark:text-white mr-1" />
-          </PrimaryButton>
+            {$t('components.exam.unpublish')}
+          </button>
         {:else}
-          <PrimaryButton
-            variant={VARIANTS.CONTAINED_SUCCESS}
-            onClick={handlePublish}
-            isLoading={isPublishing}
-            label={$t('components.exam.publish')}
+          <button
+            type="button"
+            class={`${headerActionClass} border-none bg-green-600 text-white font-bold hover:bg-green-700`}
+            on:click={handlePublish}
+            disabled={isPublishing || isSaving}
           >
             <LaunchIcon size={18} class="carbon-icon text-white mr-1" />
-          </PrimaryButton>
+            {$t('components.exam.publish')}
+          </button>
         {/if}
-        <PrimaryButton
-          variant={VARIANTS.CONTAINED}
-          onClick={handleSave}
-          isLoading={isSaving}
-          label={$t('components.exam.save')}
+        <button
+          type="button"
+          class={`${headerActionClass} border-none bg-primary-700 text-white font-bold hover:bg-primary-900`}
+          on:click={handleSave}
+          disabled={isSaving || isPublishing}
         >
           <SaveIcon size={18} class="carbon-icon text-white mr-1" />
-        </PrimaryButton>
+          {$t('components.exam.save')}
+        </button>
       </div>
     </div>
 

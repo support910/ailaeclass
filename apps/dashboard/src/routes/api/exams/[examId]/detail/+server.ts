@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
+import { refreshExamImageUrls } from '$lib/utils/functions/examImages.server';
 
 function mergeOptionImagesFromQuestionMetadata(question: any) {
   const optionImages = question?.metadata?.optionImages || {};
@@ -171,6 +172,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
         mergeOptionImagesFromQuestionMetadata(q);
       });
       examRow.questions = examRow.questions.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+      await refreshExamImageUrls(supabase, examRow.questions);
     } else {
       examRow.questions = [];
     }

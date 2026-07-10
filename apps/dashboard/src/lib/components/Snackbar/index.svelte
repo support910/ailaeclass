@@ -11,16 +11,14 @@
   let kind: 'error' | 'info' | 'info-square' | 'success' | 'warning' | 'warning-alt' = 'info';
 
   function handleClose() {
-    if (typeof $snackbarStore.handleClose === 'function') {
-      $snackbarStore.handleClose();
-    }
-
-    snackbarStore.update((_s) => ({
-      ..._s,
-      ...snackbarStoreInitialState
-    }));
+    const onClose = $snackbarStore.handleClose;
     clearTimeout(timeoutId);
     timeoutId = undefined;
+    snackbarStore.set({ ...snackbarStoreInitialState });
+
+    if (typeof onClose === 'function') {
+      onClose();
+    }
   }
 
   // When open is true trigger autoHideDuration
@@ -53,10 +51,7 @@
         {kind}
         title={capitalizeFirstLetter(kind || '')}
         subtitle={$t($snackbarStore.message)}
-        on:close={(e) => {
-          e.preventDefault();
-          handleClose();
-        }}
+        on:close={handleClose}
       />
     </div>
   {/key}

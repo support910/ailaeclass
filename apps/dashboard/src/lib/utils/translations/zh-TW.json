@@ -516,6 +516,7 @@
       "shuffle_questions": "隨機排列題目",
       "shuffle_options": "隨機排列選項",
       "question_placeholder": "輸入題目",
+      "option_image_optional": "選項圖片（可選）",
       "explanation_label": "標準解析",
       "explanation_placeholder": "填寫學生作答後看到的答案解析",
       "draft_restore_confirm": "檢測到這份考試有未保存的本地草稿，是否恢復？",
@@ -705,7 +706,8 @@
         "invalid_type": "僅支援 JPEG、PNG、WebP、GIF 圖片",
         "too_large": "圖片必須小於 5MB",
         "success": "圖片上傳成功",
-        "error": "圖片上傳失敗"
+        "error": "圖片上傳失敗",
+        "load_error": "圖片載入失敗，請移除後重新上傳"
       },
       "retry": "重試",
       "edit_action": "編輯",

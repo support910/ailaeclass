@@ -10,6 +10,8 @@
   import { globalStore } from '$lib/utils/store/app';
   import { currentOrg } from '$lib/utils/store/org';
   import { BRAND } from '$lib/utils/config/brand';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
   let formRef: HTMLFormElement;
   let supabase = getSupabase();
@@ -45,6 +47,10 @@
           email: fields.email
         });
       }
+
+      const redirect = $page.url.searchParams.get('redirect');
+      loading = false;
+      goto(redirect?.startsWith('/') ? redirect : '/');
     } catch (error: any) {
       submitError = error.error_description || error.message;
       loading = false;
