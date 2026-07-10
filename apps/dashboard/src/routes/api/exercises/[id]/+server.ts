@@ -226,8 +226,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
         if (question_type?.id !== TEXTAREA_TYPE_ID) { // skip options for TEXTAREA
           const optionImages: Record<string, any> = {};
           const optionSlots: any[] = [];
-          const optionUpserts: Array<{ slotIndex: number; source: any; row: any }> = [];
           const deletedOptionIds: string[] = [];
+          const activeOptions: Array<{ slotIndex: number; source: any; row: any; isNewOption: boolean }> = [];
 
           for (const option of options || []) {
             if (option.deleted_at) {
@@ -247,8 +247,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
               metadata: option.metadata || {}
             };
 
-            if (option.is_dirty || isNew(option.id)) {
-              optionUpserts.push({ slotIndex, source: option, row: newOption });
+            const isNewOption = isNew(option.id);
+            if (option.is_dirty || isNewOption) {
+              activeOptions.push({ slotIndex, source: option, row: newOption, isNewOption });
             } else {
               const optionImageKey = getOptionImageKey(newOption);
               if (option.metadata?.image && optionImageKey) {
@@ -270,13 +271,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
             }
           }
 
-          if (optionUpserts.length > 0) {
-            let optionRes = await supabase
-              .from('option')
-              .upsert(optionUpserts.map(({ row }) => row))
-              .select();
+          for (const { slotIndex, source, row, isNewOption } of activeOptions) {
+            const saveOption = isNewOption
+              ? supabase.from('option').insert(row).select().single()
+              : supabase.from('option').upsert(row).select().single();
+            let optionRes = await saveOption;
 
-            // If metadata column is missing (remote schema not migrated), retry without metadata
+            // If metadata column is missing (remote schema not migrated), retry without metadata.
             if (optionRes.error) {
               const errMsg = optionRes.error.message || '';
               const isMetadataIssue =
@@ -286,33 +287,28 @@ export const POST: RequestHandler = async ({ params, request }) => {
                 (optionRes.error as any).code === '42703'; // undefined_column
               if (isMetadataIssue) {
                 console.warn(
-                  `Option batch upsert with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
+                  `Option save with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
                   errMsg
                 );
-                const fallbackOptions = optionUpserts.map(({ row }) => {
-                  const { id, value, label, question_id, is_correct } = row;
-                  return { id, value, label, question_id, is_correct };
-                });
-                optionRes = await supabase.from('option').upsert(fallbackOptions).select();
+                const { id, value, label, question_id, is_correct } = row;
+                const fallbackOption = { id, value, label, question_id, is_correct };
+                optionRes = isNewOption
+                  ? await supabase.from('option').insert(fallbackOption).select().single()
+                  : await supabase.from('option').upsert(fallbackOption).select().single();
               }
             }
 
-            if (optionRes.error) {
-              console.error('Upsert option error:', optionRes.error);
+            if (optionRes.error || !optionRes.data) {
+              console.error('Save option error:', optionRes.error);
               return json({ success: false, message: 'Failed to save option' }, { status: 500 });
             }
 
-            (optionRes.data || []).forEach((savedOption: any, index: number) => {
-              const source = optionUpserts[index]?.source || {};
-              const slotIndex = optionUpserts[index]?.slotIndex;
-              const optionImageKey = getOptionImageKey(savedOption);
-              if (source.metadata?.image && optionImageKey) {
-                optionImages[optionImageKey] = source.metadata.image;
-              }
-              if (slotIndex !== undefined) {
-                optionSlots[slotIndex] = savedOption;
-              }
-            });
+            const savedOption = optionRes.data;
+            const optionImageKey = getOptionImageKey(savedOption);
+            if (source.metadata?.image && optionImageKey) {
+              optionImages[optionImageKey] = source.metadata.image;
+            }
+            optionSlots[slotIndex] = savedOption;
           }
 
           const mergedMetadata = mergeOptionImagesIntoQuestionMetadata(
