@@ -318,7 +318,7 @@
                         })
                       );
                     }}
-                    label=""
+                    label={$t('components.exam.option_image_optional')}
                   />
                 </div>
               </div>
@@ -370,7 +370,7 @@
                         })
                       );
                     }}
-                    label=""
+                    label={$t('components.exam.option_image_optional')}
                   />
                 </div>
               </div>

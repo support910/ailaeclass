@@ -28,10 +28,20 @@ export const getSupabase = () => {
 };
 
 export const hasSession = async () => {
-  const { data } = await getSupabase().auth.getSession();
+  const client = getSupabase();
+  const { data } = await client.auth.getSession();
+  const session = data.session;
   console.log('has session', data);
 
-  return data.session !== null;
+  if (!session?.access_token) return false;
+
+  const { data: userData, error } = await client.auth.getUser(session.access_token);
+  if (error || !userData.user) {
+    await client.auth.signOut();
+    return false;
+  }
+
+  return true;
 };
 
 export const isSupabaseTokenInLocalStorage = () => {
@@ -80,16 +90,34 @@ const getStoredAccessToken = () => {
 
 export const getAccessToken = async () => {
   const storedToken = getStoredAccessToken();
+  const client = getSupabase();
 
   try {
-    const sessionPromise = getSupabase().auth.getSession();
+    const sessionPromise = client.auth.getSession();
     const timeoutPromise = new Promise<null>((resolve) => {
       setTimeout(() => resolve(null), 2000);
     });
     const result = await Promise.race([sessionPromise, timeoutPromise]);
 
     if (result && 'data' in result) {
-      return result.data.session?.access_token || storedToken;
+      const session = result.data.session;
+      let token = session?.access_token || storedToken;
+
+      const expiresAt = session?.expires_at ? session.expires_at * 1000 : 0;
+      if (expiresAt && expiresAt <= Date.now() + 60_000) {
+        const refreshed = await client.auth.refreshSession();
+        token = refreshed.data.session?.access_token || '';
+      }
+
+      if (!token) return '';
+
+      const { data: userData, error } = await client.auth.getUser(token);
+      if (error || !userData.user) {
+        await client.auth.signOut();
+        return '';
+      }
+
+      return token;
     }
   } catch {
     return storedToken;

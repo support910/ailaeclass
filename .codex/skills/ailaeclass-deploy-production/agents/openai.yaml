@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy ailaeclass v6"
+  short_description: "Deploy the existing Railway service and Supabase project safely"
+  default_prompt: "Use $ailaeclass-deploy-production to deploy the current ailaeclass v6 changes to production."

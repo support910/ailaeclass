@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix ailaeclass Exam Images"
+  short_description: "Diagnose and verify exam image upload and preview failures"
+  default_prompt: "Use $ailaeclass-fix-exam-images to diagnose and verify an exam image upload or preview failure."

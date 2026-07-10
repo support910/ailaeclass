@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
 import { getRecycleDeleteAfter } from '$lib/utils/functions/examRecycleBin.server';
+import { refreshExamImageUrls } from '$lib/utils/functions/examImages.server';
 
 const SUBMISSION_STATUS = {
   SUBMITTED: 1,
@@ -263,6 +264,8 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
           options: opts
         };
       });
+
+    await refreshExamImageUrls(supabase, allQuestions);
 
     // 5. Determine whether to return questions based on role + state
     let returnQuestions = true;

@@ -13,30 +13,27 @@ export const snackbarStore = writable({ ...snackbarStoreInitialState });
 
 export const snackbar = {
   success(message = 'snackbar.success') {
-    snackbarStore.update((store) => {
-      store.open = true;
-      store.message = message;
-      store.severity = SNACKBAR_SEVERITY.SUCCESS;
-
-      return store;
-    });
+    snackbarStore.update((store) => ({
+      ...store,
+      open: true,
+      message,
+      severity: SNACKBAR_SEVERITY.SUCCESS
+    }));
   },
   error(message = 'snackbar.something') {
-    snackbarStore.update((store) => {
-      store.open = true;
-      store.message = message;
-      store.severity = SNACKBAR_SEVERITY.ERROR;
-
-      return store;
-    });
+    snackbarStore.update((store) => ({
+      ...store,
+      open: true,
+      message,
+      severity: SNACKBAR_SEVERITY.ERROR
+    }));
   },
   info(message = 'snackbar.updates') {
-    snackbarStore.update((store) => {
-      store.open = true;
-      store.message = message;
-      store.severity = SNACKBAR_SEVERITY.INFO;
-
-      return store;
-    });
+    snackbarStore.update((store) => ({
+      ...store,
+      open: true,
+      message,
+      severity: SNACKBAR_SEVERITY.INFO
+    }));
   }
 };

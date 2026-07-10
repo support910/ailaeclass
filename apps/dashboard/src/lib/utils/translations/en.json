@@ -516,6 +516,7 @@
       "shuffle_questions": "Shuffle questions",
       "shuffle_options": "Shuffle options",
       "question_placeholder": "Enter question",
+      "option_image_optional": "Option image (optional)",
       "explanation_label": "Standard Explanation",
       "explanation_placeholder": "Write the explanation students see after answering",
       "draft_restore_confirm": "An unsaved local draft was found for this exam. Restore it?",
@@ -705,7 +706,8 @@
         "invalid_type": "Only JPEG, PNG, WebP, and GIF images are allowed",
         "too_large": "Image must be under 5MB",
         "success": "Image uploaded",
-        "error": "Failed to upload image"
+        "error": "Failed to upload image",
+        "load_error": "The image could not be loaded. Remove it and upload again."
       },
       "retry": "Retry",
       "edit_action": "Edit",

@@ -263,6 +263,10 @@ export class ImageUploader extends GenericUploader {
 
   async uploadDirect(file: File) {
     const token = await getAccessToken();
+    if (!token) {
+      throw new Error('Please log in again before uploading images');
+    }
+
     const formData = new FormData();
     formData.append('file', file);
 

@@ -516,6 +516,7 @@
       "shuffle_questions": "随机排列题目",
       "shuffle_options": "随机排列选项",
       "question_placeholder": "输入题目",
+      "option_image_optional": "选项图片（可选）",
       "explanation_label": "标准解析",
       "explanation_placeholder": "填写学生作答后看到的答案解析",
       "draft_restore_confirm": "检测到这份考试有未保存的本地草稿，是否恢复？",
@@ -705,7 +706,8 @@
         "invalid_type": "仅支持 JPEG、PNG、WebP、GIF 图片",
         "too_large": "图片必须小于 5MB",
         "success": "图片上传成功",
-        "error": "图片上传失败"
+        "error": "图片上传失败",
+        "load_error": "图片加载失败，请移除后重新上传"
       },
       "retry": "重试",
       "edit_action": "编辑",
