@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v7.0.0-20260713 (2026-07-13)
+
+### Added
+
+- Added organization course catalog views for administrators, teachers, and students.
+- Added course favorites for students with a narrow Supabase migration and protected API.
+- Added student course applications from the Explore course preview.
+- Added read-only course application notifications to the teacher Members page.
+- Added course teacher/student assignment controls for administrators.
+- Added a role-aware feedback center with screenshot uploads and an administrator review queue.
+
+### Changed
+
+- Rebuilt the Explore course preview around learning outcomes, course highlights, structure, instructors, and a reliable back action.
+- Allowed teachers and students to inspect courses they have not joined without exposing course learning materials.
+- Simplified teacher course creation and removed the teacher dashboard earnings presentation.
+- Added multilingual labels for the new course and feedback workflows.
+
+### Fixed
+
+- Restored teacher course creation and course management permissions.
+- Added a reliable back action from the student exam screen.
+- Fixed feedback screenshot previews under the production content security policy.
+- Added visible success confirmation after feedback submission.
+
+
 ### [0.1.1](https://github.com/rotimi-best/ailaeclass/compare/v0.1.0...v0.1.1) (2024-01-28)
 
 ## 0.1.0 (2024-01-28)

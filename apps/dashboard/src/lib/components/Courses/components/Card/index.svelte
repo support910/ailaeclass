@@ -16,6 +16,8 @@
   import GrowthIcon from 'carbon-icons-svelte/lib/Growth.svelte';
   import RadioButtonChecked from 'carbon-icons-svelte/lib/RadioButtonChecked.svelte';
   import UserProfileIcon from 'carbon-icons-svelte/lib/UserProfile.svelte';
+  import Star from 'carbon-icons-svelte/lib/Star.svelte';
+  import StarFilled from 'carbon-icons-svelte/lib/StarFilled.svelte';
   import { copyCourseModal, deleteCourseModal } from '$lib/components/Courses/store';
   export let bannerImage: string | undefined;
   export let id = '';
@@ -30,6 +32,9 @@
   export let isLMS = false;
   export let isExplore = false;
   export let canManageActions = true;
+  export let showFavorite = false;
+  export let isFavorite = false;
+  export let onToggleFavorite: (() => void) | undefined;
   export let progressRate = 45;
   export let type: COURSE_TYPE;
   export let pricingData: {
@@ -105,7 +110,9 @@
 
   $: courseUrl =
     isOnLandingPage || isExplore
-      ? `/course/${slug}`
+      ? isPublished && slug
+        ? `/course/${slug}`
+        : `/course-preview/${id}`
       : `/courses/${id}${isLMS ? '/lessons?next=true' : ''}`;
 </script>
 
@@ -154,6 +161,21 @@
             }}
           />
         </OverflowMenu>
+      {/if}
+
+      {#if showFavorite}
+        <button
+          type="button"
+          title={isFavorite ? $t('courses.management.unfavorite') : $t('courses.management.favorite')}
+          aria-label={isFavorite ? $t('courses.management.unfavorite') : $t('courses.management.favorite')}
+          class="absolute right-2 top-2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white text-amber-600 shadow hover:bg-amber-50 dark:bg-neutral-900"
+          on:click={(event) => {
+            event.stopPropagation();
+            onToggleFavorite?.();
+          }}
+        >
+          {#if isFavorite}<StarFilled size={20} />{:else}<Star size={20} />{/if}
+        </button>
       {/if}
 
       <ImageLoader

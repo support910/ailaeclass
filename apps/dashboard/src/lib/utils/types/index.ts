@@ -237,6 +237,9 @@ export interface Course {
   progress_rate?: number;
   total_lessons?: number;
   total_students?: number;
+  is_member?: boolean;
+  is_favorite?: boolean;
+  teachers?: Array<{ id: string; fullname: string; avatar_url?: string }>;
   attendance: {
     student_id: string;
     lesson_id: string;

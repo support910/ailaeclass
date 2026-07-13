@@ -13,6 +13,7 @@ import type { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase
 
 import { GenericUploader } from './presign';
 import { QUESTION_TYPE, QUESTION_TYPES } from '$lib/components/Question/constants';
+import { ROLE } from '$lib/utils/constants/roles';
 import { STATUS } from '$lib/utils/constants/course';
 import { get } from 'svelte/store';
 import { isOrgAdmin } from '$lib/utils/store/org';
@@ -218,25 +219,97 @@ export async function fetchCourseFromAPI(courseId: Course['id']) {
     return { data: dataWithViewer, error: null };
   } catch (error) {
     console.error('fetchCourseFromAPI network error:', error);
-    return { data: null, error: { message: error instanceof Error ? error.message : 'Network error' } };
+    return {
+      data: null,
+      error: { message: error instanceof Error ? error.message : 'Network error' }
+    };
   }
 }
 
 export async function fetchExploreCourses(profileId, orgId) {
   if (!orgId || !profileId) return;
+  try {
+    const token = await getAccessToken();
+    const response = await fetch(`/api/courses/catalog?orgId=${encodeURIComponent(orgId)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) return { allCourses: [] };
+    return { allCourses: result.courses || [] };
+  } catch {
+    return { allCourses: [] };
+  }
+}
 
-  const { data: allCourses } = await supabase.rpc('get_explore_courses', {
-    org_id_arg: orgId,
-    profile_id_arg: profileId
-  });
-
-  if (!Array.isArray(allCourses)) {
+export async function createCourseViaApi(course: {
+  orgId: string;
+  title: string;
+  description: string;
+  type: COURSE_TYPE;
+}) {
+  try {
+    const token = await getAccessToken();
+    const response = await fetch('/api/courses', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(course)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success)
+      return { data: null, error: { message: result.message || 'Failed to create course' } };
+    return { data: result.course, error: null };
+  } catch (error) {
     return {
-      allCourses: []
+      data: null,
+      error: { message: error instanceof Error ? error.message : 'Network error' }
     };
   }
+}
 
-  return { allCourses };
+export async function fetchCourseMemberOptions(courseId: string) {
+  const token = await getAccessToken();
+  const response = await fetch(`/api/courses/${courseId}/members`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const result = await response.json();
+  if (!response.ok || !result.success)
+    return { data: [], error: { message: result.message || 'Failed to load members' } };
+  return { data: result.options || [], error: null };
+}
+
+export async function addCourseMember(
+  courseId: string,
+  member: { email?: string; profileId?: string; roleId: number }
+) {
+  try {
+    const token = await getAccessToken();
+    const response = await fetch(`/api/courses/${courseId}/members`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(member)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success)
+      return { data: null, error: { message: result.message || 'Failed to add member' } };
+    return { data: result.member, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: { message: error instanceof Error ? error.message : 'Network error' }
+    };
+  }
+}
+
+export async function setCourseFavorite(courseId: string, favorite: boolean) {
+  const token = await getAccessToken();
+  const response = await fetch(`/api/courses/${courseId}/favorite`, {
+    method: favorite ? 'POST' : 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const result = await response.json();
+  if (!response.ok || !result.success)
+    throw new Error(result.message || 'Failed to update favorite');
+  return result.isFavorite === true;
 }
 
 export async function fetchGroup(groupId: Group['id']) {
@@ -330,29 +403,7 @@ export function addGroupMember(member: any) {
 }
 
 export async function addCourseStudent(courseId: string, email: string) {
-  try {
-    const token = await getAccessToken();
-    const res = await fetch(`/api/courses/${courseId}/members`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email })
-    });
-
-    const result = await res.json();
-    if (!res.ok || !result.success) {
-      return { data: null, error: { message: result.message || 'Failed to add student' } as PostgrestError };
-    }
-
-    return { data: result.member, error: null };
-  } catch (error) {
-    return {
-      data: null,
-      error: { message: error instanceof Error ? error.message : 'Network error' } as PostgrestError
-    };
-  }
+  return addCourseMember(courseId, { email, roleId: ROLE.STUDENT });
 }
 
 export function addDefaultNewsFeed(feed) {
@@ -377,13 +428,17 @@ export async function deleteGroupMember(groupMemberId: Groupmember['id'], course
 
       const result = await res.json();
       if (!res.ok || !result.success) {
-        return { error: { message: result.message || 'Failed to remove member' } as PostgrestError };
+        return {
+          error: { message: result.message || 'Failed to remove member' } as PostgrestError
+        };
       }
 
       return { error: null };
     } catch (error) {
       return {
-        error: { message: error instanceof Error ? error.message : 'Network error' } as PostgrestError
+        error: {
+          message: error instanceof Error ? error.message : 'Network error'
+        } as PostgrestError
       };
     }
   }
@@ -722,7 +777,10 @@ export async function createExamExercise(input: ExamExerciseInput) {
     });
     const json = await res.json();
     if (!json.success) {
-      return { data: null, error: { message: json.message || 'Failed to create exam' } as PostgrestError };
+      return {
+        data: null,
+        error: { message: json.message || 'Failed to create exam' } as PostgrestError
+      };
     }
     return { data: [json.exam], error: null };
   } catch (e) {
@@ -737,10 +795,7 @@ export async function createExamExercise(input: ExamExerciseInput) {
 /**
  * Update exam-specific settings for an existing exercise.
  */
-export async function updateExamSettings(
-  exerciseId: Exercise['id'],
-  settings: ExamSettingsInput
-) {
+export async function updateExamSettings(exerciseId: Exercise['id'], settings: ExamSettingsInput) {
   const payload: Record<string, any> = {};
 
   if (settings.title !== undefined) payload.title = settings.title;
@@ -748,8 +803,10 @@ export async function updateExamSettings(
   if (settings.duration_minutes !== undefined) payload.duration_minutes = settings.duration_minutes;
   if (settings.attempts_allowed !== undefined) payload.attempts_allowed = settings.attempts_allowed;
   if (settings.passing_score !== undefined) payload.passing_score = settings.passing_score;
-  if (settings.show_result_policy !== undefined) payload.show_result_policy = settings.show_result_policy;
-  if (settings.shuffle_questions !== undefined) payload.shuffle_questions = settings.shuffle_questions;
+  if (settings.show_result_policy !== undefined)
+    payload.show_result_policy = settings.show_result_policy;
+  if (settings.shuffle_questions !== undefined)
+    payload.shuffle_questions = settings.shuffle_questions;
   if (settings.shuffle_options !== undefined) payload.shuffle_options = settings.shuffle_options;
   if (settings.available_from !== undefined) payload.available_from = settings.available_from;
   if (settings.available_until !== undefined) payload.available_until = settings.available_until;
@@ -1027,9 +1084,9 @@ export async function fetchExamById(exerciseId: Exercise['id']) {
 
     if (Array.isArray(data.questions)) {
       data.questions.forEach((question: any) => {
-        question.question_type = QUESTION_TYPES.find(
-          (type) => type.id === question.question_type?.id
-        ) || question.question_type;
+        question.question_type =
+          QUESTION_TYPES.find((type) => type.id === question.question_type?.id) ||
+          question.question_type;
       });
       data.questions = data.questions.sort((a: any, b: any) => a.order - b.order);
     } else {
@@ -1097,7 +1154,8 @@ const SUBMISSION_STATUS = {
  * Server handles availability checks, strips is_correct, and returns attempt state.
  */
 export async function fetchStudentExam(exerciseId: Exercise['id'], courseId: Course['id']) {
-  if (!exerciseId || !courseId) return { data: null, error: { message: 'Missing exam or course ID' } as PostgrestError };
+  if (!exerciseId || !courseId)
+    return { data: null, error: { message: 'Missing exam or course ID' } as PostgrestError };
 
   try {
     const token = await getAccessToken();
@@ -1116,11 +1174,17 @@ export async function fetchStudentExam(exerciseId: Exercise['id'], courseId: Cou
       return { data: null, error: { message: 'Invalid response from server' } as PostgrestError };
     }
     if (!json.success) {
-      return { data: null, error: { message: json.message || 'Failed to load exam' } as PostgrestError };
+      return {
+        data: null,
+        error: { message: json.message || 'Failed to load exam' } as PostgrestError
+      };
     }
     return { data: json, error: null };
   } catch (e) {
-    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1166,10 +1230,7 @@ export async function countExamAttempts(exerciseId: Exercise['id'], groupMemberI
  * Start a new exam attempt via server endpoint.
  * Server handles availability, attempts limit, membership verification, and resume logic.
  */
-export async function startExamAttempt(
-  exerciseId: Exercise['id'],
-  courseId: Course['id']
-) {
+export async function startExamAttempt(exerciseId: Exercise['id'], courseId: Course['id']) {
   if (!exerciseId || !courseId) {
     return { data: null, error: { message: 'Missing required fields' } as PostgrestError };
   }
@@ -1186,11 +1247,17 @@ export async function startExamAttempt(
     });
     const json = await res.json();
     if (!json.success) {
-      return { data: null, error: { message: json.message || 'Failed to start exam' } as PostgrestError };
+      return {
+        data: null,
+        error: { message: json.message || 'Failed to start exam' } as PostgrestError
+      };
     }
     return { data: json.submission, error: null };
   } catch (e) {
-    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1221,11 +1288,17 @@ export async function submitExamAttempt(
     });
     const json = await res.json();
     if (!json.success) {
-      return { data: null, error: { message: json.message || 'Failed to submit exam' } as PostgrestError };
+      return {
+        data: null,
+        error: { message: json.message || 'Failed to submit exam' } as PostgrestError
+      };
     }
     return { data: json, error: null };
   } catch (e) {
-    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1261,11 +1334,17 @@ export async function saveExamProgress(
     });
     const json = await res.json();
     if (!json.success) {
-      return { data: null, error: { message: json.message || 'Failed to save progress' } as PostgrestError };
+      return {
+        data: null,
+        error: { message: json.message || 'Failed to save progress' } as PostgrestError
+      };
     }
     return { data: json.submission, error: null };
   } catch (e) {
-    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1282,7 +1361,10 @@ export async function searchCourseByCode(code: string) {
     }
     return { data: json.course, error: null };
   } catch (e) {
-    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1303,7 +1385,10 @@ export async function submitJoinRequest(courseId: string) {
     }
     return { data: json.request, error: null };
   } catch (e) {
-    return { data: null, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: null,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1319,7 +1404,10 @@ export async function fetchJoinRequests(courseId: string, status = 'pending') {
     }
     return { data: json.requests || [], error: null };
   } catch (e) {
-    return { data: [], error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      data: [],
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1339,7 +1427,10 @@ export async function approveJoinRequest(requestId: string) {
     }
     return { success: true, error: null };
   } catch (e) {
-    return { success: false, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      success: false,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }
 
@@ -1359,6 +1450,9 @@ export async function rejectJoinRequest(requestId: string) {
     }
     return { success: true, error: null };
   } catch (e) {
-    return { success: false, error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError };
+    return {
+      success: false,
+      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
+    };
   }
 }

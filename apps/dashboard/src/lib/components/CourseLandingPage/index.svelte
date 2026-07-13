@@ -28,6 +28,7 @@
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { observeIntersection } from './components/IntersectionObserver';
   import SectionsDisplay from './components/SectionsDisplay.svelte';
+  import CourseFavoriteButton from '$lib/components/Courses/CourseFavoriteButton.svelte';
 
   import { getExerciseCount, getLessonSections, getTotalLessons, filterNavItems } from './utils';
   import { NAV_ITEM_KEY, NAV_ITEMS } from './constants';
@@ -58,6 +59,8 @@
 
   let activeNav = NAV_ITEMS[0].key;
   let instructor = {};
+  let assignedTeachers: NonNullable<Course['teachers']> = [];
+  let teacherNames = '';
   let video: string | undefined;
 
   const lessonSections = getLessonSections(courseData);
@@ -118,6 +121,8 @@
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   $: instructor = get(courseData, 'metadata.instructor') || {};
+  $: assignedTeachers = courseData.teachers || [];
+  $: teacherNames = assignedTeachers.map((teacher) => teacher.fullname).filter(Boolean).join('、');
   $: certificate = get(courseData, 'metadata.certificate', certificate);
   $: certificateTemplateUrl = getCertificateTemplateUrl(certificate?.templateUrl);
 
@@ -158,8 +163,9 @@
         </p>
 
         <p class="author my-3 text-sm dark:text-white">
-          {get(courseData, 'metadata.instructor.name', '')}
+          {teacherNames || get(courseData, 'metadata.instructor.name', '')}
         </p>
+        {#if !editMode}<CourseFavoriteButton courseId={courseData.id} />{/if}
         <PrimaryButton
           label={$t('course.navItem.landing_page.start_course')}
           className="px-6 py-5 mt-6 sm:w-fit hidden md:block"
@@ -487,6 +493,20 @@
           <h3 class="text-2xl font-bold mt-0 mb-3">
             {$t('course.navItem.landing_page.instructor')}
           </h3>
+          {#if assignedTeachers.length}
+            <div class="space-y-4">
+              {#each assignedTeachers as teacher}
+                <div class="flex items-center">
+                  <img
+                    alt={teacher.fullname}
+                    class="mr-3 block h-20 w-20 rounded-full object-cover"
+                    src={teacher.avatar_url || $currentOrg.avatar_url || '/logo-512.png'}
+                  />
+                  <p class="text-md font-light dark:text-white">{teacher.fullname}</p>
+                </div>
+              {/each}
+            </div>
+          {:else}
           <div class="flex items-center mb-4">
             <img
               alt="Author Avatar"
@@ -513,6 +533,7 @@
           <p class="text-sm font-light dark:text-white">
             {get(instructor, 'description', '')}
           </p>
+          {/if}
         </section>
       </div>
 

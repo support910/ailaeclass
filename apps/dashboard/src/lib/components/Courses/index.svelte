@@ -18,6 +18,7 @@
   import CopyCourseModal from './components/CopyCourseModal/index.svelte';
   import DeleteModal from '$lib/components/Modal/DeleteModal.svelte';
   import { deleteCourse } from '$lib/utils/services/courses';
+  import { setCourseFavorite } from '$lib/utils/services/courses';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { deleteCourseModal, deleteCourseModalInitialState, courses as coursesStore } from './store';
   
@@ -34,6 +35,21 @@
     }
 
     return Math.round((progressRate / totalLessons) * 100);
+  }
+
+  async function toggleFavorite(courseData: Course) {
+    if (!courseData.id) return;
+    const next = !courseData.is_favorite;
+    courseData.is_favorite = next;
+    courses = [...courses];
+    try {
+      courseData.is_favorite = await setCourseFavorite(courseData.id, next);
+      courses = [...courses];
+    } catch (error) {
+      courseData.is_favorite = !next;
+      courses = [...courses];
+      snackbar.error(error instanceof Error ? error.message : 'Failed to update favorite');
+    }
   }
 
   async function handleDeleteCourse() {
@@ -141,6 +157,9 @@
             isLMS={$globalStore.isOrgSite || isExplore}
             {isExplore}
             {canManageActions}
+            showFavorite={isExplore}
+            isFavorite={courseData.is_favorite === true}
+            onToggleFavorite={() => toggleFavorite(courseData)}
             progressRate={calcProgressRate(courseData.progress_rate, courseData.total_lessons)}
           />
         {/key}

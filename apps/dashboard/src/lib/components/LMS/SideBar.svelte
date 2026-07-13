@@ -106,6 +106,11 @@
       name: $t('lms_navigation.explore'),
       icon: Explore,
       link: '/lms/explore'
+    },
+    {
+      name: $t('feedback.navigation'),
+      icon: CommunityIcon,
+      link: '/lms/feedback'
     }
   ].filter((link) => (link.show ? link.show() : true));
 
