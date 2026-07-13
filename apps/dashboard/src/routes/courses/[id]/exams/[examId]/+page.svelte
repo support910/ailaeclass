@@ -9,6 +9,7 @@
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants.js';
   import WarningIcon from 'carbon-icons-svelte/lib/Warning.svelte';
+  import ArrowLeftIcon from 'carbon-icons-svelte/lib/ArrowLeft.svelte';
   import { group, course } from '$lib/components/Course/store';
   import { profile } from '$lib/utils/store/user';
   import { currentOrg, currentOrgPath, isOrgTeacher } from '$lib/utils/store/org';
@@ -265,6 +266,18 @@
 </script>
 
 <CourseContainer {courseId}>
+  {#if view !== 'runner'}
+    <div class="mx-auto w-full max-w-3xl px-4 pt-5">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+        on:click={handleExitExam}
+      >
+        <ArrowLeftIcon size={18} />
+        {$t('components.exam.back_to_list')}
+      </button>
+    </div>
+  {/if}
   {#if isLoading}
     <div class="flex items-center justify-center py-20">
       <p class="dark:text-white">{$t('components.exam.loading')}</p>

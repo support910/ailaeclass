@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Search, Dropdown } from 'carbon-components-svelte';
   import { profile } from '$lib/utils/store/user';
-  import { fetchCourses } from '$lib/utils/services/courses';
+  import { fetchCourses, fetchExploreCourses } from '$lib/utils/services/courses';
   import Courses from '$lib/components/Courses/index.svelte';
   import NewCourseModal from '$lib/components/Courses/components/NewCourseModal/index.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
@@ -9,7 +9,7 @@
   import { currentOrg, currentOrgPath } from '$lib/utils/store/org';
   import { Add } from 'carbon-icons-svelte';
   import { isMobile } from '$lib/utils/store/useMobile';
-  import { isOrgAdmin } from '$lib/utils/store/org';
+  import { isOrgAdmin, isOrgTeacher } from '$lib/utils/store/org';
   import type { Course } from '$lib/utils/types';
   import { browser } from '$app/environment';
   import { t } from '$lib/utils/functions/translations';
@@ -27,6 +27,15 @@
   let selectedId: string;
   let filteredCourses: Course[];
   let hasFetched = false;
+  let hasFetchedDiscover = false;
+  let discoverCourses: Course[] = [];
+
+  async function getDiscoverCourses(userId: string | undefined, orgId: string) {
+    if (!userId || !orgId || hasFetchedDiscover || $isOrgAdmin) return;
+    const result = await fetchExploreCourses(userId, orgId);
+    discoverCourses = result?.allCourses || [];
+    hasFetchedDiscover = true;
+  }
 
   async function getCourses(userId: string | undefined, orgId: string) {
     if (cantFetch && typeof cantFetch === 'boolean' && orgId && !hasFetched) {
@@ -94,6 +103,7 @@
 
   $: filterCourses(searchValue, selectedId, $courses);
   $: getCourses($profile.id, $currentOrg.id);
+  $: getDiscoverCourses($profile.id, $currentOrg.id);
 </script>
 
 <svelte:head>
@@ -108,7 +118,7 @@
       </h1>
       {#if $isMobile}
         <span data-guide-target="courses-create" class="inline-flex">
-          <PrimaryButton isDisabled={!$isOrgAdmin} onClick={openNewCourseModal}>
+          <PrimaryButton isDisabled={!$isOrgTeacher} onClick={openNewCourseModal}>
             <Add size={24} />
           </PrimaryButton>
         </span>
@@ -117,7 +127,7 @@
           <PrimaryButton
             label={$t('courses.heading_button')}
             variant={VARIANTS.CONTAINED_DARK}
-            isDisabled={!$isOrgAdmin}
+            isDisabled={!$isOrgTeacher}
             onClick={openNewCourseModal}
           />
         </span>
@@ -156,6 +166,19 @@
     <div data-guide-target="courses-list">
       <Courses bind:courses={filteredCourses} />
     </div>
+
+    {#if !$isOrgAdmin}
+      <div class="mt-12 border-t border-gray-200 pt-8 dark:border-neutral-700">
+        <h2 class="text-xl font-semibold dark:text-white">{$t('courses.management.discover_heading')}</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{$t('courses.management.discover_description')}</p>
+        <Courses
+          courses={discoverCourses}
+          emptyTitle={$t('courses.management.discover_empty')}
+          emptyDescription={$t('courses.management.discover_empty_description')}
+          isExplore={true}
+        />
+      </div>
+    {/if}
   </div>
 </section>
 

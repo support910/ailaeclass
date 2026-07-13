@@ -17,14 +17,15 @@
   import { ROLE, ROLE_LABEL, ROLES } from '$lib/utils/constants/roles';
   import { t } from '$lib/utils/functions/translations';
   import {
+    addCourseMember,
     addCourseStudent,
-    approveJoinRequest,
     deleteGroupMember,
-    fetchJoinRequests,
-    rejectJoinRequest
+    fetchCourseMemberOptions,
+    fetchJoinRequests
   } from '$lib/utils/services/courses';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { profile } from '$lib/utils/store/user';
+  import { isOrgAdmin } from '$lib/utils/store/org';
   import type { GroupPerson } from '$lib/utils/types';
   import {
     CopyButton,
@@ -46,6 +47,10 @@
   let isLoadingRequests = false;
   let studentEmail = '';
   let isAddingStudent = false;
+  let memberOptions: Array<{ id: string; fullname: string; email: string; role_id: number }> = [];
+  let selectedTeacherId = '';
+  let selectedStudentId = '';
+  let isAddingMember = false;
 
   async function loadJoinRequests() {
     if (!$course?.id) return;
@@ -55,26 +60,29 @@
     isLoadingRequests = false;
   }
 
-  async function handleApprove(requestId: string) {
-    const { success } = await approveJoinRequest(requestId);
-    if (success) {
-      joinRequests = joinRequests.filter((r) => r.id !== requestId);
-      // Refresh group members to show newly approved student
-      // A full page reload or re-fetch of course data is simplest
-      window.location.reload();
-    }
-  }
-
-  async function handleReject(requestId: string) {
-    const { success } = await rejectJoinRequest(requestId);
-    if (success) {
-      joinRequests = joinRequests.filter((r) => r.id !== requestId);
-    }
-  }
-
-  onMount(() => {
+  onMount(async () => {
     loadJoinRequests();
+    if ($course?.id) {
+      const { data } = await fetchCourseMemberOptions($course.id);
+      memberOptions = data || [];
+    }
   });
+
+  async function handleAddSelectedMember(roleId: number, profileId: string) {
+    if (!profileId || !$course?.id) return;
+    isAddingMember = true;
+    const { data, error } = await addCourseMember($course.id, { profileId, roleId });
+    isAddingMember = false;
+    if (error) {
+      snackbar.error(error.message || 'Failed to add course member');
+      return;
+    }
+    $group.people = [data, ...($group.people || [])];
+    memberOptions = memberOptions.filter((option) => option.id !== profileId);
+    if (roleId === ROLE.TUTOR) selectedTeacherId = '';
+    else selectedStudentId = '';
+    snackbar.success(roleId === ROLE.TUTOR ? 'Teacher assigned to this course.' : 'Student added to this course.');
+  }
 
   function filterPeople(_query, people) {
     const query = _query.toLowerCase();
@@ -137,6 +145,13 @@
     return profile ? profile.email : email;
   }
 
+  function formatRequestDate(value: string) {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(new Date(value));
+  }
+
   function obscureEmail(email) {
     const [username, domain] = email.split('@');
     const obscuredUsername =
@@ -187,6 +202,37 @@
   </RoleBasedSecurity>
 
   <RoleBasedSecurity allowedRoles={[1, 2]}>
+    {#if $isOrgAdmin}
+      <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
+        <p class="mb-3 text-sm font-semibold text-gray-700 dark:text-white">{$t('courses.management.teacher_management')}</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400" for="course-teacher">{$t('courses.management.assign_teachers')}</label>
+            <div class="flex gap-2">
+              <select id="course-teacher" bind:value={selectedTeacherId} class="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-white">
+                <option value="">{$t('courses.management.select_teacher')}</option>
+                {#each memberOptions.filter((option) => option.role_id === ROLE.TUTOR) as option}
+                  <option value={option.id}>{option.fullname} ({option.email})</option>
+                {/each}
+              </select>
+              <PrimaryButton label={$t('courses.management.assign')} onClick={() => handleAddSelectedMember(ROLE.TUTOR, selectedTeacherId)} isDisabled={!selectedTeacherId || isAddingMember} isLoading={isAddingMember} />
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400" for="course-student">{$t('courses.management.add_org_student')}</label>
+            <div class="flex gap-2">
+              <select id="course-student" bind:value={selectedStudentId} class="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-white">
+                <option value="">{$t('courses.management.select_student')}</option>
+                {#each memberOptions.filter((option) => option.role_id === ROLE.STUDENT) as option}
+                  <option value={option.id}>{option.fullname} ({option.email})</option>
+                {/each}
+              </select>
+              <PrimaryButton label={$t('courses.management.add')} onClick={() => handleAddSelectedMember(ROLE.STUDENT, selectedStudentId)} isDisabled={!selectedStudentId || isAddingMember} isLoading={isAddingMember} />
+            </div>
+          </div>
+        </div>
+      </div>
+    {/if}
     <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
       <p class="mb-3 text-sm font-semibold text-gray-700 dark:text-white">
         添加学生
@@ -213,18 +259,20 @@
     </div>
   </RoleBasedSecurity>
 
-  <!-- Pending Join Requests -->
+  <!-- Course applications are informational only. Membership remains teacher/admin managed. -->
   <RoleBasedSecurity allowedRoles={[1, 2]}>
     {#if joinRequests.length > 0}
-      <div class="mb-6">
-        <h3 class="mb-3 text-lg font-semibold dark:text-white">
-          {$t('course.people.join_requests')} ({joinRequests.length})
-        </h3>
-        <div class="rounded-lg border border-gray-200 dark:border-neutral-700">
+      <div class="mb-6 border-l-4 border-amber-400 bg-amber-50 px-4 py-4 dark:bg-amber-950/20">
+        <div class="mb-3 flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold dark:text-white">{$t('course.people.course_applications')}</h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{$t('course.people.application_notice')}</p>
+          </div>
+          <span class="rounded bg-amber-200 px-2.5 py-1 text-sm font-semibold text-amber-900">{joinRequests.length}</span>
+        </div>
+        <div class="divide-y divide-amber-200 border-y border-amber-200 dark:divide-amber-900 dark:border-amber-900">
           {#each joinRequests as request}
-            <div
-              class="flex items-center justify-between border-b border-gray-100 p-4 last:border-0 dark:border-neutral-700"
-            >
+            <div class="flex items-center justify-between gap-4 py-4">
               <div class="flex items-center gap-3">
                 <Avatar
                   src={request.profile?.avatar_url}
@@ -237,17 +285,9 @@
                   <p class="text-xs text-gray-500">{request.profile?.email || ''}</p>
                 </div>
               </div>
-              <div class="flex gap-2">
-                <PrimaryButton
-                  variant={VARIANTS.OUTLINED}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                  label={$t('course.people.reject')}
-                  onClick={() => handleReject(request.id)}
-                />
-                <PrimaryButton
-                  label={$t('course.people.approve')}
-                  onClick={() => handleApprove(request.id)}
-                />
+              <div class="shrink-0 text-right">
+                <p class="text-xs font-medium text-amber-800 dark:text-amber-300">{$t('course.people.application_received')}</p>
+                <p class="mt-1 text-xs text-gray-500">{formatRequestDate(request.created_at)}</p>
               </div>
             </div>
           {/each}
@@ -256,7 +296,7 @@
     {:else if !isLoadingRequests}
       <div class="mb-6 rounded-lg border border-dashed border-gray-200 p-4 dark:border-neutral-700">
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          {$t('course.people.no_requests')}
+          {$t('course.people.no_applications')}
         </p>
       </div>
     {/if}
@@ -384,7 +424,7 @@
           <StructuredListCell class="w-1/4 p-0">
             <RoleBasedSecurity allowedRoles={[1, 2]}>
               <div class="hidden space-x-2 sm:flex sm:items-center">
-                {#if person.profile_id !== $profile.id && person.role_id === ROLE.STUDENT}
+                {#if person.profile_id !== $profile.id && (person.role_id === ROLE.STUDENT || ($isOrgAdmin && person.role_id === ROLE.TUTOR))}
                   <IconButton
                     onClick={() => {
                       member = person;

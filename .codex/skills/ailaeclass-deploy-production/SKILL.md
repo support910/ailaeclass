@@ -1,6 +1,6 @@
 ---
 name: ailaeclass-deploy-production
-description: Safely deploy the current ailaeclass v6 workspace to its existing Supabase and Railway production targets. Use when the user asks to push, publish, deploy Railway, deploy Supabase, or verify the live ailaeclass service without creating duplicate projects or services.
+description: Safely deploy the active ailaeclass workspace to its existing Supabase and Railway production targets. Use when the user asks to push, publish, deploy Railway, deploy Supabase, or verify the live ailaeclass service without creating duplicate projects or services.
 ---
 
 # Deploy Ailaeclass Production
@@ -11,7 +11,7 @@ Read `PRODUCTION_DEPLOYMENT_RUNBOOK.md` first. Never create a new Railway projec
 
 ```text
 GitHub: support910/ailaeclass
-Development branch: v6-development
+Development branch: v7-development
 Railway deploy branch: main
 Railway project: attractive-harmony
 Railway project ID: d5f08192-ace8-4d1e-8fb1-1475b4dbb63b
@@ -29,7 +29,7 @@ Never deploy production to Railway project `overflowing-upliftment` (`2cc9aa17-a
 
 ## Preflight
 
-1. Work from `E:\Class\ailaeclass-v6` on `v6-development`.
+1. Work from `E:\Class\ailaeclass-v7` on `v7-development`.
 2. Run `git status --short` and inspect every changed file.
 3. Preserve old backups and user files. Do not stage `backups/`, `outputs/`, local secrets, temporary tools, or comparison workbooks unless explicitly requested.
 4. Confirm `.env` and `_LOCAL_SECRETS_DO_NOT_COMMIT/` remain untracked or ignored.
@@ -50,30 +50,30 @@ Never deploy production to Railway project `overflowing-upliftment` (`2cc9aa17-a
 
 ## Commit And Push
 
-1. Stage only intended v6 source, migration, and workspace Skill files.
+1. Stage only intended v7 source, migration, documentation, and workspace Skill files.
 2. Review `git diff --cached --stat` and `git diff --cached` before committing.
 3. Create one descriptive commit.
 4. Push the development branch:
 
 ```powershell
-git push origin v6-development
+git push origin v7-development
 ```
 
-5. Check whether `origin/main` is an ancestor of `v6-development` before promotion.
+5. Check whether `origin/main` is an ancestor of `v7-development` before promotion.
 
 If it is an ancestor, promote the same commit directly:
 
 ```powershell
-git push origin v6-development:main
+git push origin v7-development:main
 ```
 
 If the histories diverged because earlier production commits were cherry-picked, follow the established deployment-branch pattern:
 
 ```powershell
 git switch -c deploy/<short-purpose>-<yyyymmdd> origin/main
-git cherry-pick <new-v6-commit>
+git cherry-pick <new-v7-commit>
 git push origin HEAD:main
-git switch v6-development
+git switch v7-development
 ```
 
 Confirm the cherry-pick contains only the intended new change. If conflicts occur, resolve them against the already deployed `main` behavior and rerun the build. Never force push production without explicit user approval.

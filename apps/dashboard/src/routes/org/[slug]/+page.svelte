@@ -22,7 +22,7 @@
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { getGreeting } from '$lib/utils/functions/date';
   import { t } from '$lib/utils/functions/translations';
-  import { isOrgAdmin } from '$lib/utils/store/org';
+  import { isOrgAdmin, isOrgTeacher } from '$lib/utils/store/org';
   import { isMobile } from '$lib/utils/store/useMobile';
   import { Grid, Link, SkeletonPlaceholder } from 'carbon-components-svelte';
 
@@ -74,13 +74,13 @@
   $: fetchDashAnalytics($currentOrg.id);
 
   $: cards = [
-    {
+    ...($isOrgAdmin ? [{
       icon: CurrencyDollar,
       title: `${$t('dashboard.revenue')} ($)`,
       percentage: dashAnalytics?.revenue ?? 0,
       description: $t('dashboard.revenue_description'),
       hidePercentage: true
-    },
+    }] : []),
     {
       icon: Book,
       title: $t('dashboard.no_of_courses'),
@@ -112,7 +112,7 @@
       <PrimaryButton
         variant={VARIANTS.OUTLINED}
         onClick={createCourse}
-        isDisabled={!$isOrgAdmin}
+        isDisabled={!$isOrgTeacher}
         className="min-h-[36px]"
       >
         {#if $isMobile}

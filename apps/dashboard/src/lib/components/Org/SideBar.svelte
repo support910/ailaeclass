@@ -11,7 +11,7 @@
   import Modal from '$lib/components/Modal/index.svelte';
   import { currentOrgPath, currentOrg } from '$lib/utils/store/org';
   import { ROLE } from '$lib/utils/constants/roles';
-  import { ChevronRight, SettingsAdjust } from 'carbon-icons-svelte';
+  import { ChevronDown, ChevronRight, ChevronUp, SettingsAdjust } from 'carbon-icons-svelte';
   import ForumIcon from 'carbon-icons-svelte/lib/Forum.svelte';
   import HelpIcon from 'carbon-icons-svelte/lib/Help.svelte';
   import Chat from 'carbon-icons-svelte/lib/Chat.svelte';
@@ -44,6 +44,7 @@
 
   let menuItems: menuItems[] = [];
   let showHelpModal = false;
+  let futureExpanded = false;
   $: futureOrgItems =
     $currentOrg.role_id === ROLE.ADMIN || $currentOrg.role_id === ROLE.TUTOR
       ? futureManagementItems
@@ -145,6 +146,12 @@
       label: $t('org_navigation.setup'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/setup`),
       show: $isOrgAdmin
+    },
+    {
+      path: '/feedback',
+      label: $t('feedback.navigation'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/feedback`),
+      show: true
     }
   ];
 </script>
@@ -212,6 +219,8 @@
                     <JoinIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/setup'}
                     <SettingsAdjust />
+                  {:else if menuItem.path === '/feedback'}
+                    <ForumIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {/if}
                   <p class="text-sm font-medium">{menuItem.label}</p>
                 </li>
@@ -222,12 +231,21 @@
 
         {#if futureOrgItems.length}
           <div class="mt-3 border-t border-gray-200 px-4 pt-3 dark:border-neutral-700">
-            <div class="mb-2 flex items-center justify-between px-2.5">
-              <p class="text-xs font-semibold text-gray-500 dark:text-neutral-300">{futureOrgTitle}</p>
-              <TextChip value={$t('org_navigation.future.unavailable')} size="sm" className="text-xs text-gray-600" />
-            </div>
-            <ul>
-              {#each futureOrgItems as item}
+            <button
+              type="button"
+              class="mb-2 flex w-full items-center justify-between rounded px-2.5 py-2 text-left hover:bg-gray-200 dark:hover:bg-neutral-800"
+              aria-expanded={futureExpanded}
+              on:click={() => (futureExpanded = !futureExpanded)}
+            >
+              <span class="min-w-0">
+                <span class="block truncate text-xs font-semibold text-gray-500 dark:text-neutral-300">{futureOrgTitle}</span>
+                <TextChip value={$t('org_navigation.future.unavailable')} size="sm" className="mt-1 text-xs text-gray-600" />
+              </span>
+              {#if futureExpanded}<ChevronUp size={18} />{:else}<ChevronDown size={18} />{/if}
+            </button>
+            {#if futureExpanded}
+              <ul>
+                {#each futureOrgItems as item}
                 <a
                   href="{$currentOrgPath}{item.path}"
                   class="text-black no-underline"
@@ -244,8 +262,9 @@
                     <p class="truncate text-sm font-medium">{$t(item.label)}</p>
                   </li>
                 </a>
-              {/each}
-            </ul>
+                {/each}
+              </ul>
+            {/if}
           </div>
         {/if}
       </div>

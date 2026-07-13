@@ -923,6 +923,22 @@
     "heading": "पाठ्यक्रम",
     "heading_button": "पाठ्यक्रम बनाएं",
     "search_placeholder": "पाठ्यक्रम खोजें",
+    "management": {
+      "discover_heading": "कोर्स देखें",
+      "discover_description": "जिन कोर्स में आप शामिल नहीं हैं उनका परिचय और शिक्षक देखें। सामग्री केवल सदस्यों के लिए है।",
+      "discover_empty": "कोई कोर्स उपलब्ध नहीं",
+      "discover_empty_description": "अभी कोई अन्य प्रकाशित कोर्स नहीं है।",
+      "favorite": "कोर्स पसंदीदा बनाएं",
+      "favorited": "पसंदीदा",
+      "unfavorite": "पसंदीदा हटाएं",
+      "teacher_management": "कोर्स शिक्षक प्रबंधन",
+      "assign_teachers": "शिक्षक नियुक्त करें (एक से अधिक)",
+      "select_teacher": "शिक्षक चुनें",
+      "assign": "नियुक्त करें",
+      "add_org_student": "छात्र जोड़ें",
+      "select_student": "छात्र चुनें",
+      "add": "जोड़ें"
+    },
     "new_course_modal": {
       "heading": "एक कोर्स बनाएं",
       "course_name": "कोर्स का नाम",
@@ -2140,6 +2156,19 @@
         "touchdown_error": "Landing point error 0.72m"
       }
     }
+  },
+  "feedback": {
+    "navigation": "प्रतिक्रिया", "title": "प्रतिक्रिया", "subtitle": "Tell us where the issue occurred and attach screenshots so we can investigate it quickly.",
+    "upload_tab": "Submit", "review_tab": "Review", "location": "Issue location", "location_placeholder": "Example: Exams > Edit exam > Publish button",
+    "description": "Brief description", "description_placeholder": "Describe what happened, what you expected, and whether it can be reproduced.",
+    "occurred_at": "Time discovered", "port": "Port", "page_url": "Page URL", "screenshots": "Screenshots", "choose_images": "Choose screenshots",
+    "image_hint": "Upload 1 to 3 JPG, PNG, WEBP, or GIF images. Each image must be under 5MB.", "screenshot_preview": "Screenshot preview", "remove_image": "Remove screenshot",
+    "submit": "Submit feedback", "submit_success": "Feedback submitted. The administrator can now review it.", "submit_failed": "Unable to submit feedback.",
+    "required_error": "Complete the required fields and upload at least one screenshot.", "login_required": "Please sign in again before submitting feedback.",
+    "max_images": "You can upload up to 3 screenshots.", "image_too_large": "Each screenshot must be under 5MB.", "loading": "Loading feedback...",
+    "load_failed": "Unable to load feedback.", "update_failed": "Unable to update feedback status.", "pending": "Pending feedback", "resolved": "Resolved feedback",
+    "empty_pending": "There is no pending feedback.", "empty_resolved": "There is no resolved feedback.", "status_unread": "Unread", "status_read": "Read",
+    "status_resolved": "Resolved", "view": "View", "mark_read": "Mark read", "mark_resolved": "Resolved", "details": "Feedback details", "reporter": "Submitted by"
   },
   "coming_soon": {
     "module_title": "Coming Soon Module",

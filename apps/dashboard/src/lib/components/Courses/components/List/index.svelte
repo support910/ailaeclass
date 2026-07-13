@@ -22,7 +22,11 @@
   export let isExplore = false;
   export let canManageActions = true;
 
-  $: courseUrl = isExplore ? `/course/${slug}` : `/courses/${id}${isLMS ? '/lessons?next=true' : ''}`;
+  $: courseUrl = isExplore
+    ? isPublished && slug
+      ? `/course/${slug}`
+      : `/course-preview/${id}`
+    : `/courses/${id}${isLMS ? '/lessons?next=true' : ''}`;
 
   function handleCloneCourse(e) {
     e.stopPropagation();

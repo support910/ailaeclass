@@ -1,13 +1,8 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
-import { fetchCourse } from '$lib/utils/services/courses';
-import { supabase, getSupabase } from '$lib/utils/functions/supabase';
-
-if (!supabase) {
-  getSupabase();
-}
-
-export const load = async ({ params = { slug: '' } }) => {
-  const { data } = await fetchCourse(undefined, params.slug);
+export const load = async ({ params = { slug: '' }, fetch }) => {
+  const response = await fetch(`/api/courses/catalog/${encodeURIComponent(params.slug)}`);
+  const result = response.ok ? await response.json() : null;
+  const data = result?.course || null;
 
   const pageMetaTags = Object.freeze({
     title: data?.title,

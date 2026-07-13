@@ -9,15 +9,13 @@
   import Modal from '$lib/components/Modal/index.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
-  import { ROLE } from '$lib/utils/constants/roles';
-  import { supabase } from '$lib/utils/functions/supabase';
   import { t } from '$lib/utils/functions/translations';
   import { snackbar } from '$lib/components/Snackbar/store';
-  import { addDefaultNewsFeed, addGroupMember } from '$lib/utils/services/courses';
+  import { createCourseViaApi } from '$lib/utils/services/courses';
   import { capturePosthogEvent } from '$lib/utils/services/posthog';
   import { currentOrg } from '$lib/utils/store/org';
   import { profile } from '$lib/utils/store/user';
-  import { COURSE_TYPE, COURSE_VERSION } from '$lib/utils/types';
+  import { COURSE_TYPE } from '$lib/utils/types';
   import CheckmarkFilledIcon from 'carbon-icons-svelte/lib/CheckmarkFilled.svelte';
   import CheckmarkOutlineIcon from 'carbon-icons-svelte/lib/CheckmarkOutline.svelte';
 
@@ -59,15 +57,6 @@
     }));
   }
 
-  function generateJoinCode(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-  }
-
   async function createCourse() {
     isLoading = true;
     errors = { title: '', description: '' };
@@ -82,40 +71,18 @@
 
       const { title, description } = $createCourseModal;
 
-      // 1. Create group
-      const { data: newGroup, error: groupError } = await supabase
-        .from('group')
-        .insert({ name: title, description, organization_id: $currentOrg.id })
-        .select();
+      const { data: newCourse, error: courseError } = await createCourseViaApi({
+        orgId: $currentOrg.id,
+        title,
+        description,
+        type
+      });
 
-      if (groupError || !newGroup || newGroup.length === 0) {
-        console.error('createCourse group error:', groupError);
-        snackbar.error($t('courses.new_course_modal.error_create') || 'Failed to create course group');
-        return;
-      }
-
-      const { id: group_id } = newGroup[0];
-
-      // 2. Create course with group_id and join_code
-      const { data: newCourseData, error: courseError } = await supabase
-        .from('course')
-        .insert({
-          title,
-          description,
-          type: type,
-          version: COURSE_VERSION.V2,
-          group_id,
-          join_code: generateJoinCode()
-        })
-        .select();
-
-      if (courseError || !newCourseData || newCourseData.length === 0) {
+      if (courseError || !newCourse) {
         console.error('createCourse error:', courseError);
         snackbar.error($t('courses.new_course_modal.error_create') || 'Failed to create course');
         return;
       }
-
-      const newCourse = newCourseData[0];
       courses.update((_courses) => [..._courses, newCourse]);
 
       capturePosthogEvent('course_created', {
@@ -127,39 +94,6 @@
         user_id: $profile.id,
         user_email: $profile.email
       });
-
-      // 3. Add group members
-      const { data, error: memberError } = await addGroupMember({
-        profile_id: $profile.id,
-        email: $profile.email,
-        group_id,
-        role_id: ROLE.TUTOR
-      });
-
-      if (memberError) {
-        console.error('addGroupMember error:', memberError);
-        snackbar.error($t('courses.new_course_modal.error_add_member') || 'Failed to add group member');
-        return;
-      }
-
-      // 4. Add default news feed.
-      if (Array.isArray(data) && data.length) {
-        const { id: authorId } = data[0];
-        console.log('Add news feed into course');
-
-        const { error: feedError } = await addDefaultNewsFeed({
-          content: `<h2>Welcome to this course 🎉&nbsp;</h2>
-<p>Thank you for joining this course and I hope you get the best out of it.</p>`,
-          course_id: newCourse.id,
-          is_pinned: true,
-          author_id: authorId
-        });
-
-        if (feedError) {
-          console.error('addDefaultNewsFeed error:', feedError);
-          // Non-blocking: continue even if news feed fails
-        }
-      }
 
       onClose(`/courses/${newCourse.id}`);
     } catch (err) {
