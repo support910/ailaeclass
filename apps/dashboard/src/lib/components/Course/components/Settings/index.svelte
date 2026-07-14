@@ -22,6 +22,7 @@
   import { course } from '$lib/components/Course/store';
   import { handleOpenWidget } from '$lib/components/CourseLandingPage/store';
   import IconButton from '$lib/components/IconButton/index.svelte';
+  import Modal from '$lib/components/Modal/index.svelte';
   import DeleteModal from '$lib/components/Modal/DeleteModal.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import { snackbar } from '$lib/components/Snackbar/store';
@@ -29,6 +30,7 @@
   import generateSlug from '$lib/utils/functions/generateSlug';
   import { isObject } from '$lib/utils/functions/isObject';
   import { t } from '$lib/utils/functions/translations';
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import { deleteCourse, updateCourse } from '$lib/utils/services/courses';
   import { currentOrg, currentOrgDomain, currentOrgPath } from '$lib/utils/store/org';
   import type { Course } from '$lib/utils/types';
@@ -46,6 +48,7 @@
   let avatar: string | undefined;
   let hasUnsavedChanges = false;
   let openDeleteModal = false;
+  let openResetCoverModal = false;
 
   function widgetControl() {
     $handleOpenWidget.open = !$handleOpenWidget.open;
@@ -109,9 +112,10 @@
     isLoading = false;
   };
 
-  const deleteBannerImage = () => {
+  const confirmResetBannerImage = () => {
     $settings.logo = '';
     hasUnsavedChanges = true;
+    openResetCoverModal = false;
   };
 
   async function handleDeleteCourse() {
@@ -202,6 +206,30 @@
 
 <DeleteModal onDelete={handleDeleteCourse} bind:open={openDeleteModal} />
 
+<Modal
+  bind:open={openResetCoverModal}
+  onClose={() => (openResetCoverModal = false)}
+  modalHeading={$t('course.navItem.landing_page.upload_widget.reset_title')}
+  width="w-[92vw] max-w-md"
+  maxWidth="max-w-md"
+>
+  <p class="text-sm leading-6 text-gray-600 dark:text-neutral-300">
+    {$t('course.navItem.landing_page.upload_widget.reset_message')}
+  </p>
+  <div class="mt-6 flex flex-wrap justify-end gap-2">
+    <PrimaryButton
+      variant={VARIANTS.OUTLINED}
+      label={$t('course.navItem.landing_page.upload_widget.cancel')}
+      onClick={() => (openResetCoverModal = false)}
+    />
+    <PrimaryButton
+      variant={VARIANTS.CONTAINED_DANGER}
+      label={$t('course.navItem.landing_page.upload_widget.reset_confirm')}
+      onClick={confirmResetBannerImage}
+    />
+  </div>
+</Modal>
+
 <Grid class="border-c rounded border-gray-200 dark:border-neutral-600">
   <Row class="border-bottom-c flex flex-col py-7 lg:flex-row">
     <Column sm={8} md={8} lg={8}>
@@ -219,7 +247,7 @@
         <PrimaryButton
           variant={VARIANTS.OUTLINED}
           label={$t('ai.reset')}
-          onClick={deleteBannerImage}
+          onClick={() => (openResetCoverModal = true)}
         />
       </span>
       {#if $handleOpenWidget.open}
@@ -237,8 +265,8 @@
         <img
           style="min-width:280px; min-height:200px"
           alt="About us"
-          src={$settings.logo ? $settings.logo : '/images/ailaeclass-course-img-template.jpg'}
-          class="relative mt-2 h-[200px] w-[280px] rounded-md md:mt-0"
+          src={getCourseCover({ ...$course, logo: $settings.logo })}
+          class="relative mt-2 h-[200px] w-[280px] rounded-md object-cover md:mt-0"
         />
       </div>
     </Column>

@@ -8,6 +8,7 @@
   import { profile } from '$lib/utils/store/user';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { t } from '$lib/utils/functions/translations';
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import ArrowLeft from 'carbon-icons-svelte/lib/ArrowLeft.svelte';
   let searchCode = '';
   let isSearching = false;
@@ -148,7 +149,7 @@
     <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
       <div class="mb-4 flex items-start gap-4">
         <img
-          src={foundCourse.logo || '/images/ailaeclass-course-img-template.jpg'}
+          src={getCourseCover(foundCourse)}
           alt={foundCourse.title}
           class="h-16 w-16 rounded-lg object-cover"
         />

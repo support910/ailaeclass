@@ -14,6 +14,7 @@
   import { course } from '$lib/components/Course/store';
   import { t } from '$lib/utils/functions/translations';
   import { calDateDiff } from '$lib/utils/functions/date';
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import { handleOpenWidget, reviewsModalStore } from './store';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import { COURSE_VERSION, type Course, type Lesson, type Review } from '$lib/utils/types';
@@ -116,7 +117,7 @@
 
   $: video = get(courseData, 'metadata.videoUrl');
   $: allowNewStudent = get(courseData, 'metadata.allowNewStudent');
-  $: bannerImage = get(courseData, 'logo');
+  $: bannerImage = getCourseCover(courseData);
   $: lessons = get(courseData, 'lessons', [])
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));

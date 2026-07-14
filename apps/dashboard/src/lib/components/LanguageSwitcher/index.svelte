@@ -7,36 +7,28 @@
 
   let isOpen = false;
 
-  const SUPPORTED_LOCALES = [{ id: LOCALE.ZH_TW }, { id: LOCALE.ZH }, { id: LOCALE.EN }];
+  const SUPPORTED_LOCALES = [
+    { id: LOCALE.ZH_TW, label: '繁體中文' },
+    { id: LOCALE.ZH, label: '简体中文' },
+    { id: LOCALE.EN, label: 'English' },
+    { id: LOCALE.MS, label: 'Bahasa Melayu' },
+    { id: LOCALE.ID, label: 'Bahasa Indonesia' },
+    { id: LOCALE.TH, label: 'ไทย' }
+  ];
 
   $: currentLabel = getLocaleLabel($locale, $locale);
   $: fallbackTitle = getSwitchTitle($locale);
 
-  function getLocaleLabel(localeId: string, displayLocale: string) {
-    const labels: Record<string, Record<string, string>> = {
-      [LOCALE.ZH_TW]: {
-        [LOCALE.ZH_TW]: '繁體中文',
-        [LOCALE.ZH]: '簡體中文',
-        [LOCALE.EN]: '英文'
-      },
-      [LOCALE.ZH]: {
-        [LOCALE.ZH_TW]: '繁体中文',
-        [LOCALE.ZH]: '简体中文',
-        [LOCALE.EN]: '英文'
-      },
-      [LOCALE.EN]: {
-        [LOCALE.ZH_TW]: 'Traditional Chinese',
-        [LOCALE.ZH]: 'Simplified Chinese',
-        [LOCALE.EN]: 'English'
-      }
-    };
-
-    return labels[displayLocale]?.[localeId] || labels[LOCALE.ZH_TW][localeId] || localeId;
+  function getLocaleLabel(localeId: string, _displayLocale: string) {
+    return SUPPORTED_LOCALES.find((item) => item.id === localeId)?.label || localeId;
   }
 
   function getSwitchTitle(displayLocale: string) {
     if (displayLocale === LOCALE.EN) return 'Switch language';
     if (displayLocale === LOCALE.ZH) return '切换语言';
+    if (displayLocale === LOCALE.MS) return 'Tukar bahasa';
+    if (displayLocale === LOCALE.ID) return 'Ganti bahasa';
+    if (displayLocale === LOCALE.TH) return 'เปลี่ยนภาษา';
     return '切換語言';
   }
 

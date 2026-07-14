@@ -8,7 +8,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const userId = await getUserIdFromRequest(request);
   if (!userId) return json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
-  let body: { orgId?: string; title?: string; description?: string; type?: string };
+  let body: { orgId?: string; title?: string; description?: string; type?: string; logo?: string };
   try {
     body = await request.json();
   } catch {
@@ -19,11 +19,15 @@ export const POST: RequestHandler = async ({ request }) => {
   const title = String(body.title || '').trim();
   const description = String(body.description || '').trim();
   const type = body.type === 'SELF_PACED' ? 'SELF_PACED' : 'LIVE_CLASS';
+  const logo = String(body.logo || '').trim();
   if (!orgId || !title || !description) {
     return json(
       { success: false, message: 'Organization, title and description are required.' },
       { status: 400 }
     );
+  }
+  if (logo && !isAllowedCoverUrl(logo)) {
+    return json({ success: false, message: 'Invalid course cover URL' }, { status: 400 });
   }
 
   const supabase = getServerSupabase();
@@ -50,7 +54,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const { data: newCourse, error: courseError } = await supabase
       .from('course')
-      .insert({ title, description, type, version: 'V2', group_id: groupId })
+      .insert({ title, description, type, logo: logo || null, version: 'V2', group_id: groupId })
       .select('*')
       .single();
     if (courseError || !newCourse) throw courseError || new Error('Failed to create course');
@@ -83,3 +87,14 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({ success: false, message }, { status: 500 });
   }
 };
+
+function isAllowedCoverUrl(value: string): boolean {
+  if (value.length > 2048) return false;
+  if (value.startsWith('/images/course-covers/')) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}

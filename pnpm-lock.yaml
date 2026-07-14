@@ -441,9 +441,6 @@ importers:
       tldts:
         specifier: ^6.1.41
         version: 6.1.86
-      unsplash-js:
-        specifier: ^7.0.18
-        version: 7.0.20
       utf-8-validate:
         specifier: ^6.0.5
         version: 6.0.6
@@ -17969,11 +17966,6 @@ packages:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.4
       webpack-virtual-modules: 0.6.2
-    dev: false
-
-  /unsplash-js@7.0.20:
-    resolution: {integrity: sha512-0IzJGKbD6qHm0wg5sNndcCjhNDrtAr08/mySr9TGJ6biD7N03ZldidqXopkOvhAABaeFtRGYBrX1YkgMhKrFOQ==}
-    engines: {node: '>=10'}
     dev: false
 
   /unstorage@2.0.0-alpha.7(db0@0.3.4)(ofetch@2.0.0-alpha.3):

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import { goto } from '$app/navigation';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
@@ -32,7 +33,7 @@
           <div class="p-5">
             <span class="flex flex-col lg:flex-row gap-3 items-start pb-5">
               <img
-                src={course.logo || '/images/ailaeclass-course-img-template.jpg'}
+                src={getCourseCover(course)}
                 alt="course"
                 class="hidden lg:block lg:w-[60px] lg:h-[60px]"
               />

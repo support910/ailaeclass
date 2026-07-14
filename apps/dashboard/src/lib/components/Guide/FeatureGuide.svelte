@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import HelpIcon from 'carbon-icons-svelte/lib/Help.svelte';
   import { locale } from '$lib/utils/functions/translations';
+  import { translateGuideText } from './guideTranslations';
 
   export let scope: 'org' | 'lms' = 'org';
 
@@ -638,6 +639,14 @@
 
   function findByText(textTargets: string[] = []) {
     if (!textTargets.length) return null;
+    const localizedTargets = Array.from(
+      new Set(
+        textTargets.flatMap((target) => {
+          const english = englishText[target] || target;
+          return [target, english, translateGuideText($locale, english)];
+        })
+      )
+    );
     const candidates = Array.from(
       document.querySelectorAll<HTMLElement>(
         'button, a, input, textarea, [role="button"], h1, h2, h3, label, p, span, section, div[data-guide-target]'
@@ -650,7 +659,7 @@
         const text = `${element.innerText || ''} ${element.getAttribute('aria-label') || ''} ${
           element.getAttribute('placeholder') || ''
         } ${element.getAttribute('title') || ''}`;
-        return textTargets.some((target) => text.includes(target));
+        return localizedTargets.some((target) => text.includes(target));
       }) || null
     );
   }
@@ -667,6 +676,9 @@
   function text(value = '') {
     if ($locale === 'en') return englishText[value] || value;
     if ($locale === 'zh-TW') return toTraditional(value);
+    if (['ms', 'id', 'th'].includes($locale)) {
+      return translateGuideText($locale, englishText[value] || value);
+    }
     return value;
   }
 
@@ -789,7 +801,7 @@
     }
   }
 
-  $: if (browser && open && currentStep) {
+  $: if (browser && open && currentStep && $locale) {
     updateTarget();
   }
 
@@ -802,6 +814,7 @@
 
 <svelte:window on:resize={updateTarget} on:scroll={updateTarget} on:click={handleDocumentClick} />
 
+{#key `${$locale}-${traditionalConverterLoaded}`}
 {#if guide}
   <button
     type="button"
@@ -885,6 +898,7 @@
     </div>
   {/if}
 {/if}
+{/key}
 
 <style>
   .spotlight {

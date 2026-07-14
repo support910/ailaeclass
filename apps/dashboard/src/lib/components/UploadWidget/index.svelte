@@ -1,216 +1,247 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
-  import Tabs from '$lib/components/Tabs/index.svelte';
-  import { getSupabase } from '$lib/utils/functions/supabase';
-  import TabContent from '$lib/components/TabContent/index.svelte';
-  import { snackbar } from '../Snackbar/store';
+  import { createEventDispatcher } from 'svelte';
+  import CheckmarkFilledIcon from 'carbon-icons-svelte/lib/CheckmarkFilled.svelte';
+
   import Modal from '$lib/components/Modal/index.svelte';
-  import { handleOpenWidget } from '$lib/components/CourseLandingPage/store';
-  import { queryUnsplash } from './utils';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
+  import { VARIANTS } from '$lib/components/PrimaryButton/constants';
+  import TabContent from '$lib/components/TabContent/index.svelte';
+  import Tabs from '$lib/components/Tabs/index.svelte';
+  import { handleOpenWidget } from '$lib/components/CourseLandingPage/store';
+  import { snackbar } from '$lib/components/Snackbar/store';
+  import { COURSE_COVER_OPTIONS } from '$lib/utils/courseCovers';
   import { t } from '$lib/utils/functions/translations';
-  import { validateImageUpload } from '$lib/utils/functions/fileValidation';
+  import { uploadCourseCover } from '$lib/utils/services/courses';
+  import { currentOrg } from '$lib/utils/store/org';
 
   export let imageURL = '';
 
-  const supabase = getSupabase();
   const dispatch = createEventDispatcher();
   const tabs = [
-    { label: 'Unsplash', value: 'unsplash' },
-    { label: 'Upload', value: 'upload' }
+    {
+      label: 'course.navItem.landing_page.upload_widget.defaults_tab',
+      value: 'defaults'
+    },
+    {
+      label: 'course.navItem.landing_page.upload_widget.upload_tab',
+      value: 'upload'
+    }
   ];
 
-  let isUploading = false;
   let currentTab = tabs[0].value;
-  let searchQuery = '';
-  let unsplashImages: {
-    id: string | number;
-    user: {
-      name: string;
-      username: string;
-    };
-    urls: {
-      regular: string;
-    };
-    alt_description: string;
-  }[] = [];
+  let pendingImageURL = imageURL;
+  let pendingFile: File | null = null;
   let fileInput: HTMLInputElement;
+  let isUploading = false;
 
-  let label = $t('snackbar.landing_page_settings.error.label');
+  const onChange = (tabValue: string | number) => () => {
+    currentTab = `${tabValue}`;
+  };
 
-  const onChange = (tabValue: string | number) => () => (currentTab = `${tabValue}`);
-
-  async function handleImageClick(img: string) {
-    dispatch('change');
-    imageURL = img;
+  function closeWidget() {
     $handleOpenWidget.open = false;
   }
 
-  const onFileSelected = () => {
+  function selectDefaultImage(src: string) {
+    pendingFile = null;
+    pendingImageURL = src;
+  }
+
+  function applyImage(src: string) {
+    imageURL = src;
+    dispatch('change', { imageURL: src });
+    closeWidget();
+  }
+
+  function confirmDefaultImage() {
+    applyImage(pendingImageURL);
+  }
+
+  function readFileAsDataURL(file: File) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(`${reader.result || ''}`);
+      reader.onerror = () => reject(reader.error || new Error('Unable to preview image'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function onFileSelected() {
     const file = fileInput?.files?.[0];
     if (!file) return;
-    
-    const validation = validateImageUpload(file);
-    if (!validation.isValid) {
-      snackbar.error(validation.error || 'Invalid file type');
-      label = $t('snackbar.landing_page_settings.error.try_again');
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      snackbar.error('courses.new_course_modal.cover_type_error');
+      fileInput.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      snackbar.error('courses.new_course_modal.cover_size_error');
       fileInput.value = '';
       return;
     }
 
-    const sizeInkb = file?.size! / 1024;
-    if (sizeInkb > 500) {
-      snackbar.error('snackbar.landing_page_settings.error.file_size');
-      label = $t('snackbar.landing_page_settings.error.try_again');
-      return;
+    try {
+      pendingImageURL = await readFileAsDataURL(file);
+      pendingFile = file;
+    } catch (error) {
+      console.error('Course cover preview error:', error);
+      pendingFile = null;
+      pendingImageURL = imageURL;
+      fileInput.value = '';
+      snackbar.error('courses.new_course_modal.cover_upload_error');
     }
-    if (file) {
-      let reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (e) => {
-        uploadImage(file);
-      };
-    }
-  };
-
-  const uploadImage = async (image: File) => {
-    isUploading = true;
-    if (!image) {
-      return;
-    }
-    const filename = `uploadwidget/${Date.now()}` + image.name;
-    const { data } = await supabase.storage.from('avatars').upload(filename, image, {
-      cacheControl: '3600',
-      upsert: false
-    });
-
-    if (data) {
-      const { data: response } = await supabase.storage.from('avatars').getPublicUrl(filename);
-      imageURL = response.publicUrl;
-      dispatch('change');
-    }
-    isUploading = false;
-
-    snackbar.success(`snackbar.landing_page_settings.success.complete`);
-    $handleOpenWidget.open = false;
-  };
+  }
 
   function handleUpload() {
-    fileInput.click();
+    fileInput?.click();
   }
 
-  async function handleSubmit() {
+  async function confirmUpload() {
+    if (!pendingFile) return;
+    if (!$currentOrg.id) {
+      snackbar.error('courses.new_course_modal.cover_upload_error');
+      return;
+    }
+
+    isUploading = true;
     try {
-      unsplashImages = await queryUnsplash(searchQuery || 'rocks');
+      const { data, error } = await uploadCourseCover(pendingFile, $currentOrg.id);
+      if (error || !data) throw new Error(error?.message || 'Upload failed');
+      applyImage(data);
+      snackbar.success('snackbar.landing_page_settings.success.complete');
     } catch (error) {
-      snackbar.error('snackbar.landing_page_settings.error.fetch_error');
-      console.error('Error fetching images from Unsplash:', error);
+      console.error('Course cover upload error:', error);
+      snackbar.error('courses.new_course_modal.cover_upload_error');
+    } finally {
+      isUploading = false;
     }
   }
-
-  onMount(handleSubmit);
 </script>
 
 <Modal
-  onClose={() => ($handleOpenWidget.open = false)}
+  onClose={closeWidget}
   bind:open={$handleOpenWidget.open}
-  width="w-3/5"
+  width="w-[92vw] md:w-4/5 lg:w-3/5"
   maxWidth=""
   modalHeading={$t('course.navItem.landing_page.upload_widget.title')}
 >
-  <div class="w-full bg-white p-5 dark:bg-inherit">
+  <div class="w-full bg-white dark:bg-inherit">
+    <p class="mb-4 text-sm text-gray-600 dark:text-neutral-300">
+      {$t('course.navItem.landing_page.upload_widget.description')}
+    </p>
     <Tabs {tabs} {currentTab} {onChange}>
       <slot:fragment slot="content">
+        <TabContent value={tabs[0].value} index={currentTab}>
+          <p class="mb-3 text-sm text-gray-500 dark:text-neutral-300">
+            {$t('course.navItem.landing_page.upload_widget.selection_hint')}
+          </p>
+          <div class="grid max-h-[300px] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
+            {#each COURSE_COVER_OPTIONS as cover}
+              <button
+                type="button"
+                class="group relative overflow-hidden rounded-md border-2 bg-gray-100 text-left {pendingImageURL ===
+                cover.src
+                  ? 'border-primary-500'
+                  : 'border-transparent hover:border-gray-300 dark:hover:border-neutral-500'}"
+                aria-label={$t(cover.labelKey)}
+                aria-pressed={pendingImageURL === cover.src}
+                on:click={() => selectDefaultImage(cover.src)}
+              >
+                <img class="aspect-[16/9] w-full object-cover" src={cover.src} alt={$t(cover.labelKey)} />
+                <span class="block truncate bg-white px-2 py-1.5 text-xs text-gray-700 dark:bg-neutral-800 dark:text-neutral-200">
+                  {$t(cover.labelKey)}
+                </span>
+                {#if pendingImageURL === cover.src}
+                  <span class="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary-600 text-white shadow">
+                    <CheckmarkFilledIcon size={15} />
+                  </span>
+                {/if}
+              </button>
+            {/each}
+          </div>
+          {#if pendingImageURL}
+            <div class="mt-4 border-t border-gray-200 pt-4 dark:border-neutral-600">
+              <p class="mb-2 text-sm font-medium">
+                {$t('course.navItem.landing_page.upload_widget.selected_preview')}
+              </p>
+              <img
+                src={pendingImageURL}
+                alt={$t('course.navItem.landing_page.upload_widget.selected_preview')}
+                class="aspect-[16/9] w-full max-w-sm rounded-md object-cover"
+              />
+            </div>
+          {/if}
+          <div class="mt-5 flex flex-wrap justify-end gap-2">
+            <PrimaryButton
+              variant={VARIANTS.OUTLINED}
+              label={$t('course.navItem.landing_page.upload_widget.cancel')}
+              onClick={closeWidget}
+            />
+            <PrimaryButton
+              label={$t('course.navItem.landing_page.upload_widget.confirm_use')}
+              onClick={confirmDefaultImage}
+              isDisabled={!pendingImageURL}
+            />
+          </div>
+        </TabContent>
+
         <TabContent value={tabs[1].value} index={currentTab}>
-          <!-- Your Upload content here -->
           <div class="w-full">
+            <p class="mb-3 text-sm text-gray-500 dark:text-neutral-300">
+              {$t('course.navItem.landing_page.upload_widget.upload_hint')}
+            </p>
             <input
               type="file"
-              accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
-              style="display: none;"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              class="hidden"
               bind:this={fileInput}
               on:change={onFileSelected}
               disabled={isUploading}
             />
             <PrimaryButton
-              {label}
+              label={$t('course.navItem.landing_page.upload_widget.upload_button')}
               onClick={handleUpload}
-              isLoading={isUploading}
+              isDisabled={isUploading}
               className="w-full font-semibold m-auto"
             />
             <p class="my-2 text-center text-sm text-gray-500">
               {$t('course.navItem.landing_page.upload_widget.width')}
             </p>
             <p class="text-center text-sm text-gray-500">
-              {$t('course.navItem.landing_page.upload_widget.size')}
+              {$t('course.navItem.landing_page.upload_widget.size_5mb')}
             </p>
-          </div>
-        </TabContent>
-        <TabContent value={tabs[0].value} index={currentTab}>
-          <!-- Your Images content here -->
-          <div class="h-full overflow-y-scroll">
-            <form on:submit|preventDefault={handleSubmit} class="mt-1 flex gap-2 pb-3">
-              <input
-                type="text"
-                bind:value={searchQuery}
-                name=""
-                id=""
-                class="ml-2 w-[85%] rounded-lg dark:text-black"
-              />
-              <button
-                type="submit"
-                class="rounded-lg border-[1px] border-gray-500 bg-white px-3 py-1 text-black"
-                >{$t('course.navItem.landing_page.upload_widget.submit')}</button
-              >
-            </form>
-            {#if unsplashImages && unsplashImages.length > 0}
-              <div
-                class="hide-scrollbar flex max-h-[300px] flex-row flex-wrap items-center gap-2 px-[10px]"
-              >
-                {#each unsplashImages as unsplashImages (unsplashImages.id)}
-                  <div>
-                    <div class="relative h-[130px] w-[195px] overflow-hidden">
-                      <button on:click={() => handleImageClick(unsplashImages.urls.regular)}>
-                        <img
-                          src={unsplashImages.urls.regular}
-                          alt={unsplashImages.alt_description}
-                          class="h-full w-full cursor-pointer rounded-md object-cover hover:opacity-80"
-                        />
-                      </button>
-                    </div>
-                    {#if unsplashImages.user.name}
-                      <p class="mt-1 text-center text-xs font-light text-gray-500">
-                        By <a
-                          href={`https://unsplash.com/@${unsplashImages.user.username}`}
-                          target="_blank"
-                          class="hover:text-red-700">{unsplashImages.user.name}</a
-                        >
-                      </p>
-                    {/if}
-                  </div>
-                {/each}
+            {#if pendingFile && pendingImageURL}
+              <div class="mt-4 border-t border-gray-200 pt-4 dark:border-neutral-600">
+                <p class="mb-2 text-sm font-medium">
+                  {$t('course.navItem.landing_page.upload_widget.selected_preview')}
+                </p>
+                <img
+                  src={pendingImageURL}
+                  alt={$t('course.navItem.landing_page.upload_widget.selected_preview')}
+                  class="aspect-[16/9] w-full max-w-md rounded-md object-cover"
+                />
+                <p class="mt-2 break-all text-xs text-gray-500">{pendingFile.name}</p>
               </div>
-            {:else}
-              <p class="pt-7 text-center">
-                {$t('course.navItem.landing_page.upload_widget.no_images')}
-              </p>
             {/if}
+            <div class="mt-5 flex flex-wrap justify-end gap-2">
+              <PrimaryButton
+                variant={VARIANTS.OUTLINED}
+                label={$t('course.navItem.landing_page.upload_widget.cancel')}
+                onClick={closeWidget}
+                isDisabled={isUploading}
+              />
+              <PrimaryButton
+                label={$t('course.navItem.landing_page.upload_widget.upload_and_use')}
+                onClick={confirmUpload}
+                isLoading={isUploading}
+                isDisabled={!pendingFile || isUploading}
+              />
+            </div>
           </div>
         </TabContent>
       </slot:fragment>
     </Tabs>
   </div>
 </Modal>
-
-<style>
-  .hide-scrollbar {
-    width: 100%;
-    overflow: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    width: 0;
-    background: transparent;
-  }
-</style>
