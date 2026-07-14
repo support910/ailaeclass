@@ -4,6 +4,7 @@
   import { snackbar } from '$lib/components/Snackbar/store';
   import { getAccessToken } from '$lib/utils/functions/supabase';
   import { t } from '$lib/utils/functions/translations';
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import { currentOrgPath } from '$lib/utils/store/org';
   import type { UserAnalytics } from '$lib/utils/types/analytics';
   import { Grid, Tag } from 'carbon-components-svelte';
@@ -165,7 +166,7 @@
               <div class="flex items-center justify-between gap-4">
                 <div class="flex w-4/5 items-center gap-4">
                   <img
-                    src={course.logo || '/images/ailaeclass-course-img-template.jpg'}
+                    src={getCourseCover(course)}
                     alt={course.title}
                     class="h-20 w-24 rounded-md"
                   />

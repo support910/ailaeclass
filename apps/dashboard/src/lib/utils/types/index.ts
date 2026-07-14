@@ -12,6 +12,9 @@ export enum LOCALE {
   RU = 'ru',
   ES = 'es',
   DA = 'da',
+  MS = 'ms',
+  ID = 'id',
+  TH = 'th',
   ZH = 'zh',
   ZH_TW = 'zh-TW'
 }

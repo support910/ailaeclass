@@ -12,6 +12,7 @@
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { getSupabase } from '$lib/utils/functions/supabase';
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import { t } from '$lib/utils/functions/translations';
   import { validateEmail } from '$lib/utils/functions/validateEmail';
   import { orgLandingpageValidation } from '$lib/utils/functions/validator';
@@ -326,7 +327,7 @@
               <Card
                 id={courseData.id}
                 slug={courseData.slug}
-                bannerImage={courseData.logo || '/images/ailaeclass-course-img-template.jpg'}
+                bannerImage={getCourseCover(courseData)}
                 title={courseData.title}
                 type={courseData.type}
                 description={courseData.description}

@@ -7,6 +7,7 @@
   import { courseMetaDeta } from './store';
   import type { Course } from '$lib/utils/types';
   import { globalStore } from '$lib/utils/store/app';
+  import { getCourseCover } from '$lib/utils/courseCovers';
   import {
     StructuredList,
     StructuredListHead,
@@ -146,7 +147,7 @@
           <Card
             id={courseData.id}
             slug={courseData.slug}
-            bannerImage={courseData.logo || '/images/ailaeclass-course-img-template.jpg'}
+            bannerImage={getCourseCover(courseData)}
             title={courseData.title}
             description={courseData.description}
             isPublished={courseData.is_published}

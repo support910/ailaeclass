@@ -246,6 +246,7 @@ export async function createCourseViaApi(course: {
   title: string;
   description: string;
   type: COURSE_TYPE;
+  logo?: string;
 }) {
   try {
     const token = await getAccessToken();
@@ -258,6 +259,31 @@ export async function createCourseViaApi(course: {
     if (!response.ok || !result.success)
       return { data: null, error: { message: result.message || 'Failed to create course' } };
     return { data: result.course, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: { message: error instanceof Error ? error.message : 'Network error' }
+    };
+  }
+}
+
+export async function uploadCourseCover(file: File, orgId: string) {
+  try {
+    const token = await getAccessToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('orgId', orgId);
+
+    const response = await fetch('/api/course-covers/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      return { data: null, error: { message: result.message || 'Failed to upload course cover' } };
+    }
+    return { data: result.url as string, error: null };
   } catch (error) {
     return {
       data: null,

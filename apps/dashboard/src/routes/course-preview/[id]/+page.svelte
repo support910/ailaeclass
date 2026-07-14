@@ -13,6 +13,7 @@
   import { getAccessToken } from '$lib/utils/functions/supabase';
   import { t } from '$lib/utils/functions/translations';
   import type { Course } from '$lib/utils/types';
+  import { getCourseCover } from '$lib/utils/courseCovers';
 
   type ViewerState = {
     org_role_id: number | null;
@@ -117,7 +118,7 @@
   <main class="min-h-full min-w-0 w-full flex-1 bg-white text-gray-900 dark:bg-black dark:text-white">
     <header
       class="relative min-h-[390px] overflow-hidden bg-neutral-900 bg-cover bg-center"
-      style:background-image={courseData.logo ? `url(${courseData.logo})` : undefined}
+      style:background-image={`url(${getCourseCover(courseData)})`}
     >
       <div class="absolute inset-0 bg-black/70" />
       <div class="relative mx-auto flex min-h-[390px] max-w-6xl flex-col px-5 py-6 md:px-8">

@@ -5,6 +5,7 @@ import { writable } from 'svelte/store';
 
 export const config = {
   parser: parser(),
+  fallbackLocale: 'en',
   loaders: [
     {
       locale: 'en',
@@ -55,6 +56,21 @@ export const config = {
       locale: 'da',
       key: '',
       loader: async () => (await import('../translations/da.json')).default
+    },
+    {
+      locale: 'ms',
+      key: '',
+      loader: async () => (await import('../translations/ms.json')).default
+    },
+    {
+      locale: 'id',
+      key: '',
+      loader: async () => (await import('../translations/id.json')).default
+    },
+    {
+      locale: 'th',
+      key: '',
+      loader: async () => (await import('../translations/th.json')).default
     },
     {
       locale: 'zh',

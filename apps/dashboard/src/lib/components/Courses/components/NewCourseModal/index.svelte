@@ -11,13 +11,15 @@
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { t } from '$lib/utils/functions/translations';
   import { snackbar } from '$lib/components/Snackbar/store';
-  import { createCourseViaApi } from '$lib/utils/services/courses';
+  import { createCourseViaApi, uploadCourseCover } from '$lib/utils/services/courses';
+  import { COURSE_COVER_OPTIONS } from '$lib/utils/courseCovers';
   import { capturePosthogEvent } from '$lib/utils/services/posthog';
   import { currentOrg } from '$lib/utils/store/org';
   import { profile } from '$lib/utils/store/user';
   import { COURSE_TYPE } from '$lib/utils/types';
   import CheckmarkFilledIcon from 'carbon-icons-svelte/lib/CheckmarkFilled.svelte';
   import CheckmarkOutlineIcon from 'carbon-icons-svelte/lib/CheckmarkOutline.svelte';
+  import CourseCoverPicker from './CourseCoverPicker.svelte';
 
   let isLoading = false;
   let errors = {
@@ -25,19 +27,19 @@
     description: ''
   };
   let step = 0;
+  let cover = COURSE_COVER_OPTIONS[0].src;
+  let coverFile: File | null = null;
 
   const options = [
     {
-      title: 'Live Class',
-      subtitle:
-        'This course type is ideal for bootcamps where lessons are time based and you need attendance and grading',
+      titleKey: 'courses.new_course_modal.live_class',
+      subtitleKey: 'courses.new_course_modal.live_class_hint',
       type: COURSE_TYPE.LIVE_CLASS,
       isDisabled: false
     },
     {
-      title: 'Self Paced',
-      subtitle:
-        'This course type is ideal for courses where students can take lessons on their own pace without a teacher',
+      titleKey: 'courses.new_course_modal.self_paced',
+      subtitleKey: 'courses.new_course_modal.self_paced_hint',
       type: COURSE_TYPE.SELF_PACED,
       isDisabled: false
     }
@@ -55,6 +57,9 @@
       tutors: '',
       students: ''
     }));
+    step = 0;
+    cover = COURSE_COVER_OPTIONS[0].src;
+    coverFile = null;
   }
 
   async function createCourse() {
@@ -71,11 +76,27 @@
 
       const { title, description } = $createCourseModal;
 
+      let savedCover = cover;
+      if (coverFile) {
+        const { data: uploadedCover, error: uploadError } = await uploadCourseCover(
+          coverFile,
+          $currentOrg.id
+        );
+        if (uploadError || !uploadedCover) {
+          snackbar.error(
+            uploadError?.message || $t('courses.new_course_modal.cover_upload_error')
+          );
+          return;
+        }
+        savedCover = uploadedCover;
+      }
+
       const { data: newCourse, error: courseError } = await createCourseViaApi({
         orgId: $currentOrg.id,
         title,
         description,
-        type
+        type,
+        logo: savedCover
       });
 
       if (courseError || !newCourse) {
@@ -150,12 +171,12 @@
 
             <div>
               <p class="flex items-center text-start font-bold">
-                <span class="mr-2 text-sm">{option.title}</span>
+                <span class="mr-2 text-sm">{$t(option.titleKey)}</span>
                 {#if option.isDisabled}
                   <ComingSoon />
                 {/if}
               </p>
-              <p class="text-start text-xs font-light">{option.subtitle}</p>
+              <p class="text-start text-xs font-light">{$t(option.subtitleKey)}</p>
             </div>
           </button>
         {/each}
@@ -193,6 +214,8 @@
         isRequired={true}
         errorMessage={errors.description}
       />
+
+      <CourseCoverPicker bind:value={cover} bind:selectedFile={coverFile} />
 
       <div class="mt-5 flex items-center justify-between">
         <PrimaryButton
