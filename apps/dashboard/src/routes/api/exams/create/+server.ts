@@ -117,6 +117,7 @@ export const POST: RequestHandler = async ({ request }) => {
       settings && typeof settings === 'object' && !Array.isArray(settings) ? settings : {};
     const examMode =
       safeSettings.exam_mode === 'quick_practice' ? 'quick_practice' : 'traditional';
+    const resultPolicy = examMode === 'quick_practice' ? 'immediately' : show_result_policy;
     const rawAttempts = attempts_allowed === undefined ? 1 : attempts_allowed;
     const attemptsUnlimited = rawAttempts === null || rawAttempts === '';
     const parsedAttempts = attemptsUnlimited ? 1 : Number(rawAttempts);
@@ -131,7 +132,7 @@ export const POST: RequestHandler = async ({ request }) => {
       duration_minutes: duration_minutes ? Number(duration_minutes) : null,
       attempts_allowed: parsedAttempts,
       passing_score: passing_score !== undefined && passing_score !== null ? Number(passing_score) : null,
-      show_result_policy,
+      show_result_policy: resultPolicy,
       available_from: available_from || null,
       available_until: available_until || null,
       settings: {

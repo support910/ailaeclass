@@ -163,7 +163,10 @@
             ? null
             : Number($createExamModal.attemptsAllowed),
         passing_score: $createExamModal.passingScore !== '' && $createExamModal.passingScore !== null && $createExamModal.passingScore !== undefined ? Number($createExamModal.passingScore) : undefined,
-        show_result_policy: $createExamModal.showResultPolicy || 'after_grade',
+        show_result_policy:
+          $createExamModal.examMode === 'quick_practice'
+            ? 'immediately'
+            : $createExamModal.showResultPolicy || 'after_grade',
         available_from: availableFrom || undefined,
         available_until: availableUntil || undefined,
         settings: {
@@ -322,11 +325,17 @@
       </div>
       <div>
         <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.show_result_policy')}</label>
-        <Dropdown
-          class="w-full bg-gray-100 dark:bg-neutral-800"
-          bind:selectedId={$createExamModal.showResultPolicy}
-          items={showResultOptions}
-        />
+        {#if $createExamModal.examMode === 'quick_practice'}
+          <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-200">
+            {$t('components.exam.quick_result_policy_hint')}
+          </div>
+        {:else}
+          <Dropdown
+            class="w-full bg-gray-100 dark:bg-neutral-800"
+            bind:selectedId={$createExamModal.showResultPolicy}
+            items={showResultOptions}
+          />
+        {/if}
       </div>
     </div>
 

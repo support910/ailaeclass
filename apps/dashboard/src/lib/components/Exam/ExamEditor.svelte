@@ -372,7 +372,10 @@
           ? null
           : optionalNumber(exam.attempts_allowed),
       passing_score: optionalNumber(exam.passing_score),
-      show_result_policy: exam.show_result_policy,
+      show_result_policy:
+        exam.settings?.exam_mode === 'quick_practice'
+          ? 'immediately'
+          : exam.show_result_policy,
       available_from: emptyToNull(exam.available_from),
       available_until: emptyToNull(exam.available_until),
       shuffle_questions: exam.shuffle_questions,
@@ -419,7 +422,13 @@
       isLoading = false;
       return;
     }
-    exam = data;
+    exam = {
+      ...data,
+      show_result_policy:
+        data.settings?.exam_mode === 'quick_practice'
+          ? 'immediately'
+          : data.show_result_policy
+    };
     scoreMode = data.settings?.score_mode === 'manual' ? 'manual' : 'auto';
     questions = normalizeQuestionsForScoreMode(detectTrueFalse(data.questions || []));
     isLoading = false;

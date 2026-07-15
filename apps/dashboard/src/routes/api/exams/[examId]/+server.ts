@@ -239,9 +239,10 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
       attempt?.status_id === SUBMISSION_STATUS.IN_PROGRESS &&
       (!attempt.expires_at || new Date(attempt.expires_at).getTime() > Date.now());
 
-    const exposeCorrectAnswers = isQuickPractice && (isPreview || hasActiveInProgress);
+    const exposeCorrectAnswers =
+      (isQuickPractice && (isPreview || hasActiveInProgress)) || (isStudent && view === 'result');
 
-    // 4. Build questions. Correct flags are exposed only for authorized quick practice answering.
+    // Correct flags are available while answering quick practice, or after a result is released.
     const allQuestions = (examRow.questions || [])
       .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
       .map((q: any) => {
