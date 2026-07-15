@@ -620,6 +620,8 @@
         "answers_review": "Answers Review",
         "your_answer": "Your answer",
         "correct_answer": "Correct answer",
+        "explanation": "Explanation",
+        "no_reference_answer": "No reference answer",
         "correct": "Correct",
         "incorrect": "Incorrect",
         "no_answer": "No answer",
@@ -707,8 +709,11 @@
         "too_large": "Image must be under 5MB",
         "success": "Image uploaded",
         "error": "Failed to upload image",
-        "load_error": "The image could not be loaded. Remove it and upload again."
+        "load_error": "The image could not be loaded. Remove it and upload again.",
+        "network_error": "The image upload was interrupted. Check your connection and try again.",
+        "retry": "Retry upload"
       },
+      "quick_result_policy_hint": "Quick practice shows the answer and explanation immediately after each question.",
       "retry": "Retry",
       "edit_action": "Edit",
       "preview_action": "Mock Test",

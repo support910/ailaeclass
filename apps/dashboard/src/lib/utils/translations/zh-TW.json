@@ -620,6 +620,8 @@
         "answers_review": "答案回顧",
         "your_answer": "您的答案",
         "correct_answer": "正確答案",
+        "explanation": "答案解析",
+        "no_reference_answer": "暫無參考答案",
         "correct": "正確",
         "incorrect": "錯誤",
         "no_answer": "未作答",
@@ -707,8 +709,11 @@
         "too_large": "圖片必須小於 5MB",
         "success": "圖片上傳成功",
         "error": "圖片上傳失敗",
-        "load_error": "圖片載入失敗，請移除後重新上傳"
+        "load_error": "圖片載入失敗，請移除後重新上傳",
+        "network_error": "圖片上傳被中斷，請檢查網路後重試",
+        "retry": "重新上傳"
       },
+      "quick_result_policy_hint": "速解訓練會在每道題作答後立即顯示正確答案和解析。",
       "retry": "重試",
       "edit_action": "編輯",
       "preview_action": "模擬測試",

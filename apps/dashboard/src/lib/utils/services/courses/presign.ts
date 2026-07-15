@@ -15,6 +15,13 @@ import { IMAGE_UPLOAD_BUCKET } from '$lib/utils/constants/imageUpload';
 
 export type UploadType = 'document' | 'video' | 'generic';
 
+export class ImageUploadNetworkError extends Error {
+  constructor() {
+    super('Image upload network error');
+    this.name = 'ImageUploadNetworkError';
+  }
+}
+
 export class GenericUploader {
   public abortController: AbortController | null = null;
   private uploadType: UploadType;
@@ -262,29 +269,52 @@ export class ImageUploader extends GenericUploader {
   }
 
   async uploadDirect(file: File) {
-    const token = await getAccessToken();
-    if (!token) {
-      throw new Error('Please log in again before uploading images');
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const token = await getAccessToken();
+        if (!token) {
+          throw new Error('Please log in again before uploading images');
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/images/upload', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const result = await response.json().catch(() => null);
+        const retryableStatus = [502, 503, 504].includes(response.status);
+
+        if ((!response.ok || !result?.success) && retryableStatus && attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          continue;
+        }
+
+        if (!response.ok || !result?.success) {
+          throw new Error(result?.message || 'Unable to upload image');
+        }
+
+        return result;
+      } catch (error) {
+        const isNetworkError =
+          error instanceof TypeError || error instanceof ImageUploadNetworkError;
+        if (!isNetworkError) throw error;
+
+        if (attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          continue;
+        }
+
+        throw new ImageUploadNetworkError();
+      }
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch('/api/images/upload', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    const result = await response.json().catch(() => null);
-
-    if (!response.ok || !result?.success) {
-      throw new Error(result?.message || 'Unable to upload image');
-    }
-
-    return result;
+    throw new ImageUploadNetworkError();
   }
 
   async uploadFile(params: { url: string; file: File }) {

@@ -46,7 +46,32 @@
       return answerRecord.answers.map((v) => optionMap[v] || v).join(', ');
     }
 
+    // Older single-choice submissions stored the selected option in open_answer.
+    if (answerRecord.open_answer) {
+      const matchingOption = (question.options || []).find(
+        (option: any) => option.value === answerRecord.open_answer
+      );
+      return matchingOption?.label || answerRecord.open_answer;
+    }
+
     return $t('components.exam.result.no_answer');
+  }
+
+  function getCorrectAnswerDisplay(question: any) {
+    const correct = (question.options || []).filter((option: any) => option.is_correct === true);
+    if (correct.length === 0) return $t('components.exam.result.no_reference_answer');
+    return correct.map((option: any) => option.label || option.value).filter(Boolean).join(', ');
+  }
+
+  function isSelectedOption(option: any, answerRecord: any) {
+    return (
+      (Array.isArray(answerRecord?.answers) && answerRecord.answers.includes(option.value)) ||
+      answerRecord?.open_answer === option.value
+    );
+  }
+
+  function hasOptionImages(question: any) {
+    return (question.options || []).some((option: any) => option.metadata?.image?.url);
   }
 
   function isObjective(question: any) {
@@ -108,21 +133,81 @@
 
       <div class="space-y-5">
         {#each questions as q, i}
-          <div class="border-b border-gray-100 dark:border-neutral-700 pb-4 last:border-0">
+          <div
+            class="rounded-md border p-4 {answersByQuestionId[q.id]?.is_correct === true
+              ? 'border-green-200 bg-green-50/40 dark:border-green-900 dark:bg-green-950/10'
+              : answersByQuestionId[q.id]?.is_correct === false
+                ? 'border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/10'
+                : 'border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900'}"
+          >
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1">
                 <p class="dark:text-white font-medium mb-2">
                   <span class="text-gray-500 dark:text-gray-400 mr-2">{i + 1}.</span>
                   {q.title}
                 </p>
-                <div class="ml-6 space-y-1 text-sm">
+                {#if q.metadata?.image?.url}
+                  <img
+                    src={q.metadata.image.url}
+                    alt={q.metadata.image.alt || $t('components.exam.question_image_alt')}
+                    class="ml-6 mb-3 max-h-64 max-w-full rounded-md border border-gray-200 object-contain dark:border-neutral-700"
+                  />
+                {/if}
+                <div class="ml-6 space-y-2 text-sm">
                   <div>
                     <span class="text-gray-500 dark:text-gray-400">
                       {$t('components.exam.result.your_answer')}:
                     </span>
                     <span class="dark:text-gray-200">{getAnswerDisplay(q, answersByQuestionId[q.id])}</span>
                   </div>
-                  {#if isObjective(q) && isGraded}
+                  {#if isObjective(q)}
+                    <div>
+                      <span class="text-gray-500 dark:text-gray-400">
+                        {$t('components.exam.result.correct_answer')}:
+                      </span>
+                      <span class="font-medium text-green-700 dark:text-green-300">
+                        {getCorrectAnswerDisplay(q)}
+                      </span>
+                    </div>
+
+                    {#if hasOptionImages(q)}
+                      <div class="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                        {#each q.options || [] as option}
+                          <div
+                            class="rounded-md border p-2 {option.is_correct
+                              ? 'border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950/20'
+                              : isSelectedOption(option, answersByQuestionId[q.id])
+                                ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/20'
+                                : 'border-gray-200 bg-gray-50 dark:border-neutral-700 dark:bg-neutral-800'}"
+                          >
+                            {#if option.metadata?.image?.url}
+                              <img
+                                src={option.metadata.image.url}
+                                alt={option.metadata.image.alt || $t('components.exam.option_image_alt')}
+                                class="mb-2 max-h-32 max-w-full rounded object-contain"
+                              />
+                            {/if}
+                            <span class="break-words text-xs text-gray-800 dark:text-gray-200">
+                              {option.label || option.value}
+                            </span>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  {/if}
+
+                  {#if q.metadata?.explanation}
+                    <div class="rounded-md bg-gray-50 px-3 py-2 dark:bg-neutral-800">
+                      <span class="font-semibold text-gray-700 dark:text-gray-200">
+                        {$t('components.exam.result.explanation')}:
+                      </span>
+                      <span class="whitespace-pre-wrap text-gray-700 dark:text-gray-200">
+                        {q.metadata.explanation}
+                      </span>
+                    </div>
+                  {/if}
+
+                  {#if isObjective(q) && answersByQuestionId[q.id]?.is_correct !== null && answersByQuestionId[q.id]?.is_correct !== undefined}
                     <div class="flex items-center gap-1 mt-1">
                       {#if answersByQuestionId[q.id]?.is_correct}
                         <CheckmarkFilledIcon size={16} class="text-green-600 dark:text-green-400" />
@@ -139,7 +224,7 @@
                   {/if}
                 </div>
               </div>
-              {#if isGraded}
+              {#if isGraded || answersByQuestionId[q.id]?.point !== undefined}
                 <div class="text-right">
                   <span class="text-sm font-semibold dark:text-white">
                     {answersByQuestionId[q.id]?.point ?? 0} / {parseFloat(q.points) || 0}

@@ -217,10 +217,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
         answered_at: new Date().toISOString()
       };
 
-      // Determine answer representation
-      if (typeof value === 'string') {
+      // Text responses use open_answer; objective responses use answers[].
+      if (typeId === QUESTION_TYPE.TEXTAREA && typeof value === 'string') {
         qa.open_answer = value;
         qa.answers = [];
+      } else if (typeof value === 'string') {
+        qa.open_answer = '';
+        qa.answers = [value];
       } else if (Array.isArray(value)) {
         qa.open_answer = '';
         qa.answers = value;

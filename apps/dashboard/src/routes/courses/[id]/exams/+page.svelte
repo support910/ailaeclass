@@ -55,27 +55,42 @@
     hasError = false;
     errorMessage = '';
     try {
-      const token = await getAccessToken();
-      const res = await fetch(`/api/courses/${courseId}/exams`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        console.error(`loadExams HTTP ${res.status}:`, text);
-        errorMessage = `${res.status}${text ? ' — ' + text : ''}`;
-        hasError = true;
-        exams = [];
-        isLoading = false;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        let res: Response;
+        try {
+          const token = await getAccessToken();
+          res = await fetch(`/api/courses/${courseId}/exams`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (error) {
+          if (attempt === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            continue;
+          }
+          throw error;
+        }
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          if (res.status >= 500 && attempt === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            continue;
+          }
+          console.error(`loadExams HTTP ${res.status}:`, text);
+          errorMessage = `${res.status}${text ? ' — ' + text : ''}`;
+          hasError = true;
+          exams = [];
+          return;
+        }
+        const json = await res.json();
+        if (!json.success) {
+          console.error('loadExams API error:', json.message || json);
+          errorMessage = json.message || '';
+          hasError = true;
+          exams = [];
+        } else {
+          exams = json.exams || [];
+        }
         return;
-      }
-      const json = await res.json();
-      if (!json.success) {
-        console.error('loadExams API error:', json.message || json);
-        errorMessage = json.message || '';
-        hasError = true;
-        exams = [];
-      } else {
-        exams = json.exams || [];
       }
     } catch (e) {
       console.error('loadExams error', e);

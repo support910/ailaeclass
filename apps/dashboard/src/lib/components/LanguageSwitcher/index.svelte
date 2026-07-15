@@ -11,6 +11,7 @@
     { id: LOCALE.ZH_TW, label: '繁體中文' },
     { id: LOCALE.ZH, label: '简体中文' },
     { id: LOCALE.EN, label: 'English' },
+    { id: LOCALE.HI, label: 'हिन्दी' },
     { id: LOCALE.MS, label: 'Bahasa Melayu' },
     { id: LOCALE.ID, label: 'Bahasa Indonesia' },
     { id: LOCALE.TH, label: 'ไทย' }
@@ -25,6 +26,7 @@
 
   function getSwitchTitle(displayLocale: string) {
     if (displayLocale === LOCALE.EN) return 'Switch language';
+    if (displayLocale === LOCALE.HI) return 'भाषा बदलें';
     if (displayLocale === LOCALE.ZH) return '切换语言';
     if (displayLocale === LOCALE.MS) return 'Tukar bahasa';
     if (displayLocale === LOCALE.ID) return 'Ganti bahasa';

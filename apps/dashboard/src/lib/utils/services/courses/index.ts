@@ -1183,35 +1183,52 @@ export async function fetchStudentExam(exerciseId: Exercise['id'], courseId: Cou
   if (!exerciseId || !courseId)
     return { data: null, error: { message: 'Missing exam or course ID' } as PostgrestError };
 
-  try {
-    const token = await getAccessToken();
-    const res = await fetch(`/api/exams/${exerciseId}?courseId=${courseId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  const requestUrl = `/api/exams/${exerciseId}?courseId=${courseId}`;
 
-    if (!res.ok) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(requestUrl, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const json = await res.json().catch(() => null);
-      const msg = json?.message || `HTTP ${res.status}`;
-      return { data: null, error: { message: `HTTP ${res.status}: ${msg}` } as PostgrestError };
-    }
 
-    const json = await res.json().catch(() => null);
-    if (!json) {
-      return { data: null, error: { message: 'Invalid response from server' } as PostgrestError };
-    }
-    if (!json.success) {
+      if (!res.ok) {
+        if (res.status >= 500 && attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+          continue;
+        }
+        const msg = json?.message || `HTTP ${res.status}`;
+        return { data: null, error: { message: `HTTP ${res.status}: ${msg}` } as PostgrestError };
+      }
+
+      if (!json) {
+        if (attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+          continue;
+        }
+        return { data: null, error: { message: 'Invalid response from server' } as PostgrestError };
+      }
+      if (!json.success) {
+        return {
+          data: null,
+          error: { message: json.message || 'Failed to load exam' } as PostgrestError
+        };
+      }
+      return { data: json, error: null };
+    } catch (e) {
+      if (attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        continue;
+      }
       return {
         data: null,
-        error: { message: json.message || 'Failed to load exam' } as PostgrestError
+        error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
       };
     }
-    return { data: json, error: null };
-  } catch (e) {
-    return {
-      data: null,
-      error: { message: e instanceof Error ? e.message : 'Network error' } as PostgrestError
-    };
   }
+
+  return { data: null, error: { message: 'Network error' } as PostgrestError };
 }
 
 /**

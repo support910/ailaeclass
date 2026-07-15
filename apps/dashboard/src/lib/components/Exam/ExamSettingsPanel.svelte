@@ -13,6 +13,8 @@
     { id: 'immediately', text: $t('components.exam.policy_immediately') },
     { id: 'manual', text: $t('components.exam.policy_manual') }
   ];
+
+  $: isQuickPractice = exam.settings?.exam_mode === 'quick_practice';
 </script>
 
 <div class="bg-white dark:bg-black border border-gray-200 dark:border-neutral-600 rounded-md p-4 mb-6">
@@ -62,15 +64,21 @@
       />
       <div>
         <label class="block text-sm font-light mb-1 dark:text-white">{$t('components.exam.show_result_policy')}</label>
-        <Dropdown
-          class="w-full bg-gray-100 dark:bg-neutral-800"
-          selectedId={exam.show_result_policy || 'after_grade'}
-          items={showResultOptions}
-          on:select={(e) => {
-            exam.show_result_policy = e.detail?.selectedId || e.detail?.id || exam.show_result_policy;
-            onChange();
-          }}
-        />
+        {#if isQuickPractice}
+          <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-200">
+            {$t('components.exam.quick_result_policy_hint')}
+          </div>
+        {:else}
+          <Dropdown
+            class="w-full bg-gray-100 dark:bg-neutral-800"
+            selectedId={exam.show_result_policy || 'after_grade'}
+            items={showResultOptions}
+            on:select={(e) => {
+              exam.show_result_policy = e.detail?.selectedId || e.detail?.id || exam.show_result_policy;
+              onChange();
+            }}
+          />
+        {/if}
       </div>
     </div>
 

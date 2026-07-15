@@ -26,7 +26,13 @@
 
   export let data;
 
-  const { courseId, examId } = data;
+  let courseId = data.courseId;
+  let examId = data.examId;
+
+  // SvelteKit can reuse this page component when navigating between exam URLs.
+  // Keep route parameters current so a back/forward navigation never reloads an old exam ID.
+  $: courseId = data.courseId;
+  $: examId = data.examId;
 
   let exam: any = null;
   let isLoading = true;

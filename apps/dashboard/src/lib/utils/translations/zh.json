@@ -620,6 +620,8 @@
         "answers_review": "答案回顾",
         "your_answer": "您的答案",
         "correct_answer": "正确答案",
+        "explanation": "答案解析",
+        "no_reference_answer": "暂无参考答案",
         "correct": "正确",
         "incorrect": "错误",
         "no_answer": "未作答",
@@ -707,8 +709,11 @@
         "too_large": "图片必须小于 5MB",
         "success": "图片上传成功",
         "error": "图片上传失败",
-        "load_error": "图片加载失败，请移除后重新上传"
+        "load_error": "图片加载失败，请移除后重新上传",
+        "network_error": "图片上传被中断，请检查网络后重试",
+        "retry": "重新上传"
       },
+      "quick_result_policy_hint": "速解训练会在每道题作答后立即显示正确答案和解析。",
       "retry": "重试",
       "edit_action": "编辑",
       "preview_action": "模拟测试",

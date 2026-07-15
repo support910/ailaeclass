@@ -143,6 +143,12 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
         ? body.settings
         : {};
     const mergedSettings = { ...existingSettings, ...incomingSettings };
+    const examMode =
+      mergedSettings.exam_mode === 'quick_practice' ? 'quick_practice' : 'traditional';
+
+    if (examMode === 'quick_practice') {
+      payload.show_result_policy = 'immediately';
+    }
 
     if (body.attempts_allowed !== undefined) {
       const rawAttempts = body.attempts_allowed;

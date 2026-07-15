@@ -2,7 +2,10 @@
   import { onDestroy } from 'svelte';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { t } from '$lib/utils/functions/translations';
-  import { ImageUploader } from '$lib/utils/services/courses/presign';
+  import {
+    ImageUploader,
+    ImageUploadNetworkError
+  } from '$lib/utils/services/courses/presign';
   import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE } from '$lib/utils/constants/imageUpload';
   import ImageIcon from 'carbon-icons-svelte/lib/Image.svelte';
   import TrashCanIcon from 'carbon-icons-svelte/lib/TrashCan.svelte';
@@ -25,6 +28,8 @@
   let previewReader: FileReader | null = null;
   let pendingImage: ExamImage | null = null;
   let effectiveImage: ExamImage | null = null;
+  let pendingFile: File | null = null;
+  let uploadError = '';
 
   const imageUploader = new ImageUploader();
 
@@ -78,14 +83,16 @@
     reader.readAsDataURL(file);
   }
 
-  async function uploadImage(file: File) {
+  async function uploadImage(file: File, keepPreview = false) {
     const error = validateFile(file);
     if (error) {
       snackbar.error(error);
       return;
     }
 
-    createLocalPreview(file);
+    if (!keepPreview) createLocalPreview(file);
+    pendingFile = file;
+    uploadError = '';
     imageLoadFailed = false;
     isUploading = true;
     uploadProgress = 10;
@@ -105,6 +112,8 @@
       };
 
       pendingImage = uploadedImage;
+      pendingFile = null;
+      uploadError = '';
       displayedUrl = uploadedImage.url;
       inputUrl = uploadedImage.url;
       onChange(uploadedImage);
@@ -114,13 +123,22 @@
       snackbar.success($t('components.exam.image_upload.success'));
     } catch (err) {
       console.error('Image upload error:', err);
-      clearLocalPreview();
-      const message = err instanceof Error ? err.message : $t('components.exam.image_upload.error');
-      snackbar.error(message || $t('components.exam.image_upload.error'));
+      uploadError =
+        err instanceof ImageUploadNetworkError
+          ? $t('components.exam.image_upload.network_error')
+          : err instanceof Error && err.message
+            ? err.message
+            : $t('components.exam.image_upload.error');
+      snackbar.error(uploadError);
     } finally {
       isUploading = false;
       if (fileInput) fileInput.value = '';
     }
+  }
+
+  async function retryUpload() {
+    if (!pendingFile || isUploading) return;
+    await uploadImage(pendingFile, true);
   }
 
   async function handleFileSelect(event: Event) {
@@ -133,6 +151,8 @@
 
   function handleRemove() {
     pendingImage = null;
+    pendingFile = null;
+    uploadError = '';
     displayedUrl = '';
     inputUrl = '';
     imageLoadFailed = false;
@@ -188,7 +208,7 @@
         <span class="absolute inset-x-0 bottom-0 bg-black/70 px-2 py-1 text-center text-xs text-white">
           {$t('components.exam.image_upload.uploading', { progress: uploadProgress })}
         </span>
-      {:else if effectiveImage?.url}
+      {:else}
         <button
           type="button"
           on:click={handleRemove}
@@ -199,6 +219,14 @@
         </button>
       {/if}
     </div>
+    {#if uploadError && pendingFile}
+      <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-red-700 dark:text-red-300">
+        <span>{uploadError}</span>
+        <button type="button" class="font-semibold underline" on:click={retryUpload}>
+          {$t('components.exam.image_upload.retry')}
+        </button>
+      </div>
+    {/if}
   {:else if effectiveImage?.url && imageLoadFailed}
     <div class="flex flex-wrap items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
       <span>{$t('components.exam.image_upload.load_error')}</span>
