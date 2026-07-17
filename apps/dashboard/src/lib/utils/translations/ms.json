@@ -188,6 +188,12 @@
       "instructors": "Pengajar"
     }
   },
+  "components": {
+    "exam": {
+      "duration_auto_submit_hint": "Wajib. Percubaan akan dihantar secara automatik apabila kira detik mencapai sifar.",
+      "editor_question_number": "Soalan {number}"
+    }
+  },
   "feedback": {
     "navigation": "Maklum balas",
     "title": "Maklum balas",

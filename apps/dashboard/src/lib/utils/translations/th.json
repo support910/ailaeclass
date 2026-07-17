@@ -188,6 +188,12 @@
       "instructors": "ผู้สอน"
     }
   },
+  "components": {
+    "exam": {
+      "duration_auto_submit_hint": "จำเป็น ระบบจะส่งคำตอบโดยอัตโนมัติเมื่อเวลานับถอยหลังถึงศูนย์",
+      "editor_question_number": "ข้อ {number}"
+    }
+  },
   "feedback": {
     "navigation": "ข้อเสนอแนะ",
     "title": "ข้อเสนอแนะ",

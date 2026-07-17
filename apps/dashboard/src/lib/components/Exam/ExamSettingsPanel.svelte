@@ -41,6 +41,8 @@
         type="number"
         bind:value={exam.duration_minutes}
         min={1}
+        isRequired={true}
+        helperMessage={$t('components.exam.duration_auto_submit_hint')}
         onChange={onChange}
       />
       <TextField

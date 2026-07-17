@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v7.2.0-20260717 (2026-07-17)
+
+### Added
+
+- Added a required teacher/admin-configurable duration to traditional exams and quick practice.
+- Added automatic student submission when the exam countdown reaches zero.
+- Added visible question numbering throughout the exam editor.
+
+### Changed
+
+- Limited the teacher management list to courses where the teacher is an assigned manager or tutor.
+- Kept unassigned courses available to teachers through the same read-only course preview used by students.
+- Added the new exam timer and question-number labels to all 15 supported language packs.
+
+### Fixed
+
+- Added server-side duration validation during exam creation, settings updates, and publishing.
+- Added a short submission grace window so an expiry-triggered request is not rejected by network latency.
+
 ## v7.0.0-20260713 (2026-07-13)
 
 ### Added

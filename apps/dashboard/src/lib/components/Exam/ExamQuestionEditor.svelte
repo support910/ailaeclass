@@ -214,13 +214,18 @@
 />
 
 <div class="space-y-4">
-  {#each activeQuestions as question (question.id)}
+  {#each activeQuestions as question, questionIndex (question.id)}
     <QuestionContainer
       onClose={handleRemoveQuestion(question.id)}
       bind:points={question.points}
       {pointsDisabled}
       onPointsChange={() => handleQuestionFieldChange(question.id, 'points', question.points)}
     >
+      <div class="mb-3 flex items-center border-b border-gray-200 pb-3 dark:border-neutral-700">
+        <span class="rounded bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-black">
+          {$t('components.exam.editor_question_number', { number: questionIndex + 1 })}
+        </span>
+      </div>
       <div class="flex justify-between items-center gap-4">
         <div class="flex-1">
           <TextArea

@@ -188,6 +188,12 @@
       "instructors": "Pengajar"
     }
   },
+  "components": {
+    "exam": {
+      "duration_auto_submit_hint": "Wajib. Percobaan akan dikirim otomatis saat hitung mundur mencapai nol.",
+      "editor_question_number": "Soal {number}"
+    }
+  },
   "feedback": {
     "navigation": "Masukan",
     "title": "Masukan",

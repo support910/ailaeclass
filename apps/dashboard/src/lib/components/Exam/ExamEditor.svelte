@@ -159,11 +159,15 @@
       }
     }
 
-    if (exam.duration_minutes !== undefined && exam.duration_minutes !== null) {
-      const val = Number(exam.duration_minutes);
-      if (isNaN(val) || val <= 0) {
-        return $t('components.exam.error_duration_min');
-      }
+    const duration = Number(exam.duration_minutes);
+    if (
+      exam.duration_minutes === undefined ||
+      exam.duration_minutes === null ||
+      exam.duration_minutes === '' ||
+      !Number.isFinite(duration) ||
+      duration < 1
+    ) {
+      return $t('components.exam.error_duration_min');
     }
 
     if (exam.passing_score !== undefined && exam.passing_score !== null) {
@@ -270,11 +274,15 @@
       }
     }
 
-    if (exam.duration_minutes !== undefined && exam.duration_minutes !== null) {
-      const val = Number(exam.duration_minutes);
-      if (isNaN(val) || val <= 0) {
-        issues.push($t('components.exam.error_duration_min'));
-      }
+    const duration = Number(exam.duration_minutes);
+    if (
+      exam.duration_minutes === undefined ||
+      exam.duration_minutes === null ||
+      exam.duration_minutes === '' ||
+      !Number.isFinite(duration) ||
+      duration < 1
+    ) {
+      issues.push($t('components.exam.error_duration_min'));
     }
 
     if (exam.passing_score !== undefined && exam.passing_score !== null) {

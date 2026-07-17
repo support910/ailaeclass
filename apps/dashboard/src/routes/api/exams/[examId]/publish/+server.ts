@@ -85,6 +85,14 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     // 3. Validate exam content before publishing
     if (action === 'publish') {
+      const duration = Number(examRow.duration_minutes);
+      if (!Number.isFinite(duration) || duration < 1) {
+        return json(
+          { success: false, message: 'Set an exam duration of at least 1 minute before publishing' },
+          { status: 400 }
+        );
+      }
+
       const { data: questions, error: qErr } = await supabase
         .from('question')
         .select('id, question_type_id')
