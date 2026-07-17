@@ -15,36 +15,29 @@ import { GenericUploader } from './presign';
 import { QUESTION_TYPE, QUESTION_TYPES } from '$lib/components/Question/constants';
 import { ROLE } from '$lib/utils/constants/roles';
 import { STATUS } from '$lib/utils/constants/course';
-import { get } from 'svelte/store';
-import { isOrgAdmin } from '$lib/utils/store/org';
 import { isUUID } from '$lib/utils/functions/isUUID';
 import { supabase, getAccessToken } from '$lib/utils/functions/supabase';
 
 export async function fetchCourses(profileId, orgId) {
   if (!orgId || !profileId) return;
 
-  const match: { member_profile_id?: string } = {};
-  // Filter by profile_id if role isn't admin within organization
-  if (!get(isOrgAdmin)) {
-    match.member_profile_id = profileId;
-  }
+  try {
+    const token = await getAccessToken();
+    const response = await fetch(`/api/courses/mine?orgId=${encodeURIComponent(orgId)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success || !Array.isArray(result.courses)) {
+      return { allCourses: [] };
+    }
 
-  // Gets courses for a particular organisation where the current logged in user is a groupmember
-  const { data: allCourses } = await supabase
-    .rpc('get_courses', {
-      org_id_arg: orgId,
-      profile_id_arg: profileId
-    })
-    .match(match);
-
-  console.log(`allCourses`, allCourses);
-  if (!Array.isArray(allCourses)) {
     return {
-      allCourses: []
+      allCourses: result.courses
     };
+  } catch (error) {
+    console.error('fetchCourses network error:', error);
+    return { allCourses: [] };
   }
-
-  return { allCourses };
 }
 
 export async function fetchProfileCourseProgress(

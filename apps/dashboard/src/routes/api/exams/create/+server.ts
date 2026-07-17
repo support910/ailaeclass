@@ -17,7 +17,7 @@ import { checkUserCoursePermissions } from '$lib/utils/functions/permissions';
  *   description?: string;
  *   lesson_id: string;
  *   course_id: string;
- *   duration_minutes?: number;
+ *   duration_minutes: number;
  *   attempts_allowed?: number;
  *   passing_score?: number;
  *   show_result_policy?: string;
@@ -63,6 +63,13 @@ export const POST: RequestHandler = async ({ request }) => {
   }
   if (!course_id || typeof course_id !== 'string') {
     return json({ success: false, message: 'Course ID is required' }, { status: 400 });
+  }
+  const parsedDuration = Number(duration_minutes);
+  if (!Number.isFinite(parsedDuration) || parsedDuration < 1) {
+    return json(
+      { success: false, message: 'Duration is required and must be at least 1 minute' },
+      { status: 400 }
+    );
   }
 
   try {
@@ -129,7 +136,7 @@ export const POST: RequestHandler = async ({ request }) => {
       description,
       lesson_id,
       assessment_type: 'exam',
-      duration_minutes: duration_minutes ? Number(duration_minutes) : null,
+      duration_minutes: parsedDuration,
       attempts_allowed: parsedAttempts,
       passing_score: passing_score !== undefined && passing_score !== null ? Number(passing_score) : null,
       show_result_policy: resultPolicy,

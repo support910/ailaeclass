@@ -126,10 +126,14 @@
       }
     }
     const duration = Number($createExamModal.durationMinutes);
-    if ($createExamModal.durationMinutes !== '' && $createExamModal.durationMinutes !== null && $createExamModal.durationMinutes !== undefined) {
-      if (isNaN(duration) || duration <= 0) {
-        errors.duration = $t('components.exam.error_duration_min');
-      }
+    if (
+      $createExamModal.durationMinutes === '' ||
+      $createExamModal.durationMinutes === null ||
+      $createExamModal.durationMinutes === undefined ||
+      !Number.isFinite(duration) ||
+      duration < 1
+    ) {
+      errors.duration = $t('components.exam.error_duration_min');
     }
     const passingScore = Number($createExamModal.passingScore);
     if ($createExamModal.passingScore !== '' && $createExamModal.passingScore !== null && $createExamModal.passingScore !== undefined) {
@@ -155,7 +159,7 @@
         description: $createExamModal.description || '',
         lesson_id: selectedLessonId,
         course_id: selectedCourseId,
-        duration_minutes: $createExamModal.durationMinutes ? Number($createExamModal.durationMinutes) : undefined,
+        duration_minutes: Number($createExamModal.durationMinutes),
         attempts_allowed:
           $createExamModal.attemptsAllowed === '' ||
           $createExamModal.attemptsAllowed === null ||
@@ -297,6 +301,8 @@
           type="number"
           bind:value={$createExamModal.durationMinutes}
           min={1}
+          isRequired={true}
+          helperMessage={$t('components.exam.duration_auto_submit_hint')}
           errorMessage={errors.duration || ''}
         />
       </div>

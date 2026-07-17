@@ -107,8 +107,11 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
     try {
       if (body.duration_minutes !== undefined) {
         const duration = optionalNumber(body.duration_minutes, 'Duration');
-        if (duration !== null && duration <= 0) {
-          return json({ success: false, message: 'Duration must be greater than 0' }, { status: 400 });
+        if (duration === null || duration < 1) {
+          return json(
+            { success: false, message: 'Duration is required and must be at least 1 minute' },
+            { status: 400 }
+          );
         }
         payload.duration_minutes = duration;
       }

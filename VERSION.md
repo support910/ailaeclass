@@ -65,6 +65,17 @@ This v5 workspace was created from `v4.0-final`. Treat that tag as immutable.
 - Database migrations: `20260711000000_course_favorites.sql`, `20260713000000_user_feedback.sql`
 - Verification: production dashboard build, student application flow, teacher application visibility, screenshot access control, and course role checks.
 
+## v7.2.0 Production Release - 2026-07-17
+
+- Release tag: `v7.2.0-20260717`
+- Source branch: `v7-development`
+- Railway target: existing `attractive-harmony / ailaeclass / production` service only
+- Supabase target: existing project `kiqzanfkpivkuvlvxqsp` only
+- Release notes: `docs/V7_RELEASE_20260717.md`
+- Scope: required exam time limits, automatic submission at expiry, numbered exam editing, and teacher course management boundaries.
+- Database migrations: none; this release uses the existing production schema.
+- Verification: production dashboard build, traditional-exam and quick-practice expiry submission, teacher managed-course filtering, and read-only course preview access.
+
 ## Database Note
 
 The v4 production database already has:

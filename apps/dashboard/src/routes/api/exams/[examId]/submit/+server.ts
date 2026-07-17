@@ -135,9 +135,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // 4. Expiry and availability checks
     const now = Date.now();
 
-    // If the attempt has a duration timer, allow 10s grace period for auto-submit
+    // Keep the answer UI locked at expiry while allowing slow networks to finish auto-submit.
     if (submission.expires_at) {
-      const expired = new Date(submission.expires_at).getTime() + 10000 <= now;
+      const expired = new Date(submission.expires_at).getTime() + 60000 <= now;
       if (expired) {
         return json(
           { success: false, message: 'Exam time has expired' },
