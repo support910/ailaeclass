@@ -60,7 +60,7 @@ RUN rm -f ./apps/dashboard/.env ./apps/dashboard/.env.local ./apps/dashboard/.en
 RUN NODE_OPTIONS="--max-old-space-size=3072" pnpm --filter @cio/api build
 
 # Build the dashboard app (bypass turbo so env vars flow directly to vite)
-RUN NODE_OPTIONS="--max-old-space-size=3072" PUBLIC_IS_SELFHOSTED=true pnpm --filter @cio/dashboard build
+RUN NODE_OPTIONS="--max-old-space-size=4096" PUBLIC_IS_SELFHOSTED=true pnpm --filter @cio/dashboard build
 
 # ----------- Production Stage -----------
 FROM node:20.19.3-alpine AS runner
