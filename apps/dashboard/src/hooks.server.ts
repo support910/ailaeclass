@@ -9,7 +9,12 @@ const PUBLIC_API_ROUTES = [
   '/api/lmz',
   '/api/verify',
   '/api/chat',
-  '/api/courses/search'
+  '/api/courses/search',
+  '/api/funnels/caac-m-150kg/leads',
+  '/api/funnels/caac-m-150kg/events',
+  '/api/funnels/caac-m-150kg/config',
+  '/api/funnels/caac-m-150kg/checkout',
+  '/api/funnels/stripe/webhook'
 ];
 
 function isPublicRoute(pathname: string) {

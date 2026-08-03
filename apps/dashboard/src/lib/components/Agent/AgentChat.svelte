@@ -9,6 +9,7 @@
   import { getAccessToken } from '$lib/utils/functions/supabase';
   import { t } from '$lib/utils/functions/translations';
   import { escapeHtml, sanitizeHtml } from '$lib/utils/functions/sanitize';
+  import { currentOrg } from '$lib/utils/store/org';
 
   type MessageRole = 'user' | 'assistant';
 
@@ -112,7 +113,8 @@
         },
         body: JSON.stringify({
           message: text,
-          history: getRequestHistory(previousMessages)
+          history: getRequestHistory(previousMessages),
+          orgId: $currentOrg?.id || null
         })
       });
 

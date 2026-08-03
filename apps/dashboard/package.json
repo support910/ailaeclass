@@ -15,7 +15,8 @@
     "test": "jest",
     "test:watch": "pnpm run test --watch",
     "ci": "cp .env.example .env && vite build && vite preview",
-    "script:translate": "node ./scripts/translate.cjs"
+    "script:translate": "node ./scripts/translate.cjs",
+    "funnel:check": "node ./scripts/check-funnel-config.mjs"
   },
   "dependencies": {
     "@carbon/charts-svelte": "^1.13.6",
@@ -44,6 +45,7 @@
     "dayjs": "^1.11.10",
     "dompurify": "^3.3.0",
     "encoding": "^0.1.13",
+    "grapesjs": "0.23.3",
     "hotkeys-js": "^3.11.2",
     "html-to-image": "^1.11.11",
     "is-valid-domain": "^0.1.6",

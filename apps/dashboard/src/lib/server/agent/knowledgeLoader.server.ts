@@ -26,6 +26,8 @@ export interface ScoredChunk {
 let _chunks: KnowledgeChunk[] | null = null;
 let _sources: SourceMeta[] | null = null;
 
+const KNOWLEDGE_FILES = ['chunks.jsonl', 'global-eagle-manual.jsonl'];
+
 const STOP_TERMS = new Set([
   '什么',
   '怎么',
@@ -82,6 +84,14 @@ const DOMAIN_TERMS = [
   '螺旋桨',
   '飞行前',
   '飞行手册',
+  '全球鹰',
+  '全球鷹',
+  '驾驶技术概论',
+  '駕駛技術概論',
+  '地面站',
+  '飞行训练模拟器',
+  '飛行訓練模擬器',
+  '空中交通管制',
   'drone',
   'uav',
   'uas',
@@ -94,19 +104,24 @@ const DOMAIN_TERMS = [
 
 function loadChunks(): KnowledgeChunk[] {
   if (_chunks) return _chunks;
-  const path = resolveKnowledgePath('chunks.jsonl');
-  const raw = readFileSync(path, 'utf-8');
-  const lines = raw.split(/\r?\n/).filter((l) => l.trim());
-  _chunks = lines.map((line) => JSON.parse(line) as KnowledgeChunk);
+  _chunks = KNOWLEDGE_FILES.flatMap((filename) => {
+    const path = resolveKnowledgePath(filename);
+    const raw = readFileSync(path, 'utf-8');
+    const lines = raw.split(/\r?\n/).filter((line) => line.trim());
+    return lines.map((line) => JSON.parse(line) as KnowledgeChunk);
+  });
   return _chunks;
 }
 
 function resolveKnowledgePath(filename: string) {
   const candidates = [
     resolve(process.cwd(), 'src/lib/server/agent/knowledge', filename),
-    resolve(process.cwd(), 'apps/dashboard/src/lib/server/agent/knowledge', filename),
-    resolve(import.meta.dirname, 'knowledge', filename)
+    resolve(process.cwd(), 'apps/dashboard/src/lib/server/agent/knowledge', filename)
   ];
+
+  if (typeof import.meta.dirname === 'string') {
+    candidates.push(resolve(import.meta.dirname, 'knowledge', filename));
+  }
 
   const found = candidates.find((path) => existsSync(path));
 
@@ -153,13 +168,17 @@ export function searchChunksScored(query: string, limit = 10): ScoredChunk[] {
   const terms = tokenize(query);
   if (terms.length === 0) return [];
 
+  const normalizedQuery = query.toLowerCase();
+  const requestsGlobalEagle =
+    normalizedQuery.includes('全球鹰') || normalizedQuery.includes('全球鷹');
+
   const totalDocs = chunks.length;
   const idf = new Map<string, number>();
 
   for (const t of terms) {
     let docFreq = 0;
     for (const c of chunks) {
-      if (c.text.toLowerCase().includes(t)) docFreq += 1;
+      if (`${c.source}\n${c.text}`.toLowerCase().includes(t)) docFreq += 1;
     }
     if (docFreq > 0 && docFreq / totalDocs < 0.35) {
       idf.set(t, Math.log((totalDocs - docFreq + 0.5) / (docFreq + 0.5) + 1));
@@ -175,7 +194,7 @@ export function searchChunksScored(query: string, limit = 10): ScoredChunk[] {
 
   const scored = chunks
     .map((c) => {
-      const text = c.text.toLowerCase();
+      const text = `${c.source}\n${c.text}`.toLowerCase();
       const docLen = c.text.length;
       let score = 0;
       for (const t of usableTerms) {
@@ -185,6 +204,14 @@ export function searchChunksScored(query: string, limit = 10): ScoredChunk[] {
         const denom = tf + k1 * (1 - b + b * (docLen / avgDocLen));
         score += termIdf * ((tf * (k1 + 1)) / denom);
       }
+
+      if (
+        requestsGlobalEagle &&
+        (c.source.includes('全球鹰') || c.source.includes('全球鷹'))
+      ) {
+        score += 12;
+      }
+
       return { chunk: c, score };
     })
     .filter((s) => s.score > 0)

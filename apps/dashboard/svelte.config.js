@@ -26,6 +26,7 @@ const config = {
           'self',
           'https://assets.cdn.ailaeclass.com',
           'https://cdnjs.cloudflare.com',
+          'https://static.airwallex.com',
           'https://*.i.posthog.com',
           'https://*.senja.io',
           'https://be13a4b3.counterscale-5jn.pages.dev',
@@ -55,6 +56,8 @@ const config = {
         'connect-src': [
           'self',
           'https://*.supabase.co',
+          'https://api-demo.airwallex.com',
+          'https://api.airwallex.com',
           'https://*.ailaeclass.com',
           'https://assets.cdn.ailaeclass.com',
           'https://cdn.plyr.io',
@@ -82,6 +85,7 @@ const config = {
           'self',
           'https://assets.cdn.ailaeclass.com',
           'https://cdnjs.cloudflare.com',
+          'https://static.airwallex.com',
           'https://*.i.posthog.com',
           'https://*.senja.io',
           'https://be13a4b3.counterscale-5jn.pages.dev',
@@ -111,6 +115,8 @@ const config = {
         'connect-src': [
           'self',
           'https://*.supabase.co',
+          'https://api-demo.airwallex.com',
+          'https://api.airwallex.com',
           'https://pgrest.ailaeclass.com',
           'https://api.ailaeclass.com',
           'https://assets.cdn.ailaeclass.com',
