@@ -5,6 +5,7 @@ General:
 - This system has exactly three user sides: 管理端, 教师端, 学生端. Do not introduce other sides or role names.
 - The left sidebar is the main navigation. Use the question mark guide inside each supported page for step-by-step help with position, function, operation, example, and a screenshot-style highlight.
 - The bottom-right ailaeclass AI chat can answer platform usage, course learning, AI tools, drone and low-altitude economy questions.
+- Payment: 管理端, 教师端, and 学生端 can open "支付" from the left sidebar, enter an HKD amount, and view FPS payment details. The active FPS identifier is 96847368 and the recipient is 5G numultimedia ltd. Alipay and WeChat Pay are displayed as unavailable in this version. The page prepares payment details but does not automatically confirm receipt.
 - If a page shows "另一个版本开放，本版本暂未开放", it is a demo framework for a later version and the real function is not available in this version.
 
 管理端:

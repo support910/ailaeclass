@@ -16,6 +16,7 @@
   import { ChevronRight } from 'carbon-icons-svelte';
   import ProfileMenu from '$lib/components/Org/ProfileMenu/index.svelte';
   import Modal from '$lib/components/Modal/index.svelte';
+  import Wallet from 'carbon-icons-svelte/lib/Wallet.svelte';
 
   interface SideLinks {
     name: string;
@@ -96,6 +97,11 @@
       name: $t('lms_navigation.simulator'),
       icon: LicenseDraft,
       link: '/lms/simulator'
+    },
+    {
+      name: $t('payment.navigation'),
+      icon: Wallet,
+      link: '/lms/payment'
     },
     {
       name: $t('lms_navigation.guide'),

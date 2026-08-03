@@ -163,8 +163,10 @@
   </main>
 {/if}
 
-<!-- Global AI Chatbot -->
-<ChatbotWidget />
+<!-- Public sales funnels have their own focused conversion UI. -->
+{#if !$page.url.pathname.startsWith('/f/')}
+  <ChatbotWidget />
+{/if}
 
 <style>
   main {

@@ -31,6 +31,7 @@ export const PUBLIC_ROUTES = [
   `^${ROUTE.COURSE}/.*`,
   `^${ROUTE.VERIFY_EMAIL_ERROR}$`,
   `^${ROUTE.TEACHER_PENDING}$`,
+  '^/f/.*',
   '/404'
 ];
 
@@ -45,5 +46,6 @@ export const ROUTES_TO_HIDE_NAV = [
   `^${ROUTE.RESET}$`,
   `^${ROUTE.ONBOARDING}$`,
   `^${ROUTE.VERIFY_EMAIL_ERROR}$`,
-  `^${ROUTE.TEACHER_PENDING}$`
+  `^${ROUTE.TEACHER_PENDING}$`,
+  '^/f/.*'
 ];

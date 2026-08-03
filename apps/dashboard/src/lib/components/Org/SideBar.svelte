@@ -28,6 +28,10 @@
   import JoinIcon from 'carbon-icons-svelte/lib/Education.svelte';
   import LicenseDraft from 'carbon-icons-svelte/lib/LicenseDraft.svelte';
   import Explore from 'carbon-icons-svelte/lib/Explore.svelte';
+  import Wallet from 'carbon-icons-svelte/lib/Wallet.svelte';
+  import ChartPie from 'carbon-icons-svelte/lib/ChartPie.svelte';
+  import { SUPER_ADMIN_EMAIL } from '$lib/utils/constants/admin';
+  import { locale } from '$lib/utils/functions/translations';
 
   interface menuItems {
     label: string;
@@ -53,6 +57,11 @@
     $currentOrg.role_id === ROLE.ADMIN
       ? $t('org_navigation.future.admin_title')
       : $t('org_navigation.future.teacher_title');
+  $: dataCockpitLabel = $locale === 'zh'
+    ? '数据驾驶舱'
+    : String($locale).toLowerCase().includes('zh')
+      ? '數據駕駛艙'
+      : 'Data cockpit';
 
   const futureManagementItems: FutureMenuItem[] = [
     { label: 'org_navigation.future.principal_dashboard', path: '/coming-soon/principal-dashboard', icon: Explore },
@@ -130,6 +139,12 @@
       show: true
     },
     {
+      path: '/payment',
+      label: $t('payment.navigation'),
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/payment`),
+      show: true
+    },
+    {
       path: '/guide',
       label: $t('org_navigation.guide'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/guide`),
@@ -140,6 +155,12 @@
       label: $t('org_navigation.audience'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/audience`),
       show: $isOrgAdmin
+    },
+    {
+      path: '/data-cockpit',
+      label: dataCockpitLabel,
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/data-cockpit`),
+      show: $isOrgAdmin === true && ($profile.email || '').toLowerCase() === SUPER_ADMIN_EMAIL
     },
     {
       path: '/setup',
@@ -207,6 +228,8 @@
                     <Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/simulator'}
                     <TaskIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                  {:else if menuItem.path === '/payment'}
+                    <Wallet size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/guide'}
                     <HelpIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/quiz'}
@@ -215,6 +238,8 @@
                     <TaskIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/audience'}
                     <AudienceIcon />
+                  {:else if menuItem.path === '/data-cockpit'}
+                    <ChartPie size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/join-course'}
                     <JoinIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                   {:else if menuItem.path === '/setup'}

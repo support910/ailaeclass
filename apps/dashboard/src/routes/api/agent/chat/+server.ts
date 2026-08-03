@@ -11,6 +11,10 @@ import {
   searchChunksScored
 } from '$lib/server/agent/knowledgeLoader.server';
 import { webSearch } from '$lib/server/agent/webSearch.server';
+import { recordAnalyticsEvent } from '$lib/server/analytics/audit.server';
+import { getOrgMembership } from '$lib/utils/functions/authz.server';
+import { getServerSupabase } from '$lib/utils/functions/supabase.server';
+import { AGENT_LIMITS, limitAgentReply } from '$lib/server/chat/responsePolicy';
 
 interface ChatHistoryItem {
   role: 'user' | 'assistant';
@@ -32,7 +36,7 @@ Rules:
 2. Do not write citations, source filenames, page numbers, or source lists in the answer body. The application displays sources separately below the answer.
 3. If the provided knowledge context does not contain enough information to answer confidently, say so clearly and do not invent facts.
 4. If the user asks something unrelated to drone aviation, drone operations, airspace, aviation weather, or formation flight, politely explain that ailaeclass Agent focuses on drone aviation learning.
-5. Keep answers concise, accurate, and classroom-appropriate.
+5. Give a clear, structured and sufficiently detailed answer for complex questions, within 1400 Chinese characters or 700 English words.
 6. Do not ask for unnecessary personal information.
 7. Do not help with unsafe or illegal activities.
 8. Do not use Markdown formatting such as **bold**, headings, bullet symbols, or code blocks. Write clean plain text that can be displayed directly in the chat UI.`;
@@ -176,14 +180,37 @@ export const POST: RequestHandler = async ({ request }) => {
       { role: 'user', content: message }
     ];
 
-    const reply = stripInlineSourceFooter(await createDeepSeekChatCompletion(messages));
+    const reply = limitAgentReply(stripInlineSourceFooter(await createDeepSeekChatCompletion(messages, {
+      maxTokens: AGENT_LIMITS.maxTokens,
+      temperature: 0.35
+    })));
+
+    const requestedOrgId = typeof payload.orgId === 'string' ? payload.orgId : '';
+    const membership = requestedOrgId
+      ? await getOrgMembership(getServerSupabase(), requestedOrgId, userId)
+      : null;
+    await recordAnalyticsEvent({
+      organizationId: membership ? requestedOrgId : null,
+      actorProfileId: userId,
+      category: 'ai',
+      eventName: 'agent_query',
+      entityType: 'assistant',
+      entityId: 'agent',
+      metadata: {
+        fromKnowledgeBase,
+        webSearchUsed: webResults.length > 0,
+        replyLength: Array.from(reply).length,
+        responseLimit: AGENT_LIMITS.chineseChars
+      }
+    });
 
     return json({
       reply,
       sources,
       webResults,
       fromKnowledgeBase,
-      maxScore: knowledge.maxScore
+      maxScore: knowledge.maxScore,
+      responseLimit: AGENT_LIMITS
     });
   } catch (err) {
     if (err instanceof DeepSeekError) {

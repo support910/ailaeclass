@@ -7,6 +7,21 @@ import {
 } from '$lib/utils/services/ai/deepseek.server';
 import { normalizeAiText } from '$lib/utils/services/ai/provider.server';
 import { PLATFORM_OPERATION_MANUAL } from '$lib/server/chat/manual';
+import {
+  hasAgentKnowledgeIntent,
+  searchChunksScored
+} from '$lib/server/agent/knowledgeLoader.server';
+import { recordAnalyticsEvent } from '$lib/server/analytics/audit.server';
+import { getUserIdFromRequest, getServerSupabase } from '$lib/utils/functions/supabase.server';
+import { getOrgMembership } from '$lib/utils/functions/authz.server';
+import {
+  CHATBOT_LIMITS,
+  isComplexChatQuestion,
+  limitChatbotReply
+} from '$lib/server/chat/responsePolicy';
+
+const KNOWLEDGE_THRESHOLD = 3;
+const MAX_KNOWLEDGE_CHARS = 4500;
 
 const SYSTEM_PROMPT = `You are the built-in ailaeclass chat assistant.
 
@@ -42,26 +57,74 @@ Important style rules:
 - If the user asks for private data, legal/medical/financial decisions, or unrelated harmful content, politely decline or give a safe general suggestion.
 - If a user asks about 5GNU facts that are not listed above, say you are not sure and suggest checking official 5GNU/ailaeclass materials.
 
-Keep responses concise, normally under 150 Chinese characters or 120 English words unless the user asks for detail.`;
+You are the quick-help assistant. Keep responses under 180 Chinese characters or 100 English words. For complex analysis, multi-step troubleshooting, regulations, or detailed aviation questions, give only a short orientation because the dedicated ailaeclass Agent provides the detailed answer.`;
+
+function buildKnowledgeContext(message: string) {
+  if (!hasAgentKnowledgeIntent(message)) return '';
+
+  const results = searchChunksScored(message, 6);
+  if (!results.length || results[0].score < KNOWLEDGE_THRESHOLD) return '';
+
+  let context = '';
+  for (const result of results) {
+    const snippet = `【${result.chunk.source}${result.chunk.page !== null ? `，PDF第${result.chunk.page}页` : ''}】\n${result.chunk.text}\n\n`;
+    if (context.length + snippet.length > MAX_KNOWLEDGE_CHARS) break;
+    context += snippet;
+  }
+
+  return context.trim();
+}
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { message } = await request.json();
+    const { message, orgId } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return json({ error: 'Message is required', code: 'invalid_request' }, { status: 400 });
     }
 
+    const normalizedMessage = message.trim().slice(0, 2000);
+    const escalate = isComplexChatQuestion(normalizedMessage);
+    const knowledgeContext = buildKnowledgeContext(normalizedMessage);
+    const systemPrompt = knowledgeContext
+      ? `${SYSTEM_PROMPT}\n\nRelevant drone knowledge base excerpts, including newly added manuals. Answer from these excerpts when they address the question. Do not invent missing facts:\n\n${knowledgeContext}`
+      : SYSTEM_PROMPT;
+
     const messages: DeepSeekMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: message }
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: normalizedMessage }
     ];
     const reply = await createDeepSeekChatCompletion(messages, {
-      maxTokens: 512,
+      maxTokens: CHATBOT_LIMITS.maxTokens,
       temperature: 0.4
     });
 
-    return json({ reply: normalizeAiText(reply).replace(/\*/g, '') });
+    const limitedReply = limitChatbotReply(normalizeAiText(reply).replace(/\*/g, ''));
+    const userId = await getUserIdFromRequest(request);
+    let verifiedOrgId: string | null = null;
+    if (userId && typeof orgId === 'string' && orgId) {
+      const membership = await getOrgMembership(getServerSupabase(), orgId, userId);
+      verifiedOrgId = membership ? orgId : null;
+    }
+    await recordAnalyticsEvent({
+      organizationId: verifiedOrgId,
+      actorProfileId: userId,
+      category: 'ai',
+      eventName: 'chatbot_query',
+      entityType: 'assistant',
+      entityId: 'chatbot',
+      metadata: {
+        escalated: escalate,
+        replyLength: Array.from(limitedReply).length,
+        responseLimit: CHATBOT_LIMITS.chineseChars
+      }
+    });
+
+    return json({
+      reply: limitedReply,
+      escalate,
+      responseLimit: CHATBOT_LIMITS
+    });
   } catch (err) {
     if (err instanceof DeepSeekError) {
       return json({ error: err.message, code: err.code }, { status: err.status });

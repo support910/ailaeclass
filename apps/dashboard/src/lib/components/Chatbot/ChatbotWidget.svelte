@@ -7,75 +7,87 @@
   import MaximizeIcon from 'carbon-icons-svelte/lib/Maximize.svelte';
   import MinimizeIcon from 'carbon-icons-svelte/lib/Minimize.svelte';
   import UserAvatar from 'carbon-icons-svelte/lib/UserAvatar.svelte';
+  import ArrowRight from 'carbon-icons-svelte/lib/ArrowRight.svelte';
   import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
   import { locale } from '$lib/utils/functions/translations';
+  import { getAccessToken } from '$lib/utils/functions/supabase';
+  import { currentOrg, currentOrgPath } from '$lib/utils/store/org';
 
   type UiLanguage = 'zh-Hant' | 'zh-Hans' | 'en';
 
   const COPY: Record<UiLanguage, Record<string, string>> = {
     'zh-Hant': {
       welcome:
-        '你好，我是 ailaeclass AI 助手。你可以問我平台使用、課程學習、無人機與低空經濟，也可以問簡單英文詞義、語法、數學或科學概念。',
+        '你好，我是 ailaeclass AI 助手。你可以問我平台使用、課程學習、全球鷹手冊、無人機與低空經濟，也可以問簡單英文詞義、語法、數學或科學概念。',
       subtitle: 'AI 助手',
       openChat: '開啟聊天',
       closeChat: '關閉聊天',
       maximize: '放大',
       minimize: '縮小',
       send: '發送',
-      placeholder: '問平台使用、課程學習、英文詞義或無人機知識...',
+      placeholder: '問平台使用、全球鷹手冊、課程學習或無人機知識...',
       disclaimer: 'AI 生成內容僅供學習參考，重要資訊請以教師或官方資料為準',
       serviceUnavailable: '抱歉，AI 服務暫時不可用，請稍後再試。',
       notConfigured: 'AI 助手尚未配置，請聯絡管理員設定 API Key。',
       upstreamUnavailable: 'AI 服務暫時不可用。',
       invalidRequest: '請求格式不正確，請重新輸入。',
-      unexpectedResponse: '抱歉，AI 服務回傳異常，請稍後再試。'
+      unexpectedResponse: '抱歉，AI 服務回傳異常，請稍後再試。',
+      agentHint: '這個問題需要更完整的分析，ailaeclass Agent 可提供較詳細的回答。',
+      askAgent: '前往詢問 Agent'
     },
     'zh-Hans': {
       welcome:
-        '你好，我是 ailaeclass AI 助手。你可以问我平台使用、课程学习、无人机与低空经济，也可以问简单英文词义、语法、数学或科学概念。',
+        '你好，我是 ailaeclass AI 助手。你可以问我平台使用、课程学习、全球鹰手册、无人机与低空经济，也可以问简单英文词义、语法、数学或科学概念。',
       subtitle: 'AI 助手',
       openChat: '开启聊天',
       closeChat: '关闭聊天',
       maximize: '放大',
       minimize: '缩小',
       send: '发送',
-      placeholder: '问平台使用、课程学习、英文词义或无人机知识...',
+      placeholder: '问平台使用、全球鹰手册、课程学习或无人机知识...',
       disclaimer: 'AI 生成内容仅供学习参考，重要信息请以教师或官方资料为准',
       serviceUnavailable: '抱歉，AI 服务暂时不可用，请稍后再试。',
       notConfigured: 'AI 助手尚未配置，请联系管理员设置 API Key。',
       upstreamUnavailable: 'AI 服务暂时不可用。',
       invalidRequest: '请求格式不正确，请重新输入。',
-      unexpectedResponse: '抱歉，AI 服务返回异常，请稍后再试。'
+      unexpectedResponse: '抱歉，AI 服务返回异常，请稍后再试。',
+      agentHint: '这个问题需要更完整的分析，ailaeclass Agent 可提供更详细的回答。',
+      askAgent: '前往询问 Agent'
     },
     en: {
       welcome:
-        'Hi, I am the ailaeclass AI assistant. You can ask about the platform, course learning, drones and low-altitude economy, or simple English, math, and science concepts.',
+        'Hi, I am the ailaeclass AI assistant. You can ask about the platform, course learning, the Global Eagle manual, drones and low-altitude economy, or simple English, math, and science concepts.',
       subtitle: 'AI Assistant',
       openChat: 'Open chat',
       closeChat: 'Close chat',
       maximize: 'Maximize',
       minimize: 'Minimize',
       send: 'Send',
-      placeholder: 'Ask about learning, English words, drones, or this platform...',
+      placeholder: 'Ask about the platform, Global Eagle manual, learning, or drones...',
       disclaimer: 'AI content is for learning reference only. Check important information with teachers or official sources.',
       serviceUnavailable: 'Sorry, the AI service is temporarily unavailable. Please try again later.',
       notConfigured: 'AI assistant is not configured. Please contact an administrator to set the API key.',
       upstreamUnavailable: 'AI service is temporarily unavailable.',
       invalidRequest: 'Invalid request. Please try again.',
-      unexpectedResponse: 'Sorry, the AI service returned an unexpected response. Please try again later.'
+      unexpectedResponse: 'Sorry, the AI service returned an unexpected response. Please try again later.',
+      agentHint: 'This question needs deeper analysis. ailaeclass Agent can provide a more detailed answer.',
+      askAgent: 'Ask the Agent'
     }
   };
 
   let isOpen = false;
   let isExpanded = false;
   let inputValue = '';
-  let messages: { role: 'user' | 'bot'; text: string }[] = [];
+  let messages: { role: 'user' | 'bot'; text: string; escalate?: boolean }[] = [];
   let isLoading = false;
   let chatContainer: HTMLDivElement;
   let inputRef: HTMLInputElement;
   let uiLanguage: UiLanguage = 'zh-Hant';
   $: isLandingPage = $page.url.pathname === '/';
+  $: agentPath = $page.url.pathname.startsWith('/org/') && $currentOrgPath
+    ? `${$currentOrgPath}/agent`
+    : '/lms/agent';
   $: uiLanguage = mapLocaleToUiLanguage($locale);
 
   function mapLocaleToUiLanguage(currentLocale: string): UiLanguage {
@@ -118,10 +130,13 @@
     await scrollToBottom();
 
     try {
+      const token = await getAccessToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        headers,
+        body: JSON.stringify({ message: text, orgId: $currentOrg?.id || null })
       });
 
       let data: any = {};
@@ -150,7 +165,10 @@
 
         messages = [...messages, { role: 'bot', text: cleanBotText(friendly) }];
       } else if (data.reply) {
-        messages = [...messages, { role: 'bot', text: cleanBotText(data.reply) }];
+        messages = [
+          ...messages,
+          { role: 'bot', text: cleanBotText(data.reply), escalate: data.escalate === true }
+        ];
       } else {
         messages = [
           ...messages,
@@ -290,6 +308,17 @@
             style={msg.role === 'user' ? 'background: linear-gradient(135deg, #0E7372, #00D4FF);' : ''}
           >
             {msg.text}
+            {#if msg.role === 'bot' && msg.escalate}
+              <div class="mt-3 border-t border-gray-200 pt-2.5 dark:border-neutral-700">
+                <p class="mb-2 text-xs text-gray-600 dark:text-neutral-300">{ui('agentHint')}</p>
+                <a
+                  href={agentPath}
+                  class="inline-flex items-center gap-1.5 rounded bg-[#0E7372] px-2.5 py-1.5 text-xs font-semibold text-white no-underline hover:bg-[#095e5d]"
+                >
+                  {ui('askAgent')} <ArrowRight size={14} />
+                </a>
+              </div>
+            {/if}
           </div>
 
           {#if msg.role === 'user'}
