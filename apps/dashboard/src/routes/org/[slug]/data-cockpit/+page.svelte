@@ -32,7 +32,7 @@
       course: '課程', enrolled: '學生', submissions: '提交', completions: '完成',
       time: '時間', category: '分類', action: '操作', actor: '匿名帳號', resource: '資源', result: '結果', risk: '風險',
       adminOnly: '僅管理員可存取', retention: '資料保留', noAiContent: '不保存 AI 原始問答', pseudonym: '匯出資料匿名化', hashed: '網絡識別資料雜湊處理',
-      days: '天', empty: '此期間暫無記錄', generated: '資料更新時間', error: '無法載入數據駕駛艙'
+      days: '天', empty: '此期間暫無記錄', generated: '資料更新時間', error: '無法載入數據駕駛艙', back: '返回首頁'
     },
     'zh-Hans': {
       title: '数据驾驶舱', subtitle: '查看平台使用、学习、考试及隐私审计记录',
@@ -44,7 +44,7 @@
       course: '课程', enrolled: '学生', submissions: '提交', completions: '完成',
       time: '时间', category: '分类', action: '操作', actor: '匿名账号', resource: '资源', result: '结果', risk: '风险',
       adminOnly: '仅管理员可访问', retention: '数据保留', noAiContent: '不保存 AI 原始问答', pseudonym: '导出数据匿名化', hashed: '网络识别数据哈希处理',
-      days: '天', empty: '此期间暂无记录', generated: '数据更新时间', error: '无法加载数据驾驶舱'
+      days: '天', empty: '此期间暂无记录', generated: '数据更新时间', error: '无法加载数据驾驶舱', back: '返回首页'
     },
     en: {
       title: 'Data cockpit', subtitle: 'Platform usage, learning, assessment, privacy and audit records',
@@ -56,7 +56,7 @@
       course: 'Course', enrolled: 'Students', submissions: 'Submissions', completions: 'Completions',
       time: 'Time', category: 'Category', action: 'Action', actor: 'Pseudonymous actor', resource: 'Resource', result: 'Outcome', risk: 'Risk',
       adminOnly: 'Administrator-only access', retention: 'Data retention', noAiContent: 'Raw AI conversations are not stored', pseudonym: 'Exports are pseudonymized', hashed: 'Network identifiers are hashed',
-      days: 'days', empty: 'No records in this period', generated: 'Updated', error: 'Unable to load the data cockpit'
+      days: 'days', empty: 'No records in this period', generated: 'Updated', error: 'Unable to load the data cockpit', back: 'Back to home'
     }
   } as const;
 
@@ -173,6 +173,12 @@
       <Security size={32} class="mx-auto mb-3 text-gray-500" />
       <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{copy.title}</h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-neutral-300">{copy.denied}</p>
+      <a
+        href={$currentOrg.siteName ? `/org/${$currentOrg.siteName}` : '/'}
+        class="mt-5 inline-flex h-9 items-center rounded-md bg-gray-900 px-4 text-sm font-medium text-white no-underline hover:bg-gray-700 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
+      >
+        {copy.back}
+      </a>
     </div>
   {:else}
     <div class="mx-auto max-w-[1500px]">
