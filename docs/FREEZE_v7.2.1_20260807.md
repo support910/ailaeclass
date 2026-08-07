@@ -132,8 +132,27 @@ https://ailaeclass.5gnumultimedia.com/login -> HTTP 404
   body: {"status":"error","code":404,"message":"Application not found"}
 ```
 
-**冻结时生产环境已不可用，且已持续 4 天。**
-构建与健康检查均成功，容器启动后进程以 `ELIFECYCLE Command failed` 退出。
+### 根本原因：Railway 试用期到期（2026-08-07 实测确认）
 
-因此「回退到上一个版本」= 回到这份代码，**不等于回到一个可用的线上服务**。
-恢复线上可用性是独立于代码回退的工作，见 v7.3 计划。
+执行 `railway redeploy` 时平台直接拒绝：
+
+```text
+Your trial has expired. Please select a plan to continue using Railway.
+```
+
+时间线：
+- `2026-08-03 15:51 UTC` 部署 `413baaf`，构建成功、健康检查通过、容器正常提供服务
+- `2026-08-07 02:41 UTC` 日志显示仍在正常响应请求
+- `2026-08-07 04:23:11 UTC` 出现干净的 `Stopping Container`，无任何错误堆栈
+- 同账户另一项目 `overflowing-upliftment` 同时停止
+
+**结论：平台因试用期到期停止了账户下所有部署，与代码、构建、迁移、密钥均无关。**
+
+排查提示：`railway usage` 当时显示「本月 $0.8354 / 无软硬限额 / Over limit: no」，
+**不会**暴露试用期到期状态。仅凭 usage 判断账单健康会得出错误结论，必须以实际命令返回为准。
+
+### 对回退的影响
+
+「回退到上一个版本」= 回到这份代码，**不等于回到一个可用的线上服务**。
+在 Railway 套餐恢复之前，任何部署或回退命令都会被同样拒绝，
+代码层回退（第 5 节）不受影响，可随时执行。
