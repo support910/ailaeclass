@@ -4,7 +4,8 @@
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
   import CheckmarkOutline from 'carbon-icons-svelte/lib/CheckmarkOutline.svelte';
 
-  import { currentOrg } from '$lib/utils/store/org';
+  import { currentOrg, isOrgAdmin } from '$lib/utils/store/org';
+  import { PageUnauthorized } from '$lib/components/Page';
   import { goto } from '$app/navigation';
   import { snackbar } from '$lib/components/Snackbar/store.js';
   import { profile } from '$lib/utils/store/user';
@@ -81,6 +82,12 @@
   $: completed = setupList.filter((list) => list.is_completed).length;
 </script>
 
+{#if $isOrgAdmin === null}
+  <!-- org membership not resolved yet: render nothing rather than leaking the wizard -->
+  <div class="py-10 px-5" />
+{:else if !$isOrgAdmin}
+  <PageUnauthorized />
+{:else}
 <section class="w-full md:max-w-4xl mx-auto">
   <div class="py-2 md:py-10 px-2 md:px-5">
     <div class="flex items-center gap-2">
@@ -128,3 +135,4 @@
     </section>
   </div>
 </section>
+{/if}

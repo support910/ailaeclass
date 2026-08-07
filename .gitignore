@@ -52,3 +52,6 @@ NewApi.txt
 vite.config.ts*.mjs
 
 .pnpm-store/*
+
+# local inspection/verification drivers (not part of the app)
+apps/dashboard/.probe/

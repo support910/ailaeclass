@@ -1,13 +1,33 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { env } from '$env/dynamic/private';
 import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 
 const BLOCKED_KEYS = /prompt|message|content|answer|email|name|token|password|secret/i;
 
+// A salt committed to source is public, so hashing IP / user-agent with it is reversible by
+// anyone who can read the repo. Fall back to a random per-process salt instead: fingerprints
+// stop correlating across restarts, but they stop being reversible too. Set
+// PRIVATE_AUDIT_SALT in the Railway service to get stable, non-public fingerprints.
+let resolvedSalt: string | null = null;
+
+function auditSalt() {
+  if (resolvedSalt) return resolvedSalt;
+  const configured = env.PRIVATE_AUDIT_SALT?.trim();
+  if (configured) {
+    resolvedSalt = configured;
+  } else {
+    resolvedSalt = randomBytes(32).toString('hex');
+    console.warn(
+      '[audit] PRIVATE_AUDIT_SALT is not set; using an ephemeral per-process salt. ' +
+        'Network fingerprints will not correlate across restarts or replicas.'
+    );
+  }
+  return resolvedSalt;
+}
+
 function fingerprint(value: string | null) {
   if (!value) return null;
-  const salt = env.PRIVATE_AUDIT_SALT || 'ailaeclass-local-audit-salt';
-  return createHash('sha256').update(`${salt}:${value}`).digest('hex');
+  return createHash('sha256').update(`${auditSalt()}:${value}`).digest('hex');
 }
 
 export function sanitizeAuditMetadata(input: Record<string, unknown> = {}) {
