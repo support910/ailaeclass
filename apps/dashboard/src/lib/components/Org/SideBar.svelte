@@ -38,6 +38,35 @@
     path: string;
     show: boolean;
     isActive: boolean;
+    /** which collapsible section this belongs to; undefined = pinned at the top */
+    group?: string;
+  }
+
+  // Grouping only changes how the 13 entries are PRESENTED. Every path stays
+  // exactly as it was, so no route, guard or deep link changes behaviour.
+  const GROUP_ORDER = ['teaching', 'intelligence', 'operations', 'support'] as const;
+  const GROUP_LABEL: Record<string, { zh: string; hant: string; en: string }> = {
+    teaching: { zh: '教学', hant: '教學', en: 'Teaching' },
+    intelligence: { zh: '智能中心', hant: '智能中心', en: 'Intelligence' },
+    operations: { zh: '运营', hant: '營運', en: 'Operations' },
+    support: { zh: '帮助与设置', hant: '幫助與設定', en: 'Help & settings' }
+  };
+  $: groupLabel = (id: string) => {
+    const l = GROUP_LABEL[id];
+    if (!l) return id;
+    if ($locale === 'zh') return l.zh;
+    if (String($locale).toLowerCase().includes('zh')) return l.hant;
+    return l.en;
+  };
+
+  // Sections remember their own open/closed state; the one containing the current
+  // page is forced open so the active item is never hidden.
+  let groupOpen: Record<string, boolean> = { teaching: true, intelligence: false, operations: false, support: false };
+  let groupTouched: Record<string, boolean> = {};
+  function toggleGroup(id: string) {
+    groupTouched[id] = true;
+    groupOpen[id] = !groupOpen[id];
+    groupOpen = { ...groupOpen };
   }
 
   interface FutureMenuItem {
@@ -89,6 +118,12 @@
     $sideBar.hidden = !$sideBar.hidden;
   };
 
+  $: visibleItems = menuItems.filter((m) => m.show);
+  $: itemsInGroup = (g) => visibleItems.filter((m) => m.group === g);
+  // never hide the section the user is currently inside
+  $: activeGroup = visibleItems.find((m) => m.isActive && m.group)?.group || '';
+  $: isGroupOpen = (g) => (activeGroup === g && !groupTouched[g]) || groupOpen[g];
+
   $: menuItems = [
     {
       path: '',
@@ -98,78 +133,91 @@
     },
     {
       path: '/courses',
+      group: 'teaching',
       label: $t('org_navigation.courses'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/courses`),
       show: true
     },
     {
       path: '/join-course',
+      group: 'teaching',
       label: $t('org_navigation.join_course'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/join-course`),
       show: $currentOrg.role_id === ROLE.STUDENT
     },
     {
       path: '/exams',
+      group: 'teaching',
       label: $t('org_navigation.exams'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/exams`),
       show: true
     },
     {
       path: '/community',
+      group: 'teaching',
       label: $t('org_navigation.community'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/community`),
       show: true
     },
     {
       path: '/ai-tools',
+      group: 'intelligence',
       label: $t('org_navigation.ai_tools'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/ai-tools`),
       show: true
     },
     {
       path: '/agent',
+      group: 'intelligence',
       label: $t('org_navigation.agent'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/agent`),
       show: true
     },
     {
       path: '/simulator',
+      group: 'intelligence',
       label: $t('org_navigation.simulator'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/simulator`),
       show: true
     },
     {
       path: '/payment',
+      group: 'operations',
       label: $t('payment.navigation'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/payment`),
       show: true
     },
     {
       path: '/guide',
+      group: 'support',
       label: $t('org_navigation.guide'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/guide`),
       show: true
     },
     {
       path: '/audience',
+      group: 'operations',
       label: $t('org_navigation.audience'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/audience`),
       show: $isOrgAdmin
     },
     {
       path: '/data-cockpit',
+      group: 'operations',
       label: dataCockpitLabel,
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/data-cockpit`),
       show: $isOrgAdmin === true && ($profile.email || '').toLowerCase() === SUPER_ADMIN_EMAIL
     },
     {
       path: '/setup',
+      group: 'support',
       label: $t('org_navigation.setup'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/setup`),
       show: $isOrgAdmin
     },
     {
       path: '/feedback',
+      group: 'support',
       label: $t('feedback.navigation'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/feedback`),
       show: true
@@ -202,7 +250,7 @@
         {/if}
 
         <ul class="my-2 mt-4 px-4">
-          {#each menuItems as menuItem}
+          {#each visibleItems.filter((m) => !m.group) as menuItem}
             {#if menuItem.show}
               <a
                 href="{$currentOrgPath}{menuItem.path}"
@@ -253,6 +301,62 @@
             {/if}
           {/each}
         </ul>
+
+        {#each GROUP_ORDER as gid}
+          {#if itemsInGroup(gid).length}
+            <div class="mt-1 px-4">
+              <button
+                type="button"
+                class="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-left hover:bg-gray-200 dark:hover:bg-neutral-800"
+                aria-expanded={isGroupOpen(gid)}
+                on:click={() => toggleGroup(gid)}
+              >
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
+                  {groupLabel(gid)}
+                </span>
+                <span class="flex items-center gap-1">
+                  {#if activeGroup === gid && !isGroupOpen(gid)}
+                    <span class="h-1.5 w-1.5 rounded-full bg-teal-500" />
+                  {/if}
+                  {#if isGroupOpen(gid)}<ChevronUp size={16} />{:else}<ChevronDown size={16} />{/if}
+                </span>
+              </button>
+              {#if isGroupOpen(gid)}
+                <ul class="mb-1 mt-1">
+                  {#each itemsInGroup(gid) as menuItem}
+                    <a
+                      href="{$currentOrgPath}{menuItem.path}"
+                      class="text-black no-underline"
+                      on:click={toggleSidebar}
+                    >
+                      <li
+                        class="mb-1 flex items-center gap-2.5 py-2 pl-4 pr-2.5 {NavClasses.item} {menuItem.isActive
+                          ? NavClasses.active
+                          : 'dark:text-white'}"
+                      >
+                        {#if menuItem.path === '/courses'}<CourseIcon />
+                        {:else if menuItem.path === '/community'}<ForumIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/ai-tools'}<Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/agent'}<Chat size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/simulator'}<TaskIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/payment'}<Wallet size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/guide'}<HelpIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/exams'}<TaskIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/audience'}<AudienceIcon />
+                        {:else if menuItem.path === '/data-cockpit'}<ChartPie size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/join-course'}<JoinIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/setup'}<SettingsAdjust />
+                        {:else if menuItem.path === '/feedback'}<ForumIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {/if}
+                        <p class="text-sm font-medium">{menuItem.label}</p>
+                      </li>
+                    </a>
+                  {/each}
+                </ul>
+              {/if}
+            </div>
+          {/if}
+        {/each}
 
         {#if futureOrgItems.length}
           <div class="mt-3 border-t border-gray-200 px-4 pt-3 dark:border-neutral-700">

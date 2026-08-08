@@ -24,7 +24,8 @@
   import { t } from '$lib/utils/functions/translations';
   import { isOrgAdmin, isOrgTeacher } from '$lib/utils/store/org';
   import { isMobile } from '$lib/utils/store/useMobile';
-  import { Grid, Link, SkeletonPlaceholder } from 'carbon-components-svelte';
+  import Shimmer from '$lib/components/Skeleton/Shimmer.svelte';
+  import StatCardSkeleton from '$lib/components/Skeleton/StatCardSkeleton.svelte';
 
   let dashAnalytics: OrganisationAnalytics;
   let analyticsOrgId = '';
@@ -103,8 +104,8 @@
 </svelte:head>
 
 <div class="w-full max-w-6xl px-4 py-8 md:mx-auto">
-  <div class="mb-5 flex items-center justify-between">
-    <h1 class="mb-3 text-2xl font-bold dark:text-white md:text-3xl">
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold tracking-tight dark:text-white md:text-3xl">
       {$t(getGreeting())}
       {$profile.fullname}!
     </h1>
@@ -126,58 +127,66 @@
     </div>
   </div>
 
-  <div class="mb-10 flex flex-wrap items-start">
-    <Grid class="px-0" fullWidth>
-      <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {#each cards as card}
-          {#if !dashAnalytics}
-            <SkeletonPlaceholder
-              style="width: 100%; min-width: 300px; height: 10rem;"
-              class="rounded-md"
-            />
-          {:else}
-            <ActivityCard activity={card} />
-          {/if}
-        {/each}
-      </div>
-    </Grid>
+  <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {#each cards as card}
+      {#if !dashAnalytics}
+        <StatCardSkeleton />
+      {:else}
+        <ActivityCard activity={card} />
+      {/if}
+    {/each}
   </div>
 
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
     <div
-      class="flex min-h-[45vh] w-full flex-col rounded-md border p-3 dark:border-neutral-600 md:p-5"
+      class="flex min-h-[45vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
     >
-      <h3 class="mt-0 text-2xl font-bold">
+      <h3
+        class="mt-0 border-b border-gray-100 px-5 py-4 text-base font-semibold text-gray-900 dark:border-neutral-800 dark:text-white"
+      >
         {$t('dashboard.top_courses')}
       </h3>
 
-      <div class="h-full space-y-6">
+      <div class="h-full px-2 py-2">
         {#if !dashAnalytics}
-          {#each Array(5) as _}
-            <SkeletonPlaceholder style="width: 100%; height: 40px;" class="rounded-md" />
-          {/each}
+          <div class="space-y-2 px-3 py-1">
+            {#each Array(5) as _}
+              <div class="flex items-center gap-3 py-2">
+                <div class="flex-1 space-y-2">
+                  <Shimmer width="70%" height="0.8rem" />
+                  <Shimmer width="30%" height="0.65rem" />
+                </div>
+                <Shimmer width="5.5rem" height="1.4rem" />
+              </div>
+            {/each}
+          </div>
         {:else}
           {#each dashAnalytics.topCourses as course}
-            <div class="flex items-center gap-2">
-              <div class="w-4/6 space-y-1">
-                <Link href={`/courses/${course.id}`}>
-                  <p class="line-clamp-2 pb-[0.1rem] text-sm font-medium leading-none">
-                    {course.title}
-                  </p>
-                </Link>
-                <p class="text-muted-foreground text-sm">
+            <a
+              href={`/courses/${course.id}`}
+              class="flex items-center gap-4 rounded-lg px-3 py-3 no-underline transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800"
+            >
+              <div class="min-w-0 flex-1">
+                <p
+                  class="line-clamp-2 text-sm font-medium leading-snug text-gray-900 dark:text-white"
+                >
+                  {course.title}
+                </p>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {course.enrollments}
                   {$t(course.enrollments === 1 ? 'dashboard.student' : 'dashboard.students')}
                 </p>
               </div>
-              <div class="ml-auto w-2/6">
+              <div class="w-24 shrink-0 text-right">
                 <Progress value={course.completion} />
-                <div class="text-sm font-medium">
-                  {course.completion}%
-                  {$t('dashboard.completion')}
+                <div
+                  class="mt-1.5 text-xs font-medium text-gray-600 dark:text-gray-300"
+                  style="font-variant-numeric: tabular-nums;"
+                >
+                  {course.completion}% {$t('dashboard.completion')}
                 </div>
               </div>
-            </div>
+            </a>
           {:else}
             <div class="flex flex-col h-full items-center justify-center p-3">
               <div class="bg-primary-200 w-fit rounded-full p-4 text-black">
@@ -203,46 +212,53 @@
     </div>
 
     <div
-      class="flex min-h-[45vh] w-full flex-col rounded-md border p-3 dark:border-neutral-600 md:p-5"
+      class="flex min-h-[45vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
     >
-      <h3 class="mt-0 text-2xl font-bold">
+      <h3
+        class="mt-0 border-b border-gray-100 px-5 py-4 text-base font-semibold text-gray-900 dark:border-neutral-800 dark:text-white"
+      >
         {$t('dashboard.recent_enrollments')}
       </h3>
 
-      <div class="h-full space-y-6">
+      <div class="h-full px-2 py-2">
         {#if !dashAnalytics}
-          {#each Array(5) as _}
-            <SkeletonPlaceholder style="width: 100%; height: 40px;" class="rounded-md" />
-          {/each}
+          <div class="space-y-2 px-3 py-1">
+            {#each Array(5) as _}
+              <div class="flex items-center gap-3 py-2">
+                <Shimmer width="1.75rem" height="1.75rem" rounded="rounded-full" />
+                <div class="flex-1 space-y-2">
+                  <Shimmer width="45%" height="0.8rem" />
+                  <Shimmer width="25%" height="0.65rem" />
+                </div>
+                <Shimmer width="30%" height="0.8rem" />
+              </div>
+            {/each}
+          </div>
         {:else}
           {#each dashAnalytics.enrollments as enrollment}
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <Avatar
-                  src={enrollment.avatarUrl}
-                  name={enrollment.name}
-                  width="w-6"
-                  height="h-6"
-                />
+            <a
+              href={`/courses/${enrollment.courseId}`}
+              class="flex items-center gap-3 rounded-lg px-3 py-3 no-underline transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800"
+            >
+              <Avatar src={enrollment.avatarUrl} name={enrollment.name} width="w-7" height="h-7" />
 
-                <div class="min-h-[45px] space-y-1">
-                  <p class="text-sm font-medium capitalize leading-none">{enrollment.name}</p>
-                  <p class="text-muted-foreground text-sm">
-                    <span class="italic">
-                      {calDateDiff(enrollment.date)}
-                    </span>
-                  </p>
-                </div>
+              <div class="min-w-0 flex-1">
+                <p
+                  class="truncate text-sm font-medium capitalize leading-tight text-gray-900 dark:text-white"
+                >
+                  {enrollment.name}
+                </p>
+                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {calDateDiff(enrollment.date)}
+                </p>
               </div>
 
-              <div class="w-2/4">
-                <Link href={`/courses/${enrollment.courseId}`}>
-                  <p class="line-clamp-2 pb-[0.1rem] text-sm font-medium leading-none">
-                    {enrollment.course}
-                  </p>
-                </Link>
-              </div>
-            </div>
+              <p
+                class="line-clamp-2 w-2/5 shrink-0 text-right text-xs leading-snug text-gray-600 dark:text-gray-300"
+              >
+                {enrollment.course}
+              </p>
+            </a>
           {:else}
             <div class="flex flex-col h-full items-center justify-center p-3">
               <div class="bg-primary-200 w-fit rounded-full p-4 text-black">
