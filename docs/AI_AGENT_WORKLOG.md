@@ -45,16 +45,16 @@
 
 ## 1. 当前状态（每轮更新后同步修改本节）
 
-**更新时间**：2026-08-08（侧栏分组 + 首屏优化后）
+**更新时间**：2026-08-08（v7.3 已发布上线）
 
 | 项 | 值 |
 |---|---|
 | 工作目录 | `E:\Class\ailaeclass-v7`（git worktree，主库在 `E:\Class\ailaeclass-v3\.git`） |
 | 当前分支 | `v7-development` |
-| 最新提交 | `cc0cec0` perf: unblock first paint and group the org sidebar |
+| 最新提交 | `7604c10`（= 线上 `origin/main@d6ed160`，内容相同） |
 | 冻结基线 | 标签 `freeze/v7.2.1-20260807`，分支 `backup/v7.2.1-20260807`，tree `1b1b1c71ea40ebadce936866e0a1a4bf7d809609` |
-| 待发布分支 | `deploy/v7.3-security-20260807`（基于 `origin/main`，纯 fast-forward，**尚未推送**） |
-| 线上 main | `origin/main` @ `413baaf`，**未被改动** |
+| 发布分支 | `deploy/v7.3-release-20260808` 已推送到 main |
+| 线上 main | `origin/main` @ `d6ed160`，tree `fbacd1f8...`（与本地一致） |
 | 数据库 | Supabase `kiqzanfkpivkuvlvxqsp`，50 个迁移，**本轮无新迁移** |
 | 未提交改动 | 无 |
 
@@ -63,8 +63,9 @@
 **历史教训（保留备查）**：2026-08-07 曾因免费试用期到期，平台停止账户下**所有**部署，
 域名返回 `{"code":404,"message":"Application not found"}`。当时 `railway usage` 显示
 「无限额 / Over limit: no」，**不会**暴露试用期到期状态——不能只凭 usage 判断账单健康，
-要以 `railway redeploy` 等命令的实际返回为准。线上跑的代码仍是 `origin/main@413baaf`，
-本地的 v7.3 与本轮 UI 优化**均未推送**。
+要以 `railway redeploy` 等命令的实际返回为准。
+
+**线上已是 v7.3**（`origin/main@d6ed160`），本地与线上内容一致。
 
 ---
 
@@ -99,6 +100,59 @@ npx vite dev --port 5173 --host 127.0.0.1
 ---
 
 ## 3. 变更日志（新的记录加在最上面）
+
+### 2026-08-08 · 生产发布 v7.3（`origin/main` @ `d6ed160`）
+
+**用户授权**：「全部测试通过后 然后没有bug就可以发布」。
+
+**发布内容**：v7.3 安全修复（SEC-01～04、CFG-01）+ 控制台 UI 改版 + 侧栏分组 + 首屏解除阻塞。
+**无数据库迁移**，因此本次发布不涉及任何 Supabase 操作。
+
+**发布前测试（全部通过）**
+
+| 套件 | 结果 |
+|---|---|
+| 导航回归 `60-nav-regression` | 22/22 |
+| 安全修复验收 `20-verify-v73` | 14/14 |
+| 考试只读回归 `40-exam-readonly` | 16/16 |
+| 考试保存持久化 `52-save-proof-selfcontained` | 12/12 |
+| 越权守卫 `06-authz` | admin 200 / teacher 403 / student 403 / 无 token 401 |
+| 学生端冒烟 | 3 页面无异常 |
+| 生产构建 | exit 0 |
+
+**过程中修掉的一个测试夹具问题**：`49-save-proof.mjs` 硬编码了一个已被删进回收站的考试 ID，
+导致编辑器加载不出表单而报错。**这是夹具问题不是产品 bug**（加载已删除考试本就该为空）。
+已改写为 `52-save-proof-selfcontained.mjs`：自行从回收站恢复测试草稿 → 验证保存 → 再删回，
+不依赖任何外部状态，也不碰真实考试。**后续请用 52 而不是 49。**
+
+**发布路径**（`v7-development` 与 `origin/main` 历史分叉，不能直推）
+
+```
+git branch deploy/v7.3-release-20260808 origin/main
+git cherry-pick 6eb4755 511c415 0377a00 cc0cec0 8f59dec 7604c10
+# 校验 tree 与已测版本一致，且是 fast-forward
+git push origin deploy/v7.3-release-20260808:main   # 413baaf..d6ed160
+git push origin v7-development
+```
+
+推送前已校验 deploy 分支 tree `fbacd1f8...` **与本地测过的版本逐字节一致**，
+且 `git merge-base --is-ancestor origin/main HEAD` 为真（纯 fast-forward，未强推、未改写 main 历史）。
+
+**部署与验收**
+
+- Railway 自动构建约 4 分钟，状态 `SUCCESS`，`replicas.running=1 crashed=0`
+- 生产三端冒烟 **16/16**：三个角色真实登录 + 本次改动涉及的页面
+- 安全修复在线上确认生效：教师与学生访问 `/org/admin/setup` 均被拦截
+- `/`、`/login`、`/_app/version.json` 全部 200，响应 ~0.4s
+
+**变量变更**：新增 `PRIVATE_AUDIT_SALT`（64 位随机 hex，值未回显、未入库、临时文件已删）。
+用 `--skip-deploys` 设置后**又执行了一次 redeploy**——按部署手册 §4.2，
+变量处于 staged 状态时容器不会拿到新值。已通过「启动日志中
+`PRIVATE_AUDIT_SALT is not set` 告警消失」确认生效。
+
+**回退点**：`freeze/v7.2.1-20260807`（tree `1b1b1c71...`）。
+回退命令 `git push origin +413baafa925b08d3a6223b970e70a54b59e513d8:main`。
+本次无迁移，回退代码不需要碰数据库。
 
 ### 2026-08-08 · 侧栏分组 + 首屏解除阻塞（已提交 `cc0cec0`）
 
