@@ -15,7 +15,11 @@
   <script nonce="%sveltekit.nonce%" defer src="https://umami.hz.oncws.com/script.js"
     data-website-id="80a9544a-4dda-4c91-b62f-b6be7a8a3b5c"></script>
 
-  <script nonce="%sveltekit.nonce%" src="https://cdn.plyr.io/3.7.3/plyr.js"></script>
+  <!-- defer: this is an external CDN script that only the lesson video player needs.
+       Without it, every page blocks HTML parsing on a round trip to cdn.plyr.io.
+       Deferred scripts still run in document order before DOMContentLoaded, so it is
+       ready by the time ComponentVideo's onMount calls it, and that call is guarded. -->
+  <script nonce="%sveltekit.nonce%" defer src="https://cdn.plyr.io/3.7.3/plyr.js"></script>
 
   %sveltekit.head%
 </head>
