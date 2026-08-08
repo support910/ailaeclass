@@ -45,27 +45,26 @@
 
 ## 1. 当前状态（每轮更新后同步修改本节）
 
-**更新时间**：2026-08-08
+**更新时间**：2026-08-08（侧栏分组 + 首屏优化后）
 
 | 项 | 值 |
 |---|---|
 | 工作目录 | `E:\Class\ailaeclass-v7`（git worktree，主库在 `E:\Class\ailaeclass-v3\.git`） |
 | 当前分支 | `v7-development` |
-| 最新提交 | `511c415` docs: record Railway trial expiry as the production outage root cause |
+| 最新提交 | `cc0cec0` perf: unblock first paint and group the org sidebar |
 | 冻结基线 | 标签 `freeze/v7.2.1-20260807`，分支 `backup/v7.2.1-20260807`，tree `1b1b1c71ea40ebadce936866e0a1a4bf7d809609` |
 | 待发布分支 | `deploy/v7.3-security-20260807`（基于 `origin/main`，纯 fast-forward，**尚未推送**） |
 | 线上 main | `origin/main` @ `413baaf`，**未被改动** |
 | 数据库 | Supabase `kiqzanfkpivkuvlvxqsp`，50 个迁移，**本轮无新迁移** |
-| 未提交改动 | 控制台 UI 改版（4 改 2 新），等用户确认后再提交 |
+| 未提交改动 | 无 |
 
-**生产环境状态：不可用。**
-Railway 免费试用期于 2026-08-07 到期，平台停止了账户下所有部署，
-`https://ailaeclass.5gnumultimedia.com` 返回 `{"code":404,"message":"Application not found"}`。
-`railway redeploy` 会直接返回 `Your trial has expired. Please select a plan to continue using Railway.`
-**这不是代码问题**，购买套餐前任何部署或回滚命令都会被拒绝。
+**生产环境状态：正常。** 2026-08-08 套餐购买后 Railway 自动恢复部署，`/login` 返回 200。
 
-**排查提示**：`railway usage` 显示「无限额 / Over limit: no」，**不会**暴露试用期到期状态，
-不能只凭它判断账单健康。
+**历史教训（保留备查）**：2026-08-07 曾因免费试用期到期，平台停止账户下**所有**部署，
+域名返回 `{"code":404,"message":"Application not found"}`。当时 `railway usage` 显示
+「无限额 / Over limit: no」，**不会**暴露试用期到期状态——不能只凭 usage 判断账单健康，
+要以 `railway redeploy` 等命令的实际返回为准。线上跑的代码仍是 `origin/main@413baaf`，
+本地的 v7.3 与本轮 UI 优化**均未推送**。
 
 ---
 
@@ -100,6 +99,48 @@ npx vite dev --port 5173 --host 127.0.0.1
 ---
 
 ## 3. 变更日志（新的记录加在最上面）
+
+### 2026-08-08 · 侧栏分组 + 首屏解除阻塞（已提交 `cc0cec0`）
+
+**触发**：用户反馈「模块切换不够丝滑、加载太久、左侧栏目太多太杂」。
+
+**先测量再动手。** dev 模式按需编译，测了没意义，必须用生产构建（`node build`，需先 `set -a && . ./.env`，
+否则会因缺 `PUBLIC_SUPABASE_URL` 直接退出）。基线：每页 ~150 请求、~2.9MB JS。
+
+查到三个大件：
+
+| 资源 | 大小 | 结论 |
+|---|---|---|
+| `chunks/full.js` | 1.1MB | **OpenCC 简繁字典**。代码**已正确按语言门控**（`$: if (browser && $locale === 'zh-TW') loadTraditionalConverter()`），英文/简中用户不加载。之前量到是因为 admin 账号是繁中。**不要误以为是 bug 去"修"。** |
+| `static/carbon-all.css` | 737KB | 渲染阻塞、每页必载。**未处理**：改异步会导致 Carbon 组件闪烁（FOUC），属可见回归。要真解决需改为按组件引入样式，另开一轮。 |
+| `cdn.plyr.io/plyr.js` | 外部 CDN | **已修**：`<head>` 里的同步外链脚本，阻塞 HTML 解析等一次 CDN 往返，而只有课程视频页用得到。加 `defer`。 |
+
+**plyr 加 defer 为什么安全**：延迟脚本仍按文档顺序在 DOMContentLoaded 前执行，排在 SvelteKit 的
+module 脚本之前；且 `ComponentVideo.svelte` 在 `onMount()` 里初始化并已有
+`typeof window.Plyr === 'undefined'` 守卫，最坏情况是降级不是崩溃。
+
+**实测改善**（同机、同方法、生产构建）：
+
+```
+DOM ready 平均      1207ms -> 868ms   (-28%)
+控制台 FCP          2700ms -> 1516ms  (-44%)
+控制台可见内容      2776ms -> 1621ms  (-42%)
+```
+
+字节数不变——defer 解除的是阻塞不是重量。本地无网络延迟，真实网络下改善应更大。
+
+**侧栏分组**：13 项扁平 → 控制台固定 + 教學 / 智能中心 / 營運 / 幫助與設定 四个折叠分组。
+**所有 path 一行未改**，只改呈现，深链接与权限守卫行为完全不变。
+两个防退化设计：① 当前页所在分组**自动展开**；② 收起时若含当前页，标题旁显示小圆点；
+③ 用户手动切换过的分组记住自己的状态，不再被自动展开覆盖（`groupTouched`）。
+
+**验证**：构建 exit 0；导航回归 **22/22**（13 个入口逐个点击验证跳转 + 3 个分组自动展开 + 零错误）；
+安全验收 14/14；考试只读 16/16；越权守卫未变。
+
+**未做**：学生端侧栏仍是扁平 11 项；二级 hub 页面（用折叠分组替代实现减负）；Carbon CSS 瘦身。
+
+**线上状态变化**：Railway 套餐已购买，平台**自动恢复**了部署，
+`https://ailaeclass.5gnumultimedia.com/login` 返回 200。无需人工 redeploy。
 
 ### 2026-08-08 · 控制台 UI 改版 + 切换动效（未提交）
 
