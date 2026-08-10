@@ -2,7 +2,7 @@
   import Modal from '$lib/components/Modal/index.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import { VARIANTS } from '$lib/components/PrimaryButton/constants';
-  import { t } from '$lib/utils/functions/translations';
+  import { t, locale } from '$lib/utils/functions/translations';
   import { QUESTION_TYPE } from '$lib/components/Question/constants';
   import Papa from 'papaparse';
   import UploadIcon from 'carbon-icons-svelte/lib/CloudUpload.svelte';
@@ -28,6 +28,32 @@
   let parseError: string | null = null;
   let parseNotice: string | null = null;
   let detectedEncoding = '';
+  /** which automatic repairs sanitizeCsvText had to apply, surfaced to the user */
+  let repairNotes: string[] = [];
+
+  const REPAIR_LABEL: Record<string, { zh: string; hant: string; en: string }> = {
+    markdown: {
+      zh: '已移除 Markdown 代码围栏',
+      hant: '已移除 Markdown 程式碼圍欄',
+      en: 'Removed a markdown code fence'
+    },
+    preamble: {
+      zh: '已跳过表头之前的说明文字',
+      hant: '已略過表頭之前的說明文字',
+      en: 'Skipped text before the header row'
+    },
+    fullwidth: {
+      zh: '已把全角逗号「，」转换为半角「,」',
+      hant: '已把全形逗號「，」轉換為半形「,」',
+      en: 'Converted full-width commas to ASCII commas'
+    }
+  };
+  $: repairMessages = repairNotes
+    .map((n) => REPAIR_LABEL[n])
+    .filter(Boolean)
+    .map((l) =>
+      $locale === 'zh' ? l.zh : String($locale).toLowerCase().includes('zh') ? l.hant : l.en
+    );
   let aiPromptCopied = false;
   let aiPromptCopyTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -223,22 +249,36 @@
   function getAiPromptText() {
     return translateOr(
       'components.exam.import.ai_prompt_text',
-      `Please convert the questions I provide into a CSV that can be imported into Ailaeclass.
+      // Rewritten after testing the old prompt against a real model. It asked for
+      // 18 columns including 选项E/F that most questions do not use, and the model
+      // produced rows with 17 fields, shifting every value and failing all rows.
+      // It also emitted full-width commas, a leading sentence of narration and
+      // broken quote escaping. This version drops to A-D and states each of those
+      // constraints explicitly, because "follow CSV rules" was not enough.
+      `请把我提供的题目整理成 ailaeclass 可以导入的 CSV。
 
-Output rules:
-1. Return CSV only. Do not add explanations before or after the CSV.
-2. Use this exact header row:
-题型,题目,题目图片,选项A,选项A图片,选项B,选项B图片,选项C,选项C图片,选项D,选项D图片,选项E,选项E图片,选项F,选项F图片,答案,分数,答案解析
-3. Supported question types: 单选题, 多选题, 判断题, 问答题.
-4. For 单选题, the answer must be one option, such as A.
-5. For 多选题, separate answers with semicolons, such as A;C;D.
-6. For 判断题, use 选项A=对 and 选项B=错, and set 答案 to 对 or 错.
-7. For 问答题, leave option columns and 答案 empty, and put marking guidance in 答案解析.
-8. 分数 must be a number. Use 1 if no score is provided.
-9. If a question or option needs an image, put an accessible https image URL in 题目图片 or 选项图片 columns. CSV cannot embed local image files.
-10. Escape commas, quotes, and line breaks correctly according to CSV rules.
+【最重要的三条】
+1. 只输出 CSV 本身。不要写任何说明文字，不要用 \`\`\` 代码围栏包起来。
+2. 只使用半角逗号 , 作为分隔符。绝对不要使用全角逗号 ，
+3. 每一行的逗号数量必须和表头完全一致。用不到的列留空，但逗号要保留。
 
-Now convert the following content into this CSV format:`
+【表头，原样复制这一行】
+题型,题目,题目图片,选项A,选项A图片,选项B,选项B图片,选项C,选项C图片,选项D,选项D图片,答案,分数,答案解析
+
+【填写规则】
+- 题型只能是：单选题、多选题、判断题、问答题
+- 单选题：答案写一个字母，例如 A
+- 多选题：答案用半角分号分隔，例如 A;C;D
+- 判断题：选项A填「对」、选项B填「错」，选项C和选项D留空，答案填「对」或「错」
+- 问答题：所有选项列和答案列留空，把评分要点写在答案解析里
+- 分数必须是数字，没有特别要求就填 1
+- 图片列填可公开访问的 https 图片地址；没有图片就留空。CSV 无法嵌入本地图片文件
+- 如果某个格子里含有逗号或引号，用英文双引号把整个格子包起来，格子内部的双引号写成两个
+
+【一行正确示例】
+单选题,起飞前应先检查什么？,,螺旋桨与电量,,直接起飞,,只看电量,,人群上方试飞,,A,1,起飞前必须完整检查机身与电量。
+
+现在请把下面的内容整理成上述 CSV 格式：`
     );
   }
 
@@ -691,6 +731,86 @@ Now convert the following content into this CSV format:`
     return best.text;
   }
 
+  // What an AI actually hands back is rarely a clean CSV. Tested against real
+  // Kimi output and the shapes it produces run to run: full-width commas (Chinese
+  // input methods emit them by default), a ```csv fence, and a sentence of
+  // narration before the data. Each of those made every row fail. Repair them
+  // here rather than telling the user to go fix their file by hand.
+  function sanitizeCsvText(raw: string) {
+    const notes: string[] = [];
+    let text = raw.replace(/\r\n?/g, '\n');
+
+    // 1. strip a markdown code fence
+    const fenced = text.match(/^\s*```[a-zA-Z]*\s*\n([\s\S]*?)\n?\s*```\s*$/);
+    if (fenced) {
+      text = fenced[1];
+      notes.push('markdown');
+    }
+
+    let lines = text.split('\n');
+
+    // 2. drop anything before the header row. Look for a line that mentions a
+    //    known header word AND is split into several fields by some delimiter.
+    const HEADER_HINT = /(题型|題型|question_?type|题目|題目|title)/i;
+    const headerIndex = lines.findIndex(
+      (l) => HEADER_HINT.test(l) && l.split(/[,\t;，；]/).length >= 3
+    );
+    if (headerIndex > 0) {
+      lines = lines.slice(headerIndex);
+      notes.push('preamble');
+    }
+
+    // 3. Full-width delimiters. Chinese models emit these no matter how firmly the
+    //    prompt forbids them -- verified against a real model, which produced a
+    //    header of 13 full-width commas and zero ASCII ones even when told not to.
+    //    The catch is that a question legitimately contains Chinese commas of its
+    //    own, so a blanket replace would split fields apart.
+    //
+    //    Use the header as the anchor: normalise it first to learn the expected
+    //    column count, then for each data row only accept the conversion if it
+    //    brings that row closer to the expected number of columns.
+    let fullWidthLines = 0;
+    const countFields = (line: string, delim: string) => line.split(delim).length;
+
+    if (lines.length) {
+      const head = lines[0];
+      const headFull = (head.match(/，/g) || []).length;
+      const headAscii = (head.match(/,/g) || []).length;
+      if (headFull >= 2 && headFull > headAscii) {
+        lines[0] = head.replace(/，/g, ',');
+        fullWidthLines += 1;
+      }
+    }
+
+    const expected = lines.length ? countFields(lines[0], ',') : 0;
+    if (expected >= 3) {
+      lines = lines.map((line, i) => {
+        if (i === 0 || !line.includes('，')) return line;
+        const asIs = countFields(line, ',');
+        if (asIs === expected) return line; // already lines up, leave the text alone
+        const converted = line.replace(/，/g, ',');
+        if (Math.abs(countFields(converted, ',') - expected) < Math.abs(asIs - expected)) {
+          fullWidthLines += 1;
+          return converted;
+        }
+        return line;
+      });
+    }
+    if (fullWidthLines) notes.push('fullwidth');
+
+    // 4. Pad short rows. A row missing trailing empties would otherwise shift
+    //    nothing but still trip Papa's "too few fields" warning.
+    if (expected >= 3) {
+      lines = lines.map((line, i) => {
+        if (i === 0 || !line.trim()) return line;
+        const missing = expected - countFields(line, ',');
+        return missing > 0 && missing <= 4 ? line + ','.repeat(missing) : line;
+      });
+    }
+
+    return { text: lines.join('\n'), notes, expectedColumns: expected };
+  }
+
   function parseTextRows(text: string) {
     const parsed = Papa.parse<Record<string, string>>(text, {
       header: true,
@@ -758,10 +878,13 @@ Now convert the following content into this CSV format:`
     parseResults = [];
     parseError = null;
     parseNotice = null;
+    repairNotes = [];
 
     try {
-      const text = await decodeFile(file);
+      const decoded = await decodeFile(file);
+      const { text, notes: repairs } = sanitizeCsvText(decoded);
       const { rows, errors } = parseTextRows(text);
+      repairNotes = repairs;
       const importRows = rows.slice(0, MAX_IMPORT_QUESTIONS);
       parseResults = importRows.map((row, i) => validateRow(row, i));
 
@@ -770,7 +893,16 @@ Now convert the following content into this CSV format:`
       } else if (rows.length === 0) {
         parseError = $t('components.exam.import.error_parse_failed');
       } else if (errors.length > 0) {
-        parseNotice = errors[0]?.message || $t('components.exam.import.error_parse_failed');
+        // Papa's own wording ("Too few fields: expected 18 fields but parsed 17")
+        // tells the user nothing they can act on. Say what to do about it.
+        const fieldIssue = errors.find((e: any) => /TooFewFields|TooManyFields/i.test(e?.code || ''));
+        parseNotice = fieldIssue
+          ? $locale === 'zh'
+            ? '有些行的列数和表头对不上，通常是 AI 少写或多写了逗号。请回到 AI 那里说明「每行逗号数量必须和表头一致，用不到的列留空但逗号要保留」，或直接在下方预览表里改正标红的行。'
+            : String($locale).toLowerCase().includes('zh')
+              ? '有些列的欄數和表頭對不上，通常是 AI 少寫或多寫了逗號。請回到 AI 那裡說明「每行逗號數量必須和表頭一致，用不到的欄留空但逗號要保留」，或直接在下方預覽表修正標紅的列。'
+              : 'Some rows have a different number of columns than the header, usually because the AI wrote too few or too many commas. Ask it to keep the comma count identical to the header and leave unused columns empty, or fix the highlighted rows in the preview below.'
+          : errors[0]?.message || $t('components.exam.import.error_parse_failed');
       }
     } catch (err) {
       console.error('CSV parse error', err);
@@ -925,6 +1057,7 @@ Now convert the following content into this CSV format:`
     parseError = null;
     parseNotice = null;
     detectedEncoding = '';
+    repairNotes = [];
     aiPromptCopied = false;
   }
 
@@ -1026,6 +1159,27 @@ Now convert the following content into this CSV format:`
     {#if detectedEncoding}
       <div class="mb-4 text-xs text-gray-500 dark:text-gray-400">
         {translateOr('components.exam.import.detected_encoding', 'Detected encoding')}: {detectedEncoding}
+      </div>
+    {/if}
+
+    {#if repairMessages.length}
+      <!-- Say what was auto-corrected. Silently fixing the file would leave the
+           user guessing why their AI output behaved differently next time. -->
+      <div
+        class="mb-4 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
+      >
+        <p class="mb-1 font-semibold">
+          {$locale === 'zh'
+            ? '已自动修正 AI 输出的常见格式问题：'
+            : String($locale).toLowerCase().includes('zh')
+              ? '已自動修正 AI 輸出的常見格式問題：'
+              : 'Automatically corrected common AI formatting issues:'}
+        </p>
+        <ul class="list-disc pl-4">
+          {#each repairMessages as msg}
+            <li>{msg}</li>
+          {/each}
+        </ul>
       </div>
     {/if}
 
