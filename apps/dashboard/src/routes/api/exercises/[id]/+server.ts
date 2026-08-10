@@ -180,7 +180,16 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const questionsToSave =
       scoreMode === 'auto' ? applyAutoQuestionPoints(questions || []) : questions || [];
 
-    for (const question of questionsToSave) {
+    // Questions are independent rows, so the old one-at-a-time loop simply
+    // multiplied round trips: 20 questions cost 20 sequential passes, each with
+    // its own question write, option batch and metadata update. Run them in small
+    // concurrent batches instead -- bounded, so a large import cannot open a
+    // hundred simultaneous connections to Supabase. `order` is carried in the
+    // payload and results are reassembled by index, so ordering is unaffected.
+    const QUESTION_CONCURRENCY = 5;
+    type SaveOutcome = { ok: true; saved: any | null } | { ok: false; message: string };
+
+    const saveOneQuestion = async (question: any): Promise<SaveOutcome> => {
       const { title: qTitle, id, name, question_type, options, deleted_at, order, points, is_dirty } = question;
 
       if (deleted_at) {
@@ -189,7 +198,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
           await supabase.from('question_answer').delete().match({ question_id: id });
           await supabase.from('question').delete().match({ id });
         }
-        continue;
+        return { ok: true, saved: null };
       }
 
       const newQuestion = {
@@ -208,7 +217,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
         const res = await supabase.from('question').upsert(newQuestion).select();
         if (res.error) {
           console.error('Upsert question error:', res.error);
-          return json({ success: false, message: 'Failed to save question' }, { status: 500 });
+          return { ok: false, message: 'Failed to save question' };
         }
         questionRes = Array.isArray(res.data) ? res.data[0] : null;
       } else {
@@ -235,7 +244,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
               if (!isNew(option.id)) {
                 deletedOptionIds.push(option.id);
               }
-              continue;
+              return { ok: true, saved: null };
             }
 
             const slotIndex = nextOptionSlotIndex;
@@ -269,40 +278,49 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
             if (deleteOptionError) {
               console.error('Delete option error:', deleteOptionError);
-              return json({ success: false, message: 'Failed to delete option' }, { status: 500 });
+              return { ok: false, message: 'Failed to delete option' };
             }
           }
 
-          for (const { slotIndex, source, row, isNewOption } of activeOptions) {
-            const saveOption = isNewOption
-              ? supabase.from('option').insert(row).select().single()
-              : supabase.from('option').upsert(row).select().single();
-            let optionRes = await saveOption;
+          // The options of one question are independent rows, so writing them one
+          // after another just multiplies round trips: a 20-question CSV import
+          // with 4 options each paid 80 sequential writes. Issue them together and
+          // keep ordering through slotIndex.
+          const optionResults = await Promise.all(
+            activeOptions.map(async ({ slotIndex, source, row, isNewOption }) => {
+              let optionRes = await (isNewOption
+                ? supabase.from('option').insert(row).select().single()
+                : supabase.from('option').upsert(row).select().single());
 
-            // If metadata column is missing (remote schema not migrated), retry without metadata.
-            if (optionRes.error) {
-              const errMsg = optionRes.error.message || '';
-              const isMetadataIssue =
-                errMsg.includes('metadata') ||
-                errMsg.includes('column') ||
-                errMsg.includes('schema') ||
-                (optionRes.error as any).code === '42703'; // undefined_column
-              if (isMetadataIssue) {
-                console.warn(
-                  `Option save with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
-                  errMsg
-                );
-                const { id, value, label, question_id, is_correct } = row;
-                const fallbackOption = { id, value, label, question_id, is_correct };
-                optionRes = isNewOption
-                  ? await supabase.from('option').insert(fallbackOption).select().single()
-                  : await supabase.from('option').upsert(fallbackOption).select().single();
+              // If metadata column is missing (remote schema not migrated), retry without metadata.
+              if (optionRes.error) {
+                const errMsg = optionRes.error.message || '';
+                const isMetadataIssue =
+                  errMsg.includes('metadata') ||
+                  errMsg.includes('column') ||
+                  errMsg.includes('schema') ||
+                  (optionRes.error as any).code === '42703'; // undefined_column
+                if (isMetadataIssue) {
+                  console.warn(
+                    `Option save with metadata failed for question ${savedQuestion.id}, retrying without metadata. Error:`,
+                    errMsg
+                  );
+                  const { id, value, label, question_id, is_correct } = row;
+                  const fallbackOption = { id, value, label, question_id, is_correct };
+                  optionRes = await (isNewOption
+                    ? supabase.from('option').insert(fallbackOption).select().single()
+                    : supabase.from('option').upsert(fallbackOption).select().single());
+                }
               }
-            }
 
+              return { slotIndex, source, optionRes };
+            })
+          );
+
+          for (const { slotIndex, source, optionRes } of optionResults) {
             if (optionRes.error || !optionRes.data) {
               console.error('Save option error:', optionRes.error);
-              return json({ success: false, message: 'Failed to save option' }, { status: 500 });
+              return { ok: false, message: 'Failed to save option' };
             }
 
             const savedOption = optionRes.data;
@@ -329,7 +347,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
             if (metadataUpdateError) {
               console.error('Update question option image metadata error:', metadataUpdateError);
-              return json({ success: false, message: 'Failed to save option images' }, { status: 500 });
+              return { ok: false, message: 'Failed to save option images' };
             }
           }
 
@@ -337,7 +355,19 @@ export const POST: RequestHandler = async ({ params, request }) => {
           savedQuestion.options = mergeOptionImagesIntoOptions(optionSlots.filter(Boolean), optionImages);
         }
 
-        updatedQuestions.push(savedQuestion);
+        return { ok: true, saved: savedQuestion };
+      }
+      return { ok: true, saved: null };
+    };
+
+    for (let start = 0; start < questionsToSave.length; start += QUESTION_CONCURRENCY) {
+      const batch = questionsToSave.slice(start, start + QUESTION_CONCURRENCY);
+      const outcomes = await Promise.all(batch.map((q: any) => saveOneQuestion(q)));
+      for (const outcome of outcomes) {
+        if (!outcome.ok) {
+          return json({ success: false, message: outcome.message }, { status: 500 });
+        }
+        if (outcome.saved) updatedQuestions.push(outcome.saved);
       }
     }
 
