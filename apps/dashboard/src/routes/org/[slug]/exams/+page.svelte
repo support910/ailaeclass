@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import Shimmer from '$lib/components/Skeleton/Shimmer.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton/index.svelte';
   import NewExamModal from '$lib/components/Exam/NewExamModal.svelte';
   import Box from '$lib/components/Box/index.svelte';
@@ -211,8 +212,38 @@
     <NewExamModal />
 
     {#if isLoading}
-      <div class="flex items-center justify-center py-20">
-        <p class="dark:text-white">{$t('components.exam.loading')}</p>
+      <!-- Mirrors the two mode sections and the exam cards below, so the page does
+           not jump when the data lands. A centred "loading" line told the user
+           nothing and made the wait feel longer than it is. -->
+      <div class="space-y-8" aria-busy="true" aria-live="polite">
+        <span class="sr-only">{$t('components.exam.loading')}</span>
+        {#each [0, 1] as section}
+          <section>
+            <div class="mb-3">
+              <Shimmer width="7rem" height="1.1rem" className="mb-2" />
+              <Shimmer width="18rem" height="0.75rem" />
+            </div>
+            <div class="space-y-3">
+              {#each Array(section === 0 ? 3 : 2) as _}
+                <div
+                  class="rounded-xl border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900"
+                >
+                  <div class="mb-3 flex items-start justify-between gap-4">
+                    <Shimmer width="14rem" height="1rem" />
+                    <Shimmer width="3.5rem" height="1.25rem" rounded="rounded-full" />
+                  </div>
+                  <Shimmer width="9rem" height="0.7rem" className="mb-3" />
+                  <div class="flex flex-wrap gap-4">
+                    <Shimmer width="7rem" height="0.7rem" />
+                    <Shimmer width="6rem" height="0.7rem" />
+                    <Shimmer width="5rem" height="0.7rem" />
+                    <Shimmer width="6.5rem" height="0.7rem" />
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </section>
+        {/each}
       </div>
     {:else if fetchError}
       <Box>
