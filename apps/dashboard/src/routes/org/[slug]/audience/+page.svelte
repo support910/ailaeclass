@@ -5,13 +5,42 @@
   import { t } from '$lib/utils/functions/translations';
   import { orgAudience, currentOrgPlan, currentOrgMaxAudience, isOrgAdmin } from '$lib/utils/store/org';
   import { PLAN } from 'shared/src/plans/constants';
+  import { snackbar } from '$lib/components/Snackbar/store';
 
   let isLoading = false;
 
+  // plain <script>, not lang="ts" -- no type annotations here
+  function csvCell(value) {
+    const text = value === null || value === undefined ? '' : String(value);
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+
+  // Was alert('This feature is coming soon') on a prominent primary button.
+  // Export exactly the columns already rendered on this page for this admin --
+  // convenience, not new data exposure. The pseudonymisation rules in the
+  // interaction doc §12.3/12.4 cover the data-cockpit analytics export, which is
+  // a different dataset and stays untouched.
   function exportAudience() {
+    if (isLoading) return;
     isLoading = true;
-    alert('This feature is coming soon');
-    isLoading = false;
+    try {
+      const rows = [
+        ['name', 'email', 'date_joined'],
+        ...$orgAudience.map((a) => [a.name, a.email, a.date_joined])
+      ];
+      const csv = '﻿' + rows.map((r) => r.map(csvCell).join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `audience-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Audience export failed:', error);
+      snackbar.error('snackbar.generic_error');
+    } finally {
+      isLoading = false;
+    }
   }
 </script>
 

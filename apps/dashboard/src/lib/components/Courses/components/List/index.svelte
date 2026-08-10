@@ -9,6 +9,7 @@
   import { isMobile } from '$lib/utils/store/useMobile';
   import { goto } from '$app/navigation';
   import { t } from '$lib/utils/functions/translations';
+  import { copyCourseModal, deleteCourseModal } from '$lib/components/Courses/store';
 
   export let id = '';
   export let slug = '';
@@ -28,32 +29,36 @@
       : `/course-preview/${id}`
     : `/courses/${id}${isLMS ? '/lessons?next=true' : ''}`;
 
+  // These four used to be alert('WIP: ...') stubs, so the same menu worked in the
+  // card view and did nothing in the list view. Reuse the card's implementations
+  // rather than inventing new ones: same stores, same routes, same behaviour.
   function handleCloneCourse(e) {
     e.stopPropagation();
     if (!canManageActions) return;
-    // TODO: Clone course functionality
-    alert('WIP: Clone course');
+    $copyCourseModal.open = true;
+    $copyCourseModal.id = id;
+    $copyCourseModal.title = title;
+    $copyCourseModal.description = description;
   }
 
   function handleShareCourse(e) {
     e.stopPropagation();
     if (!canManageActions) return;
-    // TODO: Share course functionality
-    alert('WIP: Share course');
+    goto(`/courses/${id}/settings#share`);
   }
 
   function handleInvite(e) {
     e.stopPropagation();
     if (!canManageActions) return;
-    // TODO: Invite functionality
-    alert('WIP: Invite people to course');
+    goto(`/courses/${id}/people?add=true`);
   }
 
   function handleDeleteCourse(e) {
     e.stopPropagation();
     if (!canManageActions) return;
-    // TODO: Delete course functionality
-    alert('WIP: Delete course');
+    $deleteCourseModal.open = true;
+    $deleteCourseModal.id = id;
+    $deleteCourseModal.title = title;
   }
 </script>
 
