@@ -7,7 +7,7 @@
   import ChevronUp from 'carbon-icons-svelte/lib/ChevronUp.svelte';
   import { tick } from 'svelte';
   import { getAccessToken } from '$lib/utils/functions/supabase';
-  import { t } from '$lib/utils/functions/translations';
+  import { t, locale } from '$lib/utils/functions/translations';
   import { escapeHtml, sanitizeHtml } from '$lib/utils/functions/sanitize';
   import { currentOrg } from '$lib/utils/store/org';
 
@@ -114,7 +114,9 @@
         body: JSON.stringify({
           message: text,
           history: getRequestHistory(previousMessages),
-          orgId: $currentOrg?.id || null
+          orgId: $currentOrg?.id || null,
+          // interface language decides the answer language
+          locale: $locale
         })
       });
 

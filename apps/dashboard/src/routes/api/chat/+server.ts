@@ -8,6 +8,7 @@ import {
 import { normalizeAiText } from '$lib/utils/services/ai/provider.server';
 import { PLATFORM_OPERATION_MANUAL } from '$lib/server/chat/manual';
 import { buildCompanyContext } from '$lib/server/company/profile';
+import { languageInstruction, languageNudge, PLAIN_TEXT_RULES, sanitizeAssistantText } from '$lib/server/ai/language';
 import {
   hasAgentKnowledgeIntent,
   searchChunksScored
@@ -30,7 +31,9 @@ const SYSTEM_PROMPT = `${buildCompanyContext()}
 
 You are the built-in ailaeclass chat assistant, operated by 5GNU.
 
-You serve 管理端, 教师端, and 学生端 users. Answer in the same language the user uses, defaulting to clear Chinese for Chinese questions.
+You serve 管理端, 教师端, and 学生端 users.
+The response-language rule at the top of this prompt overrides everything else about
+language. Follow it even when the user's question is written in another script.
 
 You can help with:
 1. ailaeclass platform features and usage
@@ -73,7 +76,7 @@ function buildKnowledgeContext(message: string) {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { message, orgId } = await request.json();
+    const { message, orgId, locale } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return json({ error: 'Message is required', code: 'invalid_request' }, { status: 400 });
@@ -82,20 +85,31 @@ export const POST: RequestHandler = async ({ request }) => {
     const normalizedMessage = message.trim().slice(0, 2000);
     const escalate = isComplexChatQuestion(normalizedMessage);
     const knowledgeContext = buildKnowledgeContext(normalizedMessage);
+    // The language directive is repeated at both ends on purpose. DeepSeek is a
+    // Chinese-first model and this prompt is mostly Chinese, so a single mention
+    // in the middle lost to the surrounding context and English, Hindi, Malay and
+    // Indonesian questions all came back in Chinese.
+    const langBlock = languageInstruction(locale);
+    const basePrompt = `${langBlock}\n\n${SYSTEM_PROMPT}\n\n${PLAIN_TEXT_RULES}`;
     const systemPrompt = knowledgeContext
-      ? `${SYSTEM_PROMPT}\n\nRelevant drone knowledge base excerpts, including newly added manuals. Answer from these excerpts when they address the question. Do not invent missing facts:\n\n${knowledgeContext}`
-      : SYSTEM_PROMPT;
+      ? `${basePrompt}\n\nRelevant drone knowledge base excerpts, including newly added manuals. Answer from these excerpts when they address the question. Do not invent missing facts:\n\n${knowledgeContext}\n\n${langBlock}`
+      : `${basePrompt}\n\n${langBlock}`;
 
+    // The nudge rides with the user turn, not the display text: the user still sees
+    // exactly what they typed.
+    const nudge = languageNudge(locale);
     const messages: DeepSeekMessage[] = [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: normalizedMessage }
+      { role: 'user', content: nudge ? `${normalizedMessage}\n\n${nudge}` : normalizedMessage }
     ];
     const reply = await createDeepSeekChatCompletion(messages, {
       maxTokens: CHATBOT_LIMITS.maxTokens,
       temperature: 0.4
     });
 
-    const limitedReply = limitChatbotReply(normalizeAiText(reply).replace(/\*/g, ''));
+    // sanitizeAssistantText replaces a blanket .replace(/\*/g,'') that also destroyed
+    // legitimate asterisks such as 3*4 in a maths answer.
+    const limitedReply = limitChatbotReply(sanitizeAssistantText(normalizeAiText(reply)));
     const userId = await getUserIdFromRequest(request);
     let verifiedOrgId: string | null = null;
     if (userId && typeof orgId === 'string' && orgId) {

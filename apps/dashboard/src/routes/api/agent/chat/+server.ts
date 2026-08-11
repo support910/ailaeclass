@@ -16,6 +16,7 @@ import { getOrgMembership } from '$lib/utils/functions/authz.server';
 import { getServerSupabase } from '$lib/utils/functions/supabase.server';
 import { AGENT_LIMITS, limitAgentReply } from '$lib/server/chat/responsePolicy';
 import { buildCompanyContext } from '$lib/server/company/profile';
+import { languageInstruction, languageNudge, PLAIN_TEXT_RULES, sanitizeAssistantText } from '$lib/server/ai/language';
 
 interface ChatHistoryItem {
   role: 'user' | 'assistant';
@@ -127,7 +128,7 @@ function buildKnowledgeContext(results: { chunk: { source: string; page: number 
 }
 
 function stripInlineSourceFooter(reply: string) {
-  return reply
+  return sanitizeAssistantText(reply)
     .replace(/\n?\s*[（(]\s*来源\s*[:：][\s\S]*?[）)]\s*$/u, '')
     .replace(/\n?\s*来源\s*[:：][\s\S]*$/u, '')
     .replace(/\*\*/g, '')
@@ -175,7 +176,14 @@ export const POST: RequestHandler = async ({ request }) => {
       isAgentKnowledgeQuestion && knowledge.maxScore >= KNOWLEDGE_THRESHOLD;
     const sources = fromKnowledgeBase ? knowledge.sources : [];
 
-    let systemContent = AGENT_SYSTEM_PROMPT;
+    const agentLocale = typeof payload.locale === 'string' ? payload.locale : '';
+    let systemContent = `${languageInstruction(agentLocale)}
+
+${AGENT_SYSTEM_PROMPT}
+
+${PLAIN_TEXT_RULES}
+
+${languageInstruction(agentLocale)}`;
     if (fromKnowledgeBase && knowledge.context) {
       systemContent += `\n\n以下是与用户问题相关的知识库片段，请优先依据这些内容回答：\n\n${knowledge.context}`;
     }
@@ -199,7 +207,9 @@ export const POST: RequestHandler = async ({ request }) => {
     const messages: DeepSeekMessage[] = [
       { role: 'system', content: systemContent },
       ...history,
-      { role: 'user', content: message }
+      { role: 'user', content: languageNudge(agentLocale) ? `${message}
+
+${languageNudge(agentLocale)}` : message }
     ];
 
     const reply = limitAgentReply(stripInlineSourceFooter(await createDeepSeekChatCompletion(messages, {
