@@ -32,7 +32,7 @@ export const RELEASES: Release[] = [
   {
     version: '7.4.0',
     date: '2026-08-11',
-    released: false,
+    released: true,
     title: {
       zh: '考试提速、CSV 导入容错与版本记录',
       hant: '考試提速、CSV 匯入容錯與版本紀錄',
@@ -74,6 +74,24 @@ export const RELEASES: Release[] = [
         zh: '课程列表视图的复制、分享、邀请、删除四个菜单项由占位提示改为真实功能；受众页的导出改为真正导出 CSV。',
         hant: '課程列表檢視的複製、分享、邀請、刪除四個選單項由佔位提示改為真實功能；受眾頁的匯出改為真正匯出 CSV。',
         en: 'Clone, share, invite and delete in the course list view do the real thing instead of showing a placeholder; the audience export now actually produces a CSV.'
+      },
+      {
+        kind: 'fix',
+        zh: '右上角的语言切换现在会决定 Chatbot 与 AI Agent 的回答语言，七种语言均已验证；繁体中文回答使用繁体字。',
+        hant: '右上角的語言切換現在會決定 Chatbot 與 AI Agent 的回答語言，七種語言均已驗證；繁體中文回答使用繁體字。',
+        en: 'The language switcher now decides what language the Chatbot and AI Agent answer in, verified across all seven languages, and Traditional Chinese answers use traditional characters.'
+      },
+      {
+        kind: 'fix',
+        zh: 'AI 回答不再出现 Markdown 符号、HTML 标签或乱码字符。',
+        hant: 'AI 回答不再出現 Markdown 符號、HTML 標籤或亂碼字元。',
+        en: 'AI replies no longer contain markdown symbols, HTML tags or stray characters.'
+      },
+      {
+        kind: 'feature',
+        zh: 'Chatbot 与 AI Agent 现在以 5GNU 专属助手的身份回答，掌握公司背景、资质与业务，并能按提问深度介绍公司；Agent 过去会拒答公司相关问题，现已支持。',
+        hant: 'Chatbot 與 AI Agent 現在以 5GNU 專屬助手的身分回答，掌握公司背景、資質與業務，並能按提問深度介紹公司；Agent 過去會拒答公司相關問題，現已支援。',
+        en: "The Chatbot and AI Agent now answer as 5GNU's own assistants, know the company background, qualifications and business, and introduce it at a depth that matches the question. The Agent previously declined company questions."
       },
       {
         kind: 'feature',
