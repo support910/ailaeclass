@@ -136,7 +136,14 @@
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ message: text, orgId: $currentOrg?.id || null })
+        // Send the interface language so the answer follows the switcher at the
+        // top right. Without it the model just mirrored whatever script the user
+        // happened to type, which left an English UI answering in Chinese.
+        body: JSON.stringify({
+          message: text,
+          orgId: $currentOrg?.id || null,
+          locale: $locale
+        })
       });
 
       let data: any = {};
