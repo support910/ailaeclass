@@ -10,7 +10,8 @@
 
   import IconButton from '$lib/components/IconButton/index.svelte';
   import { globalStore } from '$lib/utils/store/app';
-  import { currentOrgPath } from '$lib/utils/store/org';
+  import { currentOrgPath, isOrgAdmin } from '$lib/utils/store/org';
+  import { CURRENT_VERSION, CURRENT_RELEASE } from '$lib/utils/constants/releases';
   import { toggleBodyByMode } from '$lib/utils/functions/app';
   import { sideBar } from '../Org/store';
   import { t } from '$lib/utils/functions/translations';
@@ -91,6 +92,20 @@
 
     <span class="flex-grow" />
 
+    {#if $isOrgAdmin && $currentOrgPath}
+      <!-- Admin-only build marker. Links to the notes so "which version am I on"
+           and "what changed in it" are one click apart. -->
+      <li class="hidden sm:block">
+        <a
+          href="{$currentOrgPath}/releases"
+          title={CURRENT_RELEASE?.title?.en || ''}
+          class="mr-2 rounded-full border border-white/25 px-2.5 py-1 text-xs font-medium text-white/85 no-underline transition-colors hover:border-white/50 hover:text-white"
+          style="font-variant-numeric: tabular-nums;"
+        >
+          v{CURRENT_VERSION}
+        </a>
+      </li>
+    {/if}
     <li>
       <LanguageSwitcher />
     </li>

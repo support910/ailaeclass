@@ -31,6 +31,8 @@
   import Wallet from 'carbon-icons-svelte/lib/Wallet.svelte';
   import ChartPie from 'carbon-icons-svelte/lib/ChartPie.svelte';
   import { SUPER_ADMIN_EMAIL } from '$lib/utils/constants/admin';
+  import { CURRENT_VERSION } from '$lib/utils/constants/releases';
+  import DocumentIcon from 'carbon-icons-svelte/lib/Document.svelte';
   import { locale } from '$lib/utils/functions/translations';
 
   interface menuItems {
@@ -86,6 +88,12 @@
     $currentOrg.role_id === ROLE.ADMIN
       ? $t('org_navigation.future.admin_title')
       : $t('org_navigation.future.teacher_title');
+  $: releasesLabel =
+    $locale === 'zh'
+      ? '版本记录'
+      : String($locale).toLowerCase().includes('zh')
+        ? '版本紀錄'
+        : 'Release notes';
   $: dataCockpitLabel = $locale === 'zh'
     ? '数据驾驶舱'
     : String($locale).toLowerCase().includes('zh')
@@ -213,6 +221,13 @@
       group: 'support',
       label: $t('org_navigation.setup'),
       isActive: $page.url.pathname.includes(`${$currentOrgPath}/setup`),
+      show: $isOrgAdmin
+    },
+    {
+      path: '/releases',
+      group: 'support',
+      label: releasesLabel,
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/releases`),
       show: $isOrgAdmin
     },
     {
@@ -345,6 +360,7 @@
                         {:else if menuItem.path === '/audience'}<AudienceIcon />
                         {:else if menuItem.path === '/data-cockpit'}<ChartPie size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                         {:else if menuItem.path === '/join-course'}<JoinIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
+                        {:else if menuItem.path === '/releases'}<DocumentIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                         {:else if menuItem.path === '/setup'}<SettingsAdjust />
                         {:else if menuItem.path === '/feedback'}<ForumIcon size={20} class="carbon-icon fill-[#000] dark:fill-[#fff]" />
                         {/if}
