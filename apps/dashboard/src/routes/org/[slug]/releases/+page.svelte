@@ -15,7 +15,7 @@
   const COPY = {
     zh: {
       title: '版本记录',
-      subtitle: '每一次迭代更新了什么，按版本倒序排列。仅管理端可见。',
+      subtitle: '每一次迭代更新了什么，按版本先后顺序排列。仅管理端可见。',
       current: '当前版本',
       pending: '待发布',
       live: '已上线',
@@ -23,7 +23,7 @@
     },
     hant: {
       title: '版本紀錄',
-      subtitle: '每一次迭代更新了什麼，按版本倒序排列。僅管理端可見。',
+      subtitle: '每一次迭代更新了什麼，按版本先後順序排列。僅管理端可見。',
       current: '目前版本',
       pending: '待發布',
       live: '已上線',
@@ -31,7 +31,7 @@
     },
     en: {
       title: 'Release notes',
-      subtitle: 'What changed in each iteration, newest first. Visible to administrators only.',
+      subtitle: 'What changed in each iteration, oldest first. Visible to administrators only.',
       current: 'Current version',
       pending: 'Not yet released',
       live: 'Live',
@@ -39,6 +39,10 @@
     }
   } as const;
   $: copy = COPY[lang];
+
+  // RELEASES is authored newest-first so a new entry goes at the top of the file;
+  // the page reads better oldest-first, as a history you follow forwards.
+  $: ordered = [...RELEASES].reverse();
 
   const KIND: Record<ReleaseChangeKind, { zh: string; hant: string; en: string; cls: string }> = {
     feature: { zh: '新功能', hant: '新功能', en: 'Feature', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100' },
@@ -76,11 +80,11 @@
         </div>
       </header>
 
-      {#if !RELEASES.length}
+      {#if !ordered.length}
         <p class="text-sm text-gray-500">{copy.empty}</p>
       {:else}
         <ol class="relative space-y-4 border-l border-gray-200 pl-6 dark:border-neutral-700">
-          {#each RELEASES as release}
+          {#each ordered as release}
             <li class="relative">
               <span
                 class="absolute -left-[31px] top-4 h-2.5 w-2.5 rounded-full ring-4 ring-[#f6f8fa] dark:ring-neutral-950 {release.released
