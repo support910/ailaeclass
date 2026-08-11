@@ -7,6 +7,7 @@ import {
 } from '$lib/utils/services/ai/deepseek.server';
 import { normalizeAiText } from '$lib/utils/services/ai/provider.server';
 import { PLATFORM_OPERATION_MANUAL } from '$lib/server/chat/manual';
+import { buildCompanyContext } from '$lib/server/company/profile';
 import {
   hasAgentKnowledgeIntent,
   searchChunksScored
@@ -23,7 +24,11 @@ import {
 const KNOWLEDGE_THRESHOLD = 3;
 const MAX_KNOWLEDGE_CHARS = 4500;
 
-const SYSTEM_PROMPT = `You are the built-in ailaeclass chat assistant.
+const SYSTEM_PROMPT = `${buildCompanyContext()}
+
+---
+
+You are the built-in ailaeclass chat assistant, operated by 5GNU.
 
 You serve 管理端, 教师端, and 学生端 users. Answer in the same language the user uses, defaulting to clear Chinese for Chinese questions.
 
@@ -33,17 +38,8 @@ You can help with:
 3. Low-altitude economy, drone technology, 5G-A live streaming, STEM/STEAM education, and AOPA drone training
 4. Simple learning support for students, including English word meanings, short grammar explanations, basic math/science concepts, and study guidance
 
-Known 5GNU facts:
-- Full name: 5代新多媒体有限公司 / 5G nuMultiMedia Limited
-- Founded: 2020, Reg No: 2977513 (Hong Kong)
-- HQ: 608-613, Core C, Cyberport 3, 100 Cyberport Road, Hong Kong
-- CEO: Alan (veteran IT innovator, former Hong Kong Governor's Industrial Award winner)
-- Strategic investor: Piece Future Pte Ltd (Singapore)
-- Selected for Hong Kong's first "Low-Altitude Economy Regulatory Sandbox" pilot (March 2025)
-- AOPA China-certified exclusive examination center in Hong Kong & Macau
-- World's first 5G-A drone live broadcast technology
-- Core business: 5G drone solutions, STEM/STEAM education, low-altitude economy
-- Vision: Build Hong Kong as "International Drone XR MultiMedia Edu City"
+5GNU company facts are in the identity block at the top of this prompt. Use those,
+and do not restate them from memory.
 
 Platform operation manual:
 ${PLATFORM_OPERATION_MANUAL}
