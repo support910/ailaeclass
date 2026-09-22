@@ -77,6 +77,24 @@ try {
     assert.ok(list.data.submissions.some(item => item.id === id));
   }
   console.log('LIVE API PASS: existing student submitted; assigned teacher and admin read both links; unauthorized access rejected; retry deduplicated.');
+  if (process.env.FLIGHT_LIVE_REGRESSION === '1') {
+    const exams = await fetch(`${base}/api/org/${orgId}/exams`, { headers: { Authorization: `Bearer ${adminSession.access_token}` } });
+    assert.equal(exams.status, 200);
+    const list = await exams.json();
+    assert.equal(list.success, true);
+    console.log(`LIVE REGRESSION PASS: existing exam list returns ${list.exams.length} records.`);
+    for (const route of ['/api/chat', '/api/agent/chat']) {
+      const response = await fetch(`${base}${route}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${studentSession.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'What is 5GNU? Briefly introduce the company.', locale: 'en', orgId, history: [] }),
+        signal: AbortSignal.timeout(110000)
+      });
+      assert.equal(response.status, 200, `${route} should answer`);
+      const data = await response.json();
+      assert.ok(typeof data.reply === 'string' && data.reply.length > 10, `${route} nonempty reply`);
+      console.log(`LIVE REGRESSION PASS: ${route}, ${data.reply.length} reply characters.`);
+    }
+  }
   const output = resolve('../../output/flight-sharing-20260922', new URL(base).hostname === '127.0.0.1' ? 'full-local' : 'production');
   await mkdir(output, { recursive: true });
   await writeFile(resolve(output, 'smoke.json'), JSON.stringify({ base, submissionId: id, testRecord: true, retained: true, courseTitle: course.title, api: 'passed', checkedAt: new Date().toISOString() }, null, 2));
@@ -102,6 +120,19 @@ try {
         await page.screenshot({ path: resolve(output, `${role}-links.png`), fullPage: true });
         assert.deepEqual(errors, [], `${role} page errors`);
         console.log(`LIVE UI PASS: ${role} sees retained submission and both links.`);
+        if (role === 'admin' && process.env.FLIGHT_LIVE_REGRESSION === '1') {
+          await page.goto(`${base}/org/${org.siteName}/releases`);
+          await page.getByText('飛行成績分析與師生連結分享', { exact: true }).waitFor({ timeout: 60000 });
+          await page.screenshot({ path: resolve(output, 'admin-release-notes.png'), fullPage: true });
+          await page.goto(`${base}/org/${org.siteName}/exams`);
+          await page.locator('[data-guide-target="exam-mode-sections"]').waitFor({ timeout: 60000 });
+          await page.screenshot({ path: resolve(output, 'admin-exams.png'), fullPage: true });
+          await page.goto(`${base}/org/${org.siteName}/courses`);
+          await page.locator('[data-guide-target="courses-list"]').waitFor({ timeout: 60000 });
+          await page.screenshot({ path: resolve(output, 'admin-courses.png'), fullPage: true });
+          assert.deepEqual(errors, [], 'Existing admin screens should not throw page errors');
+          console.log('LIVE UI REGRESSION PASS: release notes, existing exams and course list render.');
+        }
       } catch (error) {
         await page.screenshot({ path: resolve(output, `${role}-failure.png`), fullPage: true });
         // Do not print browser console or authentication material.

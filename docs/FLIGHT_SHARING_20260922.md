@@ -1,5 +1,7 @@
 # 學員飛行連結分享：本地版本與凍結紀錄
 
+> 2026-09-22 發佈補記：本功能現已隨 v7.5.0 發佈至原 Railway 與 Supabase。正式驗收、提交雜湊及回退詳見 [v7.5.0 發佈紀錄](V7_5_RELEASE_20260922.md)。以下保留發佈前的本地開發紀錄；其中「尚未發佈／儲存未啟用」描述當時狀態，不代表目前線上狀態。
+
 本地版本：`flight-sharing-2026.09.22-local.1`。尚未發佈 Railway 或 Supabase，不改正式版本徽章。
 工作區：`E:/Class/ailaeclass-v7-flight-results`。原 `E:/Class/ailaeclass-v7` 不動。
 
