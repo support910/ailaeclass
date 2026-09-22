@@ -30,6 +30,54 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '7.5.0',
+    date: '2026-09-22',
+    released: true,
+    title: {
+      zh: '飞行成绩分析与师生链接分享',
+      hant: '飛行成績分析與師生連結分享',
+      en: 'Flight analysis and student evidence sharing'
+    },
+    changes: [
+      {
+        kind: 'feature',
+        zh: '学生可在模拟系统的「分享给教师」中选择课程，提交 Google Drive 成绩截图和实飞视频链接；同一次飞行的两份材料保存在一条记录中。',
+        hant: '學生可在模擬系統的「分享給教師」中選擇課程，提交 Google Drive 成績截圖及實飛影片連結；同一次飛行的兩份材料儲存在一條紀錄中。',
+        en: 'Students can share Google Drive result screenshots and flight videos with a course. Two evidence files for one flight stay in one submission.'
+      },
+      {
+        kind: 'feature',
+        zh: '管理端和教师端新增「学生提交」，可筛选课程、查看学生及飞行信息，并打开原始链接。教师仅可查看自己管理课程的提交。',
+        hant: '管理端及教師端新增「學生提交」，可篩選課程、查看學生及飛行資訊，並開啟原始連結。教師僅可查看自己管理課程的提交。',
+        en: 'The Student submissions tab lets administrators and assigned teachers filter courses, review flight details and open the original links.'
+      },
+      {
+        kind: 'security',
+        zh: '链接分享增加明确同意、课程与机构权限校验、数据库行级隔离、重复提交去重及频率限制。学生可撤回分享，但撤回不会改变 Google Drive 的授权。',
+        hant: '連結分享加入明確同意、課程與機構權限驗證、資料庫行級隔離、重複提交去重及頻率限制。學生可撤回分享，但撤回不會改變 Google Drive 的授權。',
+        en: 'Sharing requires consent and enforces course and organization access, database row security, retry deduplication and rate limits. Withdrawal does not change Google Drive permissions.'
+      },
+      {
+        kind: 'feature',
+        zh: '「我的成绩」支持 Google Drive 图片、视频、CSV、JSON 及 Google 试算表的 AI 辅助分析与个人历史。同次实飞的截图和视频可合并比对。',
+        hant: '「我的成績」支援 Google Drive 圖片、影片、CSV、JSON 及 Google 試算表的 AI 輔助分析與個人歷史。同次實飛的截圖及影片可合併比對。',
+        en: 'My results supports AI-assisted analysis and private history for Drive images, videos, CSV, JSON and Google Sheets, including paired screenshot and video evidence.'
+      },
+      {
+        kind: 'config',
+        zh: 'Chatbot、AiLAE Agent 与 AI 工具统一接入 Kimi，保留原有知识库、语言选择和不同回答长度限制。个人 AI 报告不会随链接自动共享。',
+        hant: 'Chatbot、AiLAE Agent 及 AI 工具統一接入 Kimi，保留原有知識庫、語言選擇及不同回答長度限制。個人 AI 報告不會隨連結自動分享。',
+        en: 'Chatbot, AiLAE Agent and AI tools use Kimi while retaining existing knowledge, language selection and distinct reply limits. Private AI reports are not automatically shared.'
+      },
+      {
+        kind: 'ui',
+        zh: '新增功能支持七种界面语言和手机布局。分享记录暂为「未评分」，AI 建议不等于教师正式评分；既有考试、课程、登录与支付流程保持不变。',
+        hant: '新增功能支援七種介面語言及手機佈局。分享紀錄暫為「未評分」，AI 建議不等於教師正式評分；既有考試、課程、登入及支付流程保持不變。',
+        en: 'New screens support seven interface languages and mobile layouts. Shared flights remain ungraded; AI feedback is not a formal teacher grade. Existing exam, course, sign-in and payment flows are unchanged.'
+      }
+    ]
+  },
+  {
     version: '7.4.0',
     date: '2026-08-11',
     released: true,

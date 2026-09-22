@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {chromium} from '@playwright/test';
+import {createSharingPreview} from './flight-sharing-preview.mjs';
+const preview=await createSharingPreview({port:5191});
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1050}});
+const output=resolve('../../output/flight-sharing-20260922');await mkdir(output,{recursive:true});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+try {
+  await page.goto(preview.url);
+  await page.getByRole('button',{name:'提交連結',exact:true}).waitFor();
+  await page.getByLabel('飛行名稱',{exact:true}).fill('八字飛行：成績截圖與錄影');
+  await page.getByLabel('飛行類型',{exact:true}).selectOption('real');
+  await page.getByLabel('成績截圖 · Google Drive 連結',{exact:true}).fill('https://drive.google.com/file/d/results123456789/view');
+  await page.getByLabel('飛行錄影 · Google Drive 連結',{exact:true}).fill('https://drive.google.com/file/d/recording123456789/view');
+  await page.getByLabel('補充說明',{exact:true}).fill('同一次實飛，請教師核對高度及八字航線。<script>not executable</script>');
+  await page.getByLabel('我同意將這些連結分享給本課程的教師及所屬機構管理員。',{exact:true}).check();
+  await page.getByRole('button',{name:'提交連結',exact:true}).click();
+  await page.getByText('已成功提交',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'查看',exact:true}).click();
+  await page.getByRole('heading',{name:'提交詳情',exact:true}).waitFor();
+  await page.screenshot({path:resolve(output,'01-student-submitted.png'),fullPage:true});
+  const resultLink=page.getByRole('link',{name:'https://drive.google.com/file/d/results123456789/view',exact:true});
+  assert.equal(await resultLink.getAttribute('rel'),'noopener noreferrer');
+  assert.equal(await resultLink.getAttribute('referrerpolicy'),'no-referrer');
+  await page.reload();await page.getByRole('button',{name:'查看',exact:true}).waitFor();
+  await page.getByLabel('測試身分',{exact:true}).selectOption('teacher');
+  await page.getByRole('button',{name:'查看',exact:true}).click();
+  await page.getByRole('heading',{name:'提交詳情',exact:true}).waitFor();
+  await page.screenshot({path:resolve(output,'02-teacher-links.png'),fullPage:true});
+  assert.equal(await page.getByRole('link').count(),2);
+  await page.getByLabel('測試身分',{exact:true}).selectOption('admin');
+  await page.getByRole('button',{name:'查看',exact:true}).click();await page.getByRole('heading',{name:'提交詳情',exact:true}).waitFor();
+  await page.screenshot({path:resolve(output,'03-admin-links.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:resolve(output,'04-mobile-admin.png'),fullPage:true});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile overflow');
+  for(const language of ['en','ms','id','th','hi','zh']) {
+    await page.getByLabel('語言',{exact:true}).selectOption(language);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${language} overflow`);
+  }
+  await page.getByLabel('語言',{exact:true}).selectOption('zh-TW');
+  await page.getByLabel('測試身分',{exact:true}).selectOption('teacherB');await page.getByText('暫無提交',{exact:true}).waitFor();
+  await page.screenshot({path:resolve(output,'05-unassigned-teacher-empty.png'),fullPage:true});
+  await page.getByLabel('測試身分',{exact:true}).selectOption('studentB');await page.getByText('暫無提交',{exact:true}).waitFor();
+  await page.getByLabel('測試身分',{exact:true}).selectOption('outsider');await page.getByRole('alert').waitFor();
+  assert.equal(await page.getByRole('link').count(),0);
+  await page.getByLabel('測試身分',{exact:true}).selectOption('student');
+  await page.getByRole('button',{name:'撤回 八字飛行：成績截圖與錄影',exact:true}).click();
+  await page.getByRole('button',{name:'取消',exact:true}).click();assert.equal(await page.getByRole('dialog').count(),0);
+  await page.getByRole('button',{name:'撤回 八字飛行：成績截圖與錄影',exact:true}).click();
+  await page.getByRole('button',{name:'確認撤回',exact:true}).click();
+  await page.getByText(/已撤回 · 未評分/).waitFor();
+  await page.getByLabel('測試身分',{exact:true}).selectOption('teacher');await page.getByText('暫無提交',{exact:true}).waitFor();
+  assert.deepEqual(errors,[]);
+  console.log('SHARING UI PASS: actual submit/storage, refresh, student/teacher/admin visibility, forbidden viewers, two links, withdrawal, seven locales, desktop/mobile screenshots.');
+}catch(error){await page.screenshot({path:resolve(output,'failure.png'),fullPage:true});console.error((await page.locator('body').innerText()).slice(0,2500));throw error;}
+finally{await browser.close();await preview.close();}

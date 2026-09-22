@@ -2,10 +2,10 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import {
-  createDeepSeekChatCompletion,
-  DeepSeekError,
-  type DeepSeekMessage
-} from '$lib/utils/services/ai/deepseek.server';
+  createKimiChatCompletion,
+  KimiError,
+  type KimiMessage
+} from '$lib/utils/services/ai/kimi.server';
 import {
   hasAgentKnowledgeIntent,
   searchChunksScored
@@ -204,7 +204,7 @@ ${languageInstruction(agentLocale)}`;
       }
     }
 
-    const messages: DeepSeekMessage[] = [
+    const messages: KimiMessage[] = [
       { role: 'system', content: systemContent },
       ...history,
       { role: 'user', content: languageNudge(agentLocale) ? `${message}
@@ -212,7 +212,7 @@ ${languageInstruction(agentLocale)}`;
 ${languageNudge(agentLocale)}` : message }
     ];
 
-    const reply = limitAgentReply(stripInlineSourceFooter(await createDeepSeekChatCompletion(messages, {
+    const reply = limitAgentReply(stripInlineSourceFooter(await createKimiChatCompletion(messages, {
       maxTokens: AGENT_LIMITS.maxTokens,
       temperature: 0.35
     })));
@@ -245,7 +245,7 @@ ${languageNudge(agentLocale)}` : message }
       responseLimit: AGENT_LIMITS
     });
   } catch (err) {
-    if (err instanceof DeepSeekError) {
+    if (err instanceof KimiError) {
       return jsonError(err.message, err.code, err.status);
     }
 

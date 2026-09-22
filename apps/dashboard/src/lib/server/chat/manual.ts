@@ -40,5 +40,5 @@ Troubleshooting:
 - If login says "Invalid login credentials", confirm the email and password. Current restored test accounts include admin@gmail.com / 123456 and 2939875118@qq.com / 123456.
 - If courses are missing, check whether the account is in the correct organization and course groups.
 - If exams fail to load, check the account role and organization membership. 教师端 accounts should be able to access courses and exams.
-- If AI chat says it is not configured, ask an administrator to configure the DeepSeek API key.
+- If AI chat says it is not configured, ask an administrator to configure the Kimi API key.
 `;

@@ -35,10 +35,8 @@ export function normalizeLocale(raw: unknown): string {
 }
 
 /**
- * Written in the target language, not about it. DeepSeek is a Chinese-first model
- * and a Chinese instruction sitting at the end of a Chinese prompt was not enough
- * to stop it answering English, Hindi, Malay and Indonesian questions in Chinese.
- * The caller puts this FIRST, before the company block, for the same reason.
+ * Write the directive in the target language and place it before the company
+ * knowledge so mixed-language sources do not override the selected locale.
  */
 const DIRECTIVE: Record<string, string> = {
   zh: `【最优先规则 · 回答语言】
@@ -79,10 +77,8 @@ Only switch if the user explicitly asks you to reply in a different language.)`;
 /**
  * A short reminder pinned next to the user's turn.
  *
- * System-prompt directives alone were not enough for the locales DeepSeek is
- * weakest in: with a Thai interface and an English question it answered in Chinese
- * on every attempt, even though it answers Thai fine when the question itself is
- * Thai. A line adjacent to the user turn is the strongest available signal.
+ * Keep a reminder beside the user turn when source documents and interface
+ * languages differ. Preserve these nudges when switching AI providers.
  * Chinese and English do not need it, so they do not pay for the extra tokens.
  */
 const NUDGE: Record<string, string> = {

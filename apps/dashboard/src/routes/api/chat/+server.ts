@@ -1,10 +1,10 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import {
-  createDeepSeekChatCompletion,
-  DeepSeekError,
-  type DeepSeekMessage
-} from '$lib/utils/services/ai/deepseek.server';
+  createKimiChatCompletion,
+  KimiError,
+  type KimiMessage
+} from '$lib/utils/services/ai/kimi.server';
 import { normalizeAiText } from '$lib/utils/services/ai/provider.server';
 import { PLATFORM_OPERATION_MANUAL } from '$lib/server/chat/manual';
 import { buildCompanyContext } from '$lib/server/company/profile';
@@ -85,10 +85,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const normalizedMessage = message.trim().slice(0, 2000);
     const escalate = isComplexChatQuestion(normalizedMessage);
     const knowledgeContext = buildKnowledgeContext(normalizedMessage);
-    // The language directive is repeated at both ends on purpose. DeepSeek is a
-    // Chinese-first model and this prompt is mostly Chinese, so a single mention
-    // in the middle lost to the surrounding context and English, Hindi, Malay and
-    // Indonesian questions all came back in Chinese.
+    // Repeat the language directive to keep multilingual knowledge replies in the selected locale.
     const langBlock = languageInstruction(locale);
     const basePrompt = `${langBlock}\n\n${SYSTEM_PROMPT}\n\n${PLAIN_TEXT_RULES}`;
     const systemPrompt = knowledgeContext
@@ -98,11 +95,11 @@ export const POST: RequestHandler = async ({ request }) => {
     // The nudge rides with the user turn, not the display text: the user still sees
     // exactly what they typed.
     const nudge = languageNudge(locale);
-    const messages: DeepSeekMessage[] = [
+    const messages: KimiMessage[] = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: nudge ? `${normalizedMessage}\n\n${nudge}` : normalizedMessage }
     ];
-    const reply = await createDeepSeekChatCompletion(messages, {
+    const reply = await createKimiChatCompletion(messages, {
       maxTokens: CHATBOT_LIMITS.maxTokens,
       temperature: 0.4
     });
@@ -136,7 +133,7 @@ export const POST: RequestHandler = async ({ request }) => {
       responseLimit: CHATBOT_LIMITS
     });
   } catch (err) {
-    if (err instanceof DeepSeekError) {
+    if (err instanceof KimiError) {
       return json({ error: err.message, code: err.code }, { status: err.status });
     }
 

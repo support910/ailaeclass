@@ -1,0 +1,5 @@
+metric,value,unit,target,direction
+Lateral deviation,0.42,m,0.8,lower
+Altitude deviation,1.2,m,1,lower
+Task completion,95,%,100,higher
+Heading error,5,deg,,

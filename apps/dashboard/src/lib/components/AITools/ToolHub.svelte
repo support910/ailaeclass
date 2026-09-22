@@ -888,7 +888,7 @@
 
   function getErrorMessage(status: number, code?: string) {
     if (status === 401) return ui('loginRequired');
-    if (status === 503 && (code === 'missing_api_key' || code === 'missing_deepseek_key')) return ui('notConfigured');
+    if (status === 503 && (code === 'missing_api_key' || code === 'missing_kimi_key')) return ui('notConfigured');
     if (status === 502) return ui('unavailable');
     if (status === 400) return ui('invalid');
     return ui('unexpected');

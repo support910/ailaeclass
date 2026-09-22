@@ -50,8 +50,8 @@ const config = {
           'https://assets.cdn.ailaeclass.com/eqneditor_1.css'
         ],
         'font-src': ['self', 'https://fonts.gstatic.com', 'https://cdn.plyr.io', 'https://1.www.s81c.com'],
-        'img-src': ['self', 'data:', 'https:'],
-        'media-src': ['self', 'https:', 'data:'],
+        'img-src': ['self', 'data:', 'https:', 'blob:'],
+        'media-src': ['self', 'https:', 'data:', 'blob:'],
         'frame-src': ['self', 'https://www.youtube.com', 'https://youtube.com'],
         'connect-src': [
           'self',

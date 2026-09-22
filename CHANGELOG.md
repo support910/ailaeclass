@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v7.5.0-20260922 (2026-09-22)
+
+### Added
+
+- Course-scoped student Google Drive evidence sharing in Simulator, with paired screenshot/video links, explicit consent and withdrawal.
+- Administrator and assigned-teacher submission lists with course filters, student details and original links.
+- Private flight result history and Kimi-assisted image, sampled-video and numeric data analysis.
+- Seven-language sharing screens, responsive layouts, RLS/IDOR/integration tests and source/configuration freeze checks.
+
+### Changed
+
+- Replaced active DeepSeek integrations with Kimi while retaining knowledge sources, language handling and per-assistant response limits.
+- Added this release to the administrator-facing version history.
+
+### Security And Limits
+
+- Two additive migrations only; no changes to existing course or exam data.
+- Server-verified roles, enrollment, organization boundaries, consent, retry deduplication and request quotas.
+- Sharing does not grant Google Drive permissions or expose private AI reports. Shared submissions are not formally graded.
+- Video analysis samples frames and does not certify flight safety, identity or evidence authenticity.
+
+Release verification and rollback: `docs/V7_5_RELEASE_20260922.md`.
+
 ## v7.2.0-20260717 (2026-07-17)
 
 ### Added

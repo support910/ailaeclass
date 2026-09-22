@@ -1,249 +1,95 @@
 import { env } from '$env/dynamic/private';
-import { createHash } from 'node:crypto';
 
 export type AiRole = 'system' | 'user' | 'assistant';
-
-export interface AiMessage {
-  role: AiRole;
-  content: string;
-}
-
-export type AiProvider = 'deepseek' | 'kimi' | 'moonshot';
-
+export interface AiMessage { role: AiRole; content: string; }
+export type AiProvider = 'kimi' | 'moonshot';
 export type AiErrorCode =
-  | 'missing_api_key'
-  | 'upstream_error'
-  | 'unexpected_response'
-  | 'json_parse_error'
-  | 'invalid_request'
-  | 'message_too_long'
-  | 'unauthenticated'
-  | 'internal_error';
+  | 'missing_api_key' | 'upstream_error' | 'unexpected_response' | 'json_parse_error'
+  | 'invalid_request' | 'message_too_long' | 'unauthenticated' | 'internal_error';
 
 export class AiServiceError extends Error {
-  code: AiErrorCode;
-  status: number;
-  details?: string;
-
-  constructor(code: AiErrorCode, message: string, status: number, details?: string) {
+  constructor(public code: AiErrorCode, message: string, public status: number, public details?: string) {
     super(message);
     this.name = 'AiServiceError';
-    this.code = code;
-    this.status = status;
-    this.details = details;
   }
 }
 
-interface ProviderConfig {
-  baseUrl: string;
-  model: string;
-  keyEnvVars: string[];
-  defaultModel: string;
-  disableThinking?: boolean;
+function positiveNumber(value: unknown, fallback: number) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : fallback;
 }
 
-function getNumberEnv(name: string, fallback: number) {
-  const value = Number(env[name]);
-  return Number.isFinite(value) && value > 0 ? value : fallback;
+/** Moonshot is Kimi's API name, not a fallback to a different vendor. */
+export function kimiConfig(vision = false) {
+  return {
+    baseUrl: (env.PRIVATE_KIMI_BASE_URL?.trim() || env.PRIVATE_MOONSHOT_BASE_URL?.trim() || 'https://api.moonshot.cn/v1').replace(/\/+$/, ''),
+    model: (vision ? env.PRIVATE_KIMI_VISION_MODEL?.trim() : '') || env.PRIVATE_KIMI_MODEL?.trim() || 'kimi-k2.5',
+    apiKey: env.PRIVATE_KIMI_API_KEY?.trim() || env.PRIVATE_MOONSHOT_API_KEY?.trim()
+  };
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
+export function pickProvider(_preferred?: AiProvider): AiProvider { return 'kimi'; }
 
-const DEFAULT_MAX_OUTPUT_TOKENS = clamp(
-  getNumberEnv('PRIVATE_AI_MAX_TOKENS', getNumberEnv('PRIVATE_DEEPSEEK_MAX_TOKENS', 700)),
-  128,
-  1200
-);
+type ContentPart = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } };
+type KimiMessage = { role: AiRole; content: string | ContentPart[] };
 
-const PROVIDER_CONFIGS: Record<AiProvider, ProviderConfig> = {
-  deepseek: {
-    baseUrl: env.PRIVATE_DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com',
-    model: env.PRIVATE_DEEPSEEK_MODEL?.trim() || 'deepseek-v4-flash',
-    keyEnvVars: ['PRIVATE_DEEPSEEK_API_KEY_RUNTIME', 'PRIVATE_DEEPSEEK_API_KEY'],
-    defaultModel: 'deepseek-v4-flash',
-    disableThinking: true
-  },
-  kimi: {
-    baseUrl: env.PRIVATE_KIMI_BASE_URL?.trim() || 'https://api.moonshot.cn/v1',
-    model: env.PRIVATE_KIMI_MODEL?.trim() || 'moonshot-v1-8k',
-    keyEnvVars: ['PRIVATE_KIMI_API_KEY', 'PRIVATE_MOONSHOT_API_KEY'],
-    defaultModel: 'moonshot-v1-8k'
-  },
-  moonshot: {
-    baseUrl: env.PRIVATE_MOONSHOT_BASE_URL?.trim() || 'https://api.moonshot.cn/v1',
-    model: env.PRIVATE_KIMI_MODEL?.trim() || 'moonshot-v1-8k',
-    keyEnvVars: ['PRIVATE_MOONSHOT_API_KEY', 'PRIVATE_KIMI_API_KEY'],
-    defaultModel: 'moonshot-v1-8k'
-  }
-};
-
-function getProviderKeyDetails(provider: AiProvider): { value?: string; source?: string; fingerprints: Record<string, string> } {
-  const config = PROVIDER_CONFIGS[provider];
-  const fingerprints: Record<string, string> = {};
-
-  for (const envVar of config.keyEnvVars) {
-    const value = env[envVar]?.trim();
-    if (value) {
-      fingerprints[envVar] = getKeyFingerprint(value);
-      return { value, source: envVar, fingerprints };
+export async function requestKimiCompletion(
+  messages: KimiMessage[],
+  options: {
+    maxTokens?: number; temperature?: number; responseFormat?: { type: 'json_object' };
+    signal?: AbortSignal; timeoutMs?: number; vision?: boolean;
+  } = {}
+): Promise<string> {
+  const config = kimiConfig(options.vision);
+  if (!config.apiKey) throw new AiServiceError('missing_api_key', 'Kimi service is not configured', 503);
+  // Keep per-feature budgets (chatbot 256, Agent 1400) instead of clipping all to 700.
+  const maxTokens = Math.floor(Math.min(4096, Math.max(1,
+    positiveNumber(options.maxTokens, positiveNumber(env.PRIVATE_AI_MAX_TOKENS, 700)))));
+  const instant = /^(?:kimi-k(?:2\.[5-9]|[3-9])|kimi-for-coding|k[3-9])/i.test(config.model);
+  const body = {
+    model: config.model, messages, max_tokens: maxTokens,
+    temperature: instant ? 0.6 : (options.temperature ?? 0.5),
+    ...(instant ? { thinking: { type: 'disabled' } } : {})
+  };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), positiveNumber(options.timeoutMs, 90_000));
+  const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+  const send = (jsonMode: boolean) => fetch(`${config.baseUrl}/chat/completions`, {
+    method: 'POST', signal, redirect: 'error',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}`, 'User-Agent': 'AiLAEClass/1.0' },
+    body: JSON.stringify({ ...body, ...(jsonMode && options.responseFormat ? { response_format: options.responseFormat } : {}) })
+  });
+  try {
+    let response = await send(Boolean(options.responseFormat));
+    // Retry only a specifically unsupported JSON-format parameter, never auth/quota failures.
+    if (!response.ok && options.responseFormat && [400, 422].includes(response.status)) {
+      const error = await response.clone().json().catch(() => ({}));
+      if (/response_format/i.test(String(error?.error?.message || '')) &&
+          /unsupported|not supported|unknown|unrecognized/i.test(String(error?.error?.message || ''))) {
+        await response.body?.cancel();
+        response = await send(false);
+      }
     }
-  }
-
-  return { fingerprints };
-}
-
-function getProviderKey(provider: AiProvider): string | undefined {
-  return getProviderKeyDetails(provider).value;
-}
-
-function getKeyFingerprint(apiKey: string) {
-  return createHash('sha256').update(apiKey).digest('hex').slice(0, 12);
-}
-
-export function pickProvider(preferred?: AiProvider): AiProvider {
-  if (preferred) {
-    const key = getProviderKey(preferred);
-    if (key) return preferred;
-  }
-  const providers: AiProvider[] = ['deepseek', 'kimi', 'moonshot'];
-  for (const p of providers) {
-    if (getProviderKey(p)) return p;
-  }
-  return 'deepseek';
+    if (!response.ok) {
+      console.error(JSON.stringify({ event: 'kimi_request_failed', status: response.status, model: config.model }));
+      await response.body?.cancel();
+      throw new AiServiceError('upstream_error', 'Kimi service temporarily unavailable', response.status === 429 ? 429 : 502);
+    }
+    const data = await response.json().catch(() => { throw new AiServiceError('unexpected_response', 'Kimi returned invalid JSON', 502); });
+    const reply = data?.choices?.[0]?.message?.content;
+    if (typeof reply !== 'string' || !reply.trim()) throw new AiServiceError('unexpected_response', 'Kimi returned an empty response', 502);
+    return reply;
+  } catch (error) {
+    if (error instanceof AiServiceError) throw error;
+    throw new AiServiceError('upstream_error', signal.aborted ? 'Kimi request timed out or was cancelled' : 'Kimi request failed', signal.aborted ? 504 : 502);
+  } finally { clearTimeout(timer); }
 }
 
 export async function createAiChatCompletion(
   messages: AiMessage[],
-  options: {
-    provider?: AiProvider;
-    maxTokens?: number;
-    temperature?: number;
-    responseFormat?: { type: 'json_object' };
-  } = {}
+  options: { provider?: AiProvider; maxTokens?: number; temperature?: number; responseFormat?: { type: 'json_object' }; signal?: AbortSignal } = {}
 ): Promise<string> {
-  const provider = pickProvider(options.provider);
-  const config = PROVIDER_CONFIGS[provider];
-  const keyDetails = getProviderKeyDetails(provider);
-  const apiKey = keyDetails.value;
-
-  if (!apiKey) {
-    throw new AiServiceError(
-      'missing_api_key',
-      'AI service is not configured',
-      503
-    );
-  }
-
-  const requestBody = {
-    model: config.model,
-    messages,
-    max_tokens: Math.min(options.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS),
-    temperature: options.temperature ?? 0.5,
-    ...(config.disableThinking ? { thinking: { type: 'disabled' } } : {})
-  };
-
-  const requestHeaders = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${apiKey}`
-  };
-
-  let response = await fetch(`${config.baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: requestHeaders,
-    body: JSON.stringify({
-      ...requestBody,
-      ...(options.responseFormat ? { response_format: options.responseFormat } : {})
-    })
-  });
-
-  if (!response.ok) {
-    let body = '';
-    try {
-      body = (await response.text()).slice(0, 800);
-    } catch {
-      body = 'Unable to read upstream error body';
-    }
-
-    console.error(JSON.stringify({
-      event: 'ai_upstream_request_failed',
-      provider,
-      status: response.status,
-      statusText: response.statusText,
-      model: config.model,
-      baseUrl: config.baseUrl,
-      body
-    }));
-
-    if (options.responseFormat) {
-      response = await fetch(`${config.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: requestHeaders,
-        body: JSON.stringify(requestBody)
-      });
-
-      if (response.ok) {
-        console.warn(JSON.stringify({
-          event: 'ai_upstream_response_format_retry_succeeded',
-          provider,
-          model: config.model
-        }));
-      }
-    }
-  }
-
-  if (!response.ok) {
-    let body = '';
-    try {
-      body = (await response.text()).slice(0, 800);
-    } catch {
-      body = 'Unable to read upstream error body';
-    }
-
-    console.error(JSON.stringify({
-      event: 'ai_upstream_request_failed_after_retry',
-      provider,
-      status: response.status,
-      statusText: response.statusText,
-      model: config.model,
-      baseUrl: config.baseUrl,
-      body
-    }));
-
-    throw new AiServiceError(
-      'upstream_error',
-      'AI service temporarily unavailable',
-      502,
-      `provider=${provider}; status=${response.status}; body=${body}`
-    );
-  }
-
-  let data: unknown;
-  try {
-    data = await response.json();
-  } catch {
-    throw new AiServiceError(
-      'unexpected_response',
-      'AI returned an unexpected response',
-      502
-    );
-  }
-
-  const completionData = data as {
-    choices?: { message?: { content?: unknown } }[];
-  };
-  const reply = completionData.choices?.[0]?.message?.content;
-
-  if (!reply || typeof reply !== 'string') {
-    throw new AiServiceError(
-      'unexpected_response',
-      'AI returned an unexpected response',
-      502
-    );
-  }
-
-  return reply;
+  return requestKimiCompletion(messages, options);
 }
 
 export function extractJsonFromReply(reply: string): string {

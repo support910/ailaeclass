@@ -2,10 +2,10 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import {
-  createDeepSeekChatCompletion,
-  DeepSeekError,
-  type DeepSeekMessage
-} from '$lib/utils/services/ai/deepseek.server';
+  createKimiChatCompletion,
+  KimiError,
+  type KimiMessage
+} from '$lib/utils/services/ai/kimi.server';
 
 type LearningAssistantMode = 'guided' | 'direct';
 
@@ -346,17 +346,17 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    const messages: DeepSeekMessage[] = [
+    const messages: KimiMessage[] = [
       { role: 'system', content: buildSystemPrompt(mode, outputLanguage) },
       ...history,
       { role: 'user', content: message }
     ];
 
-    const reply = normalizeTutorReply(await createDeepSeekChatCompletion(messages));
+    const reply = normalizeTutorReply(await createKimiChatCompletion(messages));
 
     return json({ reply });
   } catch (err) {
-    if (err instanceof DeepSeekError) {
+    if (err instanceof KimiError) {
       return jsonError(err.message, err.code, err.status);
     }
 

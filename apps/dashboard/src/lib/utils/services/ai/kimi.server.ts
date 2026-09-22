@@ -4,51 +4,51 @@ import {
   type AiMessage
 } from './provider.server';
 
-export type DeepSeekRole = 'system' | 'user' | 'assistant';
+export type KimiRole = 'system' | 'user' | 'assistant';
 
-export interface DeepSeekMessage {
-  role: DeepSeekRole;
+export interface KimiMessage {
+  role: KimiRole;
   content: string;
 }
 
-export type DeepSeekErrorCode =
-  | 'missing_deepseek_key'
+export type KimiErrorCode =
+  | 'missing_kimi_key'
   | 'upstream_error'
   | 'unexpected_response';
 
-export class DeepSeekError extends Error {
-  code: DeepSeekErrorCode;
+export class KimiError extends Error {
+  code: KimiErrorCode;
   status: number;
 
-  constructor(code: DeepSeekErrorCode, message: string, status: number) {
+  constructor(code: KimiErrorCode, message: string, status: number) {
     super(message);
-    this.name = 'DeepSeekError';
+    this.name = 'KimiError';
     this.code = code;
     this.status = status;
   }
 }
 
-export async function createDeepSeekChatCompletion(
-  messages: DeepSeekMessage[],
+export async function createKimiChatCompletion(
+  messages: KimiMessage[],
   options: { maxTokens?: number; temperature?: number } = {}
 ): Promise<string> {
   try {
     const reply = await createAiChatCompletion(messages as AiMessage[], {
-      provider: 'deepseek',
+      provider: 'kimi',
       maxTokens: options.maxTokens ?? 800,
       temperature: options.temperature ?? 0.5
     });
     return reply;
   } catch (err) {
     if (err instanceof AiServiceError) {
-      const codeMap: Record<string, DeepSeekErrorCode> = {
-        missing_api_key: 'missing_deepseek_key',
+      const codeMap: Record<string, KimiErrorCode> = {
+        missing_api_key: 'missing_kimi_key',
         upstream_error: 'upstream_error',
         unexpected_response: 'unexpected_response'
       };
       const mappedCode = codeMap[err.code] ?? 'upstream_error';
-      throw new DeepSeekError(mappedCode, err.message, err.status);
+      throw new KimiError(mappedCode, err.message, err.status);
     }
-    throw new DeepSeekError('upstream_error', 'AI service temporarily unavailable', 502);
+    throw new KimiError('upstream_error', 'AI service temporarily unavailable', 502);
   }
 }

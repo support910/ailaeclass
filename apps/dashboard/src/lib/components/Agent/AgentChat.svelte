@@ -62,7 +62,7 @@
       return $t('agent.login_required_error');
     }
 
-    if (status === 503 && code === 'missing_deepseek_key') {
+    if (status === 503 && code === 'missing_kimi_key') {
       return $t('agent.not_configured_error');
     }
 

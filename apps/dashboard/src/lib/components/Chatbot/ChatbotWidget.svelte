@@ -160,7 +160,7 @@
         const code = data.code;
         let friendly = ui('serviceUnavailable');
 
-        if (status === 503 && code === 'missing_deepseek_key') {
+        if (status === 503 && code === 'missing_kimi_key') {
           friendly = ui('notConfigured');
         } else if (status === 502 && code === 'upstream_error') {
           friendly = ui('upstreamUnavailable');
