@@ -30,6 +30,36 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '7.5.1',
+    date: '2026-10-06',
+    released: true,
+    title: {
+      zh: '课程练习导航与进度恢复修复',
+      hant: '課程練習導覽與進度恢復修復',
+      en: 'Course exercise navigation and progress recovery'
+    },
+    changes: [
+      {
+        kind: 'fix',
+        zh: '修复返回已答对题目后无法继续下一题的问题，并防止过渡期间重复点击。',
+        hant: '修復返回已答對題目後無法繼續下一題的問題，並防止過渡期間重複點擊。',
+        en: 'Revisited correct answers no longer lock Next; transition clicks are guarded.'
+      },
+      {
+        kind: 'fix',
+        zh: '修复刷新恢复练习进度时，题目尚未加载完成就误判已完成的问题。',
+        hant: '修復重新整理恢復練習進度時，題目尚未載入完成就誤判已完成的問題。',
+        en: 'Restoring progress waits for the exercise questions before checking completion.'
+      },
+      {
+        kind: 'ui',
+        zh: '课程练习答错时增加跟随系统语言的重试提示；保留原题目、答对后继续规则与已有成绩。',
+        hant: '課程練習答錯時加入跟隨系統語言的重試提示；保留原題目、答對後繼續規則與已有成績。',
+        en: 'Localized retry feedback clarifies incorrect answers; questions, progression rules and existing results are unchanged.'
+      }
+    ]
+  },
+  {
     version: '7.5.0',
     date: '2026-09-22',
     released: true,

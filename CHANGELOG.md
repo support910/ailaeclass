@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v7.5.1-20261006 (2026-10-06)
+
+- Fixed course exercise Next remaining disabled when revisiting a correct answer.
+- Guarded delayed navigation against duplicate clicks and component teardown.
+- Fixed restored progress being marked complete before questions finish loading.
+- Added incorrect-answer retry feedback in all 15 supported UI locales.
+- No database migrations, configuration changes or edits to course content/results.
+- Release scope, verification and rollback: `docs/V7_5_1_RELEASE_20261006.md`.
+
 ## v7.5.0-20260922 (2026-09-22)
 
 ### Added

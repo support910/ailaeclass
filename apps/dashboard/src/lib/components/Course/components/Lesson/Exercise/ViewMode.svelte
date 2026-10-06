@@ -1,7 +1,8 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { fly } from 'svelte/transition';
   import { group, course } from '$lib/components/Course/store';
-  import { questionnaire } from '../store/exercise';
+  import { questionnaire, isQuestionnaireFetching } from '../store/exercise';
   import { questionnaireMetaData } from '../store/answers';
   import Preview from './Preview.svelte';
   import RadioQuestion from '$lib/components/Question/RadioQuestion/index.svelte';
@@ -28,7 +29,7 @@
   import { browser } from '$app/environment';
   import { COURSE_TYPE } from '$lib/utils/types';
   import { sanitizeHtml } from '$lib/utils/functions/sanitize';
-  import { t } from '$lib/utils/functions/translations';
+  import { t, locale } from '$lib/utils/functions/translations';
 
   export let preview: boolean = false;
   export let exerciseId = '';
@@ -41,6 +42,27 @@
   let isLoadingAutoSavedData = false;
   let alreadyCheckedAutoSavedData = false;
   let submissionResponse;
+  let isAdvancing = false;
+  let advanceTimer: ReturnType<typeof setTimeout>;
+  let showRetryHint = false;
+  const retryHints = {
+    en: 'Not correct yet. Please select another answer, then click Next to try again.',
+    zh: '答案还不正确，请重新选择答案，再点击下一题重试。',
+    'zh-TW': '答案尚未正確，請重新選擇答案，再點擊下一題重試。',
+    ms: 'Jawapan belum betul. Pilih jawapan lain, kemudian klik Seterusnya untuk mencuba lagi.',
+    id: 'Jawaban belum benar. Pilih jawaban lain, lalu klik Berikutnya untuk mencoba lagi.',
+    th: 'คำตอบยังไม่ถูกต้อง โปรดเลือกคำตอบใหม่ แล้วคลิกถัดไปเพื่อลองอีกครั้ง',
+    hi: 'उत्तर अभी सही नहीं है। दूसरा उत्तर चुनें, फिर दोबारा प्रयास करने के लिए अगला दबाएँ।',
+    fr: 'Réponse incorrecte. Choisissez une autre réponse, puis cliquez sur Suivant.',
+    pl: 'Odpowiedź jest niepoprawna. Wybierz inną odpowiedź i kliknij Dalej.',
+    pt: 'Resposta incorreta. Selecione outra resposta e clique em Seguinte.',
+    de: 'Die Antwort ist noch nicht richtig. Wählen Sie eine andere Antwort und klicken Sie auf Weiter.',
+    vi: 'Câu trả lời chưa đúng. Hãy chọn câu trả lời khác, rồi nhấn Tiếp theo.',
+    ru: 'Ответ неверный. Выберите другой ответ и нажмите «Далее».',
+    es: 'La respuesta aún no es correcta. Elige otra respuesta y pulsa Siguiente.',
+    da: 'Svaret er ikke korrekt endnu. Vælg et andet svar, og klik på Næste.'
+  };
+  onDestroy(() => clearTimeout(advanceTimer));
 
   function handleStart() {
     $questionnaireMetaData.currentQuestionIndex += 1;
@@ -82,6 +104,7 @@
   };
 
   async function onSubmit(id, value) {
+    if (isAdvancing) return;
     const { answers } = $questionnaireMetaData;
     const { questions } = $questionnaire;
     const prevAnswer = answers[id] || [];
@@ -95,6 +118,7 @@
     };
 
     const isCorrect = wasCorrectAnswerSelected(currentQuestion, $questionnaireMetaData.answers);
+    showRetryHint = !isCorrect;
     console.log({ isCorrect });
 
     const isFinished = !questions[$questionnaireMetaData.currentQuestionIndex];
@@ -105,7 +129,9 @@
     );
 
     if (isCorrect) {
-      setTimeout(async () => {
+      isAdvancing = true;
+      advanceTimer = setTimeout(async () => {
+        isAdvancing = false;
         $questionnaireMetaData.currentQuestionIndex += 1;
         localStorage.setItem(
           `autosave-exercise-${exerciseId}`,
@@ -149,6 +175,8 @@
   }
 
   function onPrevious() {
+    if (isAdvancing) return;
+    showRetryHint = false;
     $questionnaireMetaData.currentQuestionIndex -= 1;
   }
 
@@ -226,7 +254,8 @@
   $: browser && !alreadyCheckedAutoSavedData && getAutoSavedData();
 
   // Reactive code
-  $: if (alreadyCheckedAutoSavedData && $questionnaire.questions.length > 0) {
+  $: if (alreadyCheckedAutoSavedData && !$isQuestionnaireFetching &&
+    $questionnaire.id === exerciseId && $questionnaire.questions.length > 0) {
     currentQuestion = $questionnaire.questions[$questionnaireMetaData.currentQuestionIndex - 1];
     if ($questionnaireMetaData.currentQuestionIndex > 0 && !currentQuestion) {
       $questionnaireMetaData.isFinished = true;
@@ -249,6 +278,12 @@
   }
 
   $: !isFetchingExercise && checkForSubmission($group.people, $profile.id, $course.id);
+  // Stored correct answers must not lock navigation when revisiting a question.
+  $: navigationProps = {
+    ...renderProps,
+    disablePreviousButton: isAdvancing || $questionnaireMetaData.currentQuestionIndex === 1,
+    nextButtonProps: { ...renderProps.nextButtonProps, isDisabled: isAdvancing }
+  };
 </script>
 
 {#if !preview && $questionnaire.questions.length && !$questionnaireMetaData.isFinished}
@@ -364,11 +399,16 @@
     <!-- <div transition:fade id="question"> -->
     <div in:fly={{ x: 500, duration: 1000 }} id="question">
       {#if QUESTION_TYPE.RADIO === currentQuestion.question_type.id}
-        <RadioQuestion {...renderProps} key={currentQuestion.id} hideGrading={true} />
+        <RadioQuestion {...navigationProps} key={currentQuestion.id} hideGrading={true} />
       {:else if QUESTION_TYPE.CHECKBOX === currentQuestion.question_type.id}
-        <CheckboxQuestion {...renderProps} key={currentQuestion.id} hideGrading={true} />
+        <CheckboxQuestion {...navigationProps} key={currentQuestion.id} hideGrading={true} />
       {:else if QUESTION_TYPE.TEXTAREA === currentQuestion.question_type.id}
-        <TextareaQuestion {...renderProps} key={currentQuestion.id} hideGrading={true} />
+        <TextareaQuestion {...navigationProps} key={currentQuestion.id} hideGrading={true} />
+      {/if}
+      {#if showRetryHint}
+        <p role="status" class="mt-3 text-sm text-red-700 dark:text-red-300">
+          {retryHints[$locale] || retryHints.en}
+        </p>
       {/if}
     </div>
   {/key}
