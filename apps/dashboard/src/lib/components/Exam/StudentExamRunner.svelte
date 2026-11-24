@@ -7,6 +7,7 @@
   import { VARIANTS } from '$lib/components/PrimaryButton/constants.js';
   import Progress from '$lib/components/Progress/index.svelte';
   import { QUESTION_TYPE } from '$lib/components/Question/constants';
+  import { isAnsweredValue, pruneUnanswered } from '$lib/utils/functions/answers';
   import { t } from '$lib/utils/functions/translations';
   import { snackbar } from '$lib/components/Snackbar/store';
   import WarningIcon from 'carbon-icons-svelte/lib/Warning.svelte';
@@ -48,10 +49,7 @@
   $: currentQuestion = questions[currentQuestionIndex];
   $: progressValue = totalQuestions > 0 ? Math.round((currentQuestionIndex / totalQuestions) * 100) : 0;
 
-  $: answeredCount = Object.keys(answers).filter((k) => {
-    const v = answers[k];
-    return v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0);
-  }).length;
+  $: answeredCount = Object.keys(answers).filter((k) => isAnsweredValue(answers[k])).length;
 
   function startTimer() {
     if (!submission?.expires_at) return;
@@ -81,7 +79,8 @@
   function handleSubmitOnce() {
     if (hasSubmitted || isSubmitting) return;
     hasSubmitted = true;
-    onSubmit(answers);
+    // Never send empty stubs ([undefined] / [null] / '') to the server
+    onSubmit(pruneUnanswered(answers));
   }
 
   function formatTime(ms: number) {
@@ -145,7 +144,13 @@
 
   function handleQuestionSubmit(name: string, value: any) {
     if (isExpired) return;
-    answers = { ...answers, [name]: value };
+    if (isAnsweredValue(value)) {
+      answers = { ...answers, [name]: value };
+    } else if (name in answers) {
+      // Student cleared a previous answer: drop the entry instead of leaving an empty stub behind
+      const { [name]: _removed, ...rest } = answers;
+      answers = rest;
+    }
     // Auto-advance after a short delay so the user sees the Next button animate
     setTimeout(() => {
       if (currentQuestionIndex < totalQuestions - 1) {
@@ -286,7 +291,7 @@
         <button
           class="w-8 h-8 rounded-full text-xs font-medium border transition {i === currentQuestionIndex && !isReviewing
             ? 'bg-primary-700 text-white border-primary-700'
-            : answers[getQuestionKey(q)] !== undefined && answers[getQuestionKey(q)] !== '' && !(Array.isArray(answers[getQuestionKey(q)]) && answers[getQuestionKey(q)].length === 0)
+            : isAnsweredValue(answers[getQuestionKey(q)])
               ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-100'
               : 'bg-gray-100 text-gray-600 border-gray-300 dark:bg-neutral-800 dark:text-gray-300'}"
           on:click={() => goToQuestion(i)}
@@ -319,7 +324,7 @@
                 <span class="min-w-0 whitespace-pre-wrap break-words text-sm dark:text-white">{q.title}</span>
               </div>
               <div class="flex items-center gap-3">
-                {#if answers[getQuestionKey(q)] !== undefined && answers[getQuestionKey(q)] !== '' && !(Array.isArray(answers[getQuestionKey(q)]) && answers[getQuestionKey(q)].length === 0)}
+                {#if isAnsweredValue(answers[getQuestionKey(q)])}
                   <span class="text-xs text-green-600 dark:text-green-400">
                     {$t('components.exam.runner.answered')}
                   </span>

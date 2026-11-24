@@ -6,6 +6,7 @@
   import Progress from '$lib/components/Progress/index.svelte';
   import QuestionTitle from '$lib/components/Question/QuestionTitle.svelte';
   import { QUESTION_TYPE } from '$lib/components/Question/constants';
+  import { isAnsweredValue, pruneUnanswered } from '$lib/utils/functions/answers';
   import { snackbar } from '$lib/components/Snackbar/store';
   import { t } from '$lib/utils/functions/translations';
   import TimerIcon from 'carbon-icons-svelte/lib/Time.svelte';
@@ -120,9 +121,7 @@
 
   function hasCurrentAnswer() {
     if (!currentQuestion) return false;
-    const value = currentAnswer;
-    if (Array.isArray(value)) return value.length > 0;
-    return value !== undefined && value !== '';
+    return isAnsweredValue(currentAnswer);
   }
 
   function setRadioAnswer(value: string) {
@@ -219,7 +218,7 @@
     if (hasSubmitted || isSubmitting) return;
     hasSubmitted = true;
     allowNavigation = true;
-    onSubmit(answers);
+    onSubmit(pruneUnanswered(answers));
   }
 
   function getProgressPayload() {

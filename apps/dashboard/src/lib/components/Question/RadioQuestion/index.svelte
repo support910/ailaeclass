@@ -54,13 +54,21 @@
   function handleFormSubmit(event) {
     if (isPreview) return;
     const value = getRadioVal(event.target, name);
-    onSubmit(name, [value]);
+    // Nothing selected: submit an empty array rather than [undefined], otherwise the
+    // runner records the question as answered and the blank answer is sent to the server.
+    onSubmit(name, value === undefined ? [] : [value]);
     event.target.reset();
   }
 
   function handlePrevious(event) {
     event.preventDefault();
     onPrevious();
+  }
+
+  function isOptionSelected(option) {
+    const current = defaultValue;
+    if (Array.isArray(current)) return current.map(String).includes(String(option.value));
+    return current !== undefined && current !== null && String(current) === String(option.value);
   }
 
   function getValidationClassName(option) {
@@ -121,7 +129,7 @@
           className="p-2"
           {name}
           value={option.value}
-          checked={defaultValue === option.value && option.is_correct}
+          checked={isOptionSelected(option)}
           label={option.label || option.value}
           {disabled}
         />
