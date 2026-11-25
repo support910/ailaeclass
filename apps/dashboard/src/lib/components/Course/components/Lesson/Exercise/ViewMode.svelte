@@ -95,10 +95,20 @@
       .filter(Boolean);
   }
 
+  function pickMessage(dict) {
+    const key = String($locale || 'en');
+    if (dict[key]) return dict[key];
+    const lower = key.toLowerCase();
+    if (lower.startsWith('zh')) {
+      return lower.includes('tw') || lower.includes('hk') || lower.includes('hant')
+        ? dict['zh-TW'] || dict.zh
+        : dict.zh || dict.en;
+    }
+    return dict.en;
+  }
+
   function wrongAnswerText(labels) {
-    const head = wrongAnswerHints[$locale] || wrongAnswerHints.en;
-    const tail = continueHints[$locale] || continueHints.en;
-    return `${head}${labels.join(' / ')}${tail}`;
+    return `${pickMessage(wrongAnswerHints)}${labels.join(' / ')}${pickMessage(continueHints)}`;
   }
   onDestroy(() => clearTimeout(advanceTimer));
 
