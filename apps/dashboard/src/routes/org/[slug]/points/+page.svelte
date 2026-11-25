@@ -146,7 +146,7 @@
       <p class="text-3xl font-bold dark:text-white">
         {loading ? '—' : isStudentView ? ownBalance : orgTotal}
       </p>
-      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">4 分 = HK$1（可兌換折扣／權益，不可兌現金）</p>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">10 分 = HK$1（可兌換折扣／權益，不可兌現金）</p>
     </div>
     <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
       <p class="text-xs text-gray-500 dark:text-gray-400">本頁顯示範圍</p>

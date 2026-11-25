@@ -203,6 +203,13 @@
       show: true
     },
     {
+      path: '/data-access',
+      group: 'operations',
+      label: '地區資料 / Data access',
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/data-access`),
+      show: true
+    },
+    {
       path: '/faq',
       group: 'support',
       label: '常見問題 / FAQ',
