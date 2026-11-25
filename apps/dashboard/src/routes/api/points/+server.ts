@@ -4,19 +4,36 @@ import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/su
 import { ROLE } from '$lib/utils/constants/roles';
 
 /**
- * Points ledger API (tour_ledger).
+ * Course points ledger API — table public.points_ledger
+ * (migration: E:\Data\Admin\AI\Projects\newailaeclass\migration\02_apply_points_ledger.sql)
  *
  * Visibility (2026-11 spec):
  *   student        -> only their own rows
- *   teacher/tutor  -> every student in the org
- *   school admin   -> every member of the org
- *   district / HK admins are not modelled yet (needs the district tables).
+ *   teacher/tutor  -> every member of the org (read-only)
+ *   school admin   -> every member of the org, plus manual registration
+ *   district / HK scopes are not modelled yet (needs the district tables).
+ *
+ * NOTE: public.tour_ledger is NOT this ledger — its user_id points at tour_profile
+ * (experience-tour roster), so course points live in their own table.
  *
  * GET  /api/points?orgId=…[&userId=…][&limit=200]
  * POST /api/points { orgId, userId, kind, delta, note }
  */
 
-const MAX_LIMIT = 1000;
+const ALLOWED_KINDS = [
+  'register',
+  'checkin',
+  'exercise',
+  'exam',
+  'attendance',
+  'news',
+  'referral',
+  'redeem',
+  'manual',
+  'ai_tutor'
+];
+
+const MAX_ROWS = 1000;
 
 async function getOrgRole(supabase: any, orgId: string, userId: string) {
   const { data } = await supabase
@@ -31,14 +48,23 @@ async function getOrgRole(supabase: any, orgId: string, userId: string) {
   return Number(data.role_id);
 }
 
+function migrationMissing() {
+  return json(
+    {
+      success: false,
+      message: 'points_ledger 未建立：請先在 Supabase SQL Editor 執行 02_apply_points_ledger.sql'
+    },
+    { status: 503 }
+  );
+}
+
 export const GET: RequestHandler = async ({ request, url }) => {
   const userId = await getUserIdFromRequest(request);
   if (!userId) return json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
   const orgId = url.searchParams.get('orgId');
-  const onlyUserId = url.searchParams.get('userId');
-  const scopeUserId = url.searchParams.get('scopeUserId');
-  const limit = Math.min(Number(url.searchParams.get('limit')) || 200, MAX_LIMIT);
+  const filterProfileId = url.searchParams.get('userId') || url.searchParams.get('profileId');
+  const limit = Math.min(Number(url.searchParams.get('limit')) || 200, MAX_ROWS);
 
   if (!orgId) return json({ success: false, message: 'orgId is required' }, { status: 400 });
 
@@ -48,63 +74,59 @@ export const GET: RequestHandler = async ({ request, url }) => {
     return json({ success: false, message: 'Organization access denied.' }, { status: 403 });
   }
 
+  const scopeProfileId = roleId === ROLE.STUDENT ? userId : filterProfileId || null;
+
   try {
-    let userIds: string[] = [];
+    let rowsQuery = supabase
+      .from('points_ledger')
+      .select('id, profile_id, kind, delta, note, created_at')
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
-    if (roleId === ROLE.STUDENT) {
-      userIds = [userId];
-    } else {
-      const { data: members, error } = await supabase
-        .from('organizationmember')
-        .select('profile_id')
-        .eq('organization_id', orgId);
+    if (scopeProfileId) rowsQuery = rowsQuery.eq('profile_id', scopeProfileId);
 
-      if (error) throw error;
-      userIds = (members || []).map((m: any) => m.profile_id).filter(Boolean);
+    const { data: rows, error } = await rowsQuery;
+
+    if (error) {
+      if (error.code === '42P01') return migrationMissing();
+      throw error;
     }
 
-    const wanted = onlyUserId || scopeUserId;
-    if (wanted && userIds.includes(wanted)) userIds = [wanted];
+    // Balances need every row in scope, not just the page being displayed
+    let balanceQuery = supabase
+      .from('points_ledger')
+      .select('profile_id, delta')
+      .eq('organization_id', orgId)
+      .limit(5000);
 
-    if (!userIds.length) {
-      return json({ success: true, rows: [], summary: [], balances: {} });
-    }
+    if (scopeProfileId) balanceQuery = balanceQuery.eq('profile_id', scopeProfileId);
 
-    const rows: any[] = [];
-    for (let i = 0; i < userIds.length; i += 100) {
-      const chunk = userIds.slice(i, i + 100);
-      const { data, error } = await supabase
-        .from('tour_ledger')
-        .select('id, user_id, kind, delta, note, created_at')
-        .in('user_id', chunk)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      rows.push(...(data || []));
-    }
-
-    rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    const trimmed = rows.slice(0, limit);
-
-    const { data: profiles } = await supabase
-      .from('profile')
-      .select('id, fullname, email')
-      .in('id', userIds.slice(0, 500));
-
-    const profileById = Object.fromEntries((profiles || []).map((p: any) => [p.id, p]));
+    const { data: allRows } = await balanceQuery;
 
     const balances: Record<string, number> = {};
-    for (const row of trimmed) {
-      balances[row.user_id] = (balances[row.user_id] || 0) + Number(row.delta || 0);
+    for (const row of allRows || []) {
+      balances[row.profile_id] = (balances[row.profile_id] || 0) + Number(row.delta || 0);
+    }
+
+    const profileIds = [...new Set((rows || []).map((row: any) => row.profile_id))];
+    let profileById: Record<string, any> = {};
+
+    if (profileIds.length) {
+      const { data: profiles } = await supabase
+        .from('profile')
+        .select('id, fullname, email')
+        .in('id', profileIds);
+
+      profileById = Object.fromEntries((profiles || []).map((p: any) => [p.id, p]));
     }
 
     return json({
       success: true,
       roleId,
-      rows: trimmed.map((row) => ({
+      rows: (rows || []).map((row: any) => ({
         ...row,
-        profile: profileById[row.user_id] || null
+        profile: profileById[row.profile_id] || null
       })),
       balances
     });
@@ -125,7 +147,7 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({ success: false, message: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { orgId, userId: targetUserId, kind, delta, note = '' } = body || {};
+  const { orgId, userId: targetUserId, kind = 'manual', delta, note = '' } = body || {};
 
   if (!orgId || !targetUserId) {
     return json({ success: false, message: 'orgId and userId are required' }, { status: 400 });
@@ -134,6 +156,14 @@ export const POST: RequestHandler = async ({ request }) => {
   const parsedDelta = Number(delta);
   if (!Number.isFinite(parsedDelta) || parsedDelta === 0 || Math.abs(parsedDelta) > 100000) {
     return json({ success: false, message: 'delta must be a non-zero number' }, { status: 400 });
+  }
+
+  const resolvedKind = String(kind || 'manual');
+  if (!ALLOWED_KINDS.includes(resolvedKind)) {
+    return json(
+      { success: false, message: `kind 必須是以下之一：${ALLOWED_KINDS.join(', ')}` },
+      { status: 400 }
+    );
   }
 
   const supabase = getServerSupabase();
@@ -156,18 +186,22 @@ export const POST: RequestHandler = async ({ request }) => {
 
   try {
     const { data, error } = await supabase
-      .from('tour_ledger')
+      .from('points_ledger')
       .insert({
-        user_id: targetUserId,
-        kind: String(kind || 'manual').slice(0, 40),
+        organization_id: orgId,
+        profile_id: targetUserId,
+        kind: resolvedKind,
         delta: Math.trunc(parsedDelta),
         note: String(note || '').slice(0, 200),
-        created_at: new Date().toISOString()
+        created_by: userId
       })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P01') return migrationMissing();
+      throw error;
+    }
 
     return json({ success: true, row: data });
   } catch (err) {
