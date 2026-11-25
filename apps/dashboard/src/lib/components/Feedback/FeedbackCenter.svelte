@@ -118,7 +118,7 @@
 
   async function submitFeedback() {
     submissionSucceeded = false;
-    if (!issueLocation.trim() || !description.trim() || !occurredAt || !pageUrl.trim() || !screenshots.length) {
+    if (!issueLocation.trim() || !description.trim() || !occurredAt || !pageUrl.trim()) {
       showMessage($t('feedback.required_error'), 'error');
       return;
     }
@@ -294,7 +294,7 @@
         </div>
 
         <div>
-          <p class="mb-2 text-sm font-medium text-gray-800 dark:text-white">{$t('feedback.screenshots')} *</p>
+          <p class="mb-2 text-sm font-medium text-gray-800 dark:text-white">{$t('feedback.screenshots')}</p>
           <label class="flex min-h-[96px] cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-gray-400 bg-gray-50 px-4 py-5 text-sm text-gray-700 hover:border-primary-600 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200">
             <ImageIcon size={22} />
             <span>{$t('feedback.choose_images')}</span>

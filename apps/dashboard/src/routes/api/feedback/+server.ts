@@ -87,8 +87,11 @@ export const POST: RequestHandler = async ({ request }) => {
   if (!Number.isFinite(Date.parse(occurredAt))) {
     return json({ success: false, message: 'Invalid occurrence time.' }, { status: 400 });
   }
-  if (screenshots.length < 1 || screenshots.length > MAX_SCREENSHOTS) {
-    return json({ success: false, message: 'Please upload 1 to 3 screenshots.' }, { status: 400 });
+  if (screenshots.length > MAX_SCREENSHOTS) {
+    return json(
+      { success: false, message: `Please upload at most ${MAX_SCREENSHOTS} screenshots.` },
+      { status: 400 }
+    );
   }
   if (!(await verifyOrgMembership(supabase, user.id, orgId))) {
     return json({ success: false, message: 'Organization access denied.' }, { status: 403 });
