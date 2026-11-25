@@ -35,7 +35,7 @@
   export let exerciseId = '';
   export let isFetchingExercise = false;
 
-  let currentQuestion = {};
+  let currentQuestion: any = {};
   let renderProps = {};
   let submission;
   let hasSubmission = false;
@@ -45,6 +45,9 @@
   let isAdvancing = false;
   let advanceTimer: ReturnType<typeof setTimeout>;
   let showRetryHint = false;
+  let wrongAnswerLabels: string[] | null = null;
+  let pendingAdvance = false;
+  let lastQuestionId = '';
   const retryHints = {
     en: 'Not correct yet. Please select another answer, then click Next to try again.',
     zh: '答案还不正确，请重新选择答案，再点击下一题重试。',
@@ -62,6 +65,41 @@
     es: 'La respuesta aún no es correcta. Elige otra respuesta y pulsa Siguiente.',
     da: 'Svaret er ikke korrekt endnu. Vælg et andet svar, og klik på Næste.'
   };
+  const wrongAnswerHints = {
+    en: 'Not quite right. Correct answer: ',
+    zh: '答案不正确。正确答案：',
+    'zh-TW': '答案不正確。正確答案：',
+    ms: 'Jawapan belum tepat. Jawapan betul: ',
+    id: 'Jawaban belum tepat. Jawaban benar: ',
+    th: 'ยังไม่ถูกต้อง คำตอบที่ถูกต้อง: ',
+    hi: 'उत्तर सही नहीं है। सही उत्तर: ',
+    fr: 'Réponse incorrecte. Bonne réponse : ',
+    pl: 'Odpowiedź niepoprawna. Poprawna odpowiedź: ',
+    pt: 'Resposta incorreta. Resposta certa: ',
+    de: 'Nicht ganz richtig. Richtige Antwort: ',
+    vi: 'Chưa đúng. Đáp án đúng: ',
+    ru: 'Неверно. Правильный ответ: ',
+    es: 'No es correcto. Respuesta correcta: ',
+    da: 'Ikke helt rigtigt. Korrekt svar: '
+  };
+  const continueHints = {
+    en: ' You can keep going — press Next to continue.',
+    zh: ' 可以直接继续，点击「下一题」即可。',
+    'zh-TW': ' 可以直接繼續，點擊「下一題」即可。'
+  };
+
+  function getCorrectLabels(question) {
+    return (question?.options || [])
+      .filter((option) => option.is_correct)
+      .map((option) => option.label || option.value)
+      .filter(Boolean);
+  }
+
+  function wrongAnswerText(labels) {
+    const head = wrongAnswerHints[$locale] || wrongAnswerHints.en;
+    const tail = continueHints[$locale] || continueHints.en;
+    return `${head}${labels.join(' / ')}${tail}`;
+  }
   onDestroy(() => clearTimeout(advanceTimer));
 
   function handleStart() {
@@ -103,10 +141,50 @@
     });
   };
 
+  async function completeCurrentStep(isFinished) {
+    isAdvancing = false;
+    $questionnaireMetaData.currentQuestionIndex += 1;
+    localStorage.setItem(`autosave-exercise-${exerciseId}`, JSON.stringify($questionnaireMetaData));
+
+    // If last question send to server
+    if (isFinished) {
+      localStorage.removeItem(`autosave-exercise-${exerciseId}`);
+      $questionnaireMetaData.status = 1;
+      $questionnaireMetaData.totalPossibleGrade = getTotalPossibleGrade($questionnaire.questions);
+      $questionnaireMetaData.grades = {};
+
+      $questionnaireMetaData.comment = '';
+      let response = await submitExercise(
+        $questionnaireMetaData.answers,
+        $questionnaire.questions,
+        exerciseId,
+        $course.id,
+        getGroupMemberId($group.people, $profile.id)
+      );
+
+      if (response) {
+        submissionResponse = response;
+      }
+
+      notifyEducator();
+    }
+  }
+
   async function onSubmit(id, value) {
     if (isAdvancing) return;
     const { answers } = $questionnaireMetaData;
     const { questions } = $questionnaire;
+
+    // Second click after a wrong answer: the student has already seen the correct
+    // answer, so let them move on instead of trapping them on the question.
+    if (pendingAdvance) {
+      pendingAdvance = false;
+      isAdvancing = true;
+      const wasFinished = !questions[$questionnaireMetaData.currentQuestionIndex];
+      advanceTimer = setTimeout(() => completeCurrentStep(wasFinished), 300);
+      return;
+    }
+
     const prevAnswer = answers[id] || [];
 
     const formattedAnswer =
@@ -118,65 +196,27 @@
     };
 
     const isCorrect = wasCorrectAnswerSelected(currentQuestion, $questionnaireMetaData.answers);
-    showRetryHint = !isCorrect;
-    console.log({ isCorrect });
+    showRetryHint = false;
+    wrongAnswerLabels = isCorrect ? null : getCorrectLabels(currentQuestion);
 
     const isFinished = !questions[$questionnaireMetaData.currentQuestionIndex];
-    console.log(`isFinished`, isFinished);
-    console.log(
-      `$questionnaireMetaData.currentQuestionIndex`,
-      $questionnaireMetaData.currentQuestionIndex
-    );
 
-    if (isCorrect) {
-      isAdvancing = true;
-      advanceTimer = setTimeout(async () => {
-        isAdvancing = false;
-        $questionnaireMetaData.currentQuestionIndex += 1;
-        localStorage.setItem(
-          `autosave-exercise-${exerciseId}`,
-          JSON.stringify($questionnaireMetaData)
-        );
-
-        // If last question send to server
-        if (isFinished) {
-          localStorage.removeItem(`autosave-exercise-${exerciseId}`);
-          $questionnaireMetaData.status = 1;
-          $questionnaireMetaData.totalPossibleGrade = getTotalPossibleGrade(
-            $questionnaire.questions
-          );
-          $questionnaireMetaData.grades = {};
-
-          $questionnaireMetaData.comment = '';
-          let response = await submitExercise(
-            $questionnaireMetaData.answers,
-            questions,
-            exerciseId,
-            $course.id,
-            getGroupMemberId($group.people, $profile.id)
-          );
-
-          if (response) {
-            submissionResponse = response;
-          }
-
-          notifyEducator();
-        }
-      }, 1000);
+    // A wrong answer is still recorded, but it never blocks the student: show the
+    // correct answer here and advance on the next click.
+    if (!isCorrect) {
+      pendingAdvance = true;
+      return;
     }
 
-    // if (moveToNextQuestion) {
-    //   $questionnaireMetaData.currentQuestionIndex += 1;
-    //   localStorage.setItem(
-    //     `autosave-exercise-${exerciseId}`,
-    //     JSON.stringify($questionnaireMetaData)
-    //   );
-    // }
+    isAdvancing = true;
+    advanceTimer = setTimeout(() => completeCurrentStep(isFinished), 300);
   }
 
   function onPrevious() {
     if (isAdvancing) return;
     showRetryHint = false;
+    wrongAnswerLabels = null;
+    pendingAdvance = false;
     $questionnaireMetaData.currentQuestionIndex -= 1;
   }
 
@@ -254,6 +294,11 @@
   $: browser && !alreadyCheckedAutoSavedData && getAutoSavedData();
 
   // Reactive code
+  $: if (currentQuestion?.id && currentQuestion.id !== lastQuestionId) {
+    lastQuestionId = currentQuestion.id;
+    wrongAnswerLabels = null;
+    pendingAdvance = false;
+  }
   $: if (alreadyCheckedAutoSavedData && !$isQuestionnaireFetching &&
     $questionnaire.id === exerciseId && $questionnaire.questions.length > 0) {
     currentQuestion = $questionnaire.questions[$questionnaireMetaData.currentQuestionIndex - 1];
@@ -405,7 +450,11 @@
       {:else if QUESTION_TYPE.TEXTAREA === currentQuestion.question_type.id}
         <TextareaQuestion {...navigationProps} key={currentQuestion.id} hideGrading={true} />
       {/if}
-      {#if showRetryHint}
+      {#if wrongAnswerLabels}
+        <p role="status" class="mt-3 text-sm text-red-700 dark:text-red-300">
+          {wrongAnswerText(wrongAnswerLabels)}
+        </p>
+      {:else if showRetryHint}
         <p role="status" class="mt-3 text-sm text-red-700 dark:text-red-300">
           {retryHints[$locale] || retryHints.en}
         </p>
