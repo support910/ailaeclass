@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
         created_at,
         answers:question_answer(*),
         exercise:exercise_id(
-          id, title, due_by,
+          id, title, due_by, assessment_type,
           lesson:lesson_id(id, title),
           questions:question(
             *,

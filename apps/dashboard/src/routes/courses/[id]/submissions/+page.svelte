@@ -47,6 +47,26 @@
   let isGradeWithAI = false;
   let fetching = false;
   let isSaving = false;
+  let typeFilter = 'all';
+  let allItems: { statusId: number; assessmentType: string; item: any }[] = [];
+
+  function rebuildSections() {
+    const filtered =
+      typeFilter === 'all'
+        ? allItems
+        : allItems.filter((entry) => entry.assessmentType === typeFilter);
+
+    sections = sections.map((section, index) => {
+      const items = filtered.filter((entry) => entry.statusId === index + 1).map((entry) => entry.item);
+      return { ...section, value: items.length, items };
+    });
+  }
+
+  $: {
+    typeFilter;
+    allItems;
+    rebuildSections();
+  }
 
   const submissionStatus: { [key: number]: string } = {
     1: $t('course.navItem.submissions.submission_status.submitted'),
@@ -291,6 +311,7 @@
     fetching = true;
     const { data: submissions } = await fetchSubmissions(courseId);
     const sectionById: { [key: number]: SubmissionSection[] } = {};
+    let collectedItems: { statusId: number; assessmentType: string; item: any }[] = [];
 
     if (submissions) {
       for (const submission of submissions) {
@@ -345,14 +366,20 @@
         } else {
           sectionById[submission.status_id] = [submissionItem];
         }
+
+        collectedItems = [
+          ...collectedItems,
+          {
+            statusId: submission.status_id,
+            assessmentType: exercise.assessment_type || 'exam',
+            item: submissionItem
+          }
+        ];
       }
     }
 
-    sections = sections.map((section, index) => ({
-      ...section,
-      value: Array.isArray(sectionById[index + 1]) ? sectionById[index + 1].length : 0,
-      items: Array.isArray(sectionById[index + 1]) ? sectionById[index + 1] : []
-    }));
+    allItems = collectedItems;
+    rebuildSections();
     fetching = false;
   }
 
@@ -385,6 +412,18 @@
     <PageNav title={$t('course.navItem.submissions.title')} />
 
     <PageBody width="w-full max-w-6xl md:w-11/12 overflow-x-auto">
+      <div class="mb-3 flex items-center gap-2">
+        {#each [['all', '全部 / All'], ['exam', '考試 / Exam'], ['exercise', '練習 / Practice']] as [value, label]}
+          <button
+            class="rounded-full border px-3 py-1 text-sm {typeFilter === value
+              ? 'border-primary-700 bg-primary-700 text-white'
+              : 'border-gray-300 bg-white text-gray-700 dark:border-neutral-600 dark:bg-neutral-800 dark:text-gray-200'}"
+            on:click={() => (typeFilter = value)}
+          >
+            {label}
+          </button>
+        {/each}
+      </div>
       <div class="flex w-full items-center">
         {#each sections as { id, title, items }, idx (id)}
           <div

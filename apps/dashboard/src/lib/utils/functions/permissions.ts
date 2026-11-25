@@ -38,20 +38,19 @@ export async function checkUserCoursePermissions(
   let isOrgAdmin = false;
   let isVerifiedTeacher = false;
   if (orgData?.organization_id) {
-    let orgMembership: any = null;
-    if (isSuperAdmin) {
-      const { data } = await supabase
-        .from('organizationmember')
-        .select('role_id, verified')
-        .eq('organization_id', orgData.organization_id)
-        .eq('profile_id', userId)
-        .eq('role_id', ROLE.ADMIN)
-        .eq('verified', true)
-        .single();
-      orgMembership = data;
-    }
+    // A verified ADMIN of the organization is the school admin: they must be able to
+    // reach every course in their org (e.g. to read submissions) without being added
+    // to each course group. Previously only the single super-admin email qualified.
+    const { data: adminMembership } = await supabase
+      .from('organizationmember')
+      .select('role_id, verified')
+      .eq('organization_id', orgData.organization_id)
+      .eq('profile_id', userId)
+      .eq('role_id', ROLE.ADMIN)
+      .eq('verified', true)
+      .maybeSingle();
 
-    isOrgAdmin = !!orgMembership;
+    isOrgAdmin = !!adminMembership;
 
     // Check if user has a verified TUTOR or ADMIN org membership
     const teacherRoles = isSuperAdmin ? [ROLE.ADMIN, ROLE.TUTOR] : [ROLE.TUTOR];
