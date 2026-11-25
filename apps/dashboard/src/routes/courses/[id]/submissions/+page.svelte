@@ -383,7 +383,11 @@
     fetching = false;
   }
 
-  $: browser && $course.id && firstRender($course.id);
+  let hasLoadedOnce = false;
+  $: if (browser && courseId && !hasLoadedOnce) {
+    hasLoadedOnce = true;
+    firstRender(courseId);
+  }
   $: {
     const query = new URLSearchParams($page.url.search);
     submissionId = query.get('submissionId') ?? '';
