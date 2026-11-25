@@ -196,6 +196,13 @@
       show: true
     },
     {
+      path: '/points',
+      group: 'operations',
+      label: '積分 / Points',
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/points`),
+      show: true
+    },
+    {
       path: '/guide',
       group: 'support',
       label: $t('org_navigation.guide'),
