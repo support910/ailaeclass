@@ -50,6 +50,7 @@ export const POST: RequestHandler = async ({ request }) => {
     attempts_allowed,
     passing_score,
     show_result_policy = 'after_grade',
+    assessment_type = 'exam',
     available_from,
     available_until,
     settings = {}
@@ -64,12 +65,19 @@ export const POST: RequestHandler = async ({ request }) => {
   if (!course_id || typeof course_id !== 'string') {
     return json({ success: false, message: 'Course ID is required' }, { status: 400 });
   }
-  const parsedDuration = Number(duration_minutes);
-  if (!Number.isFinite(parsedDuration) || parsedDuration < 1) {
+  const isPractice = assessment_type === 'exercise';
+  const parsedDuration = duration_minutes === undefined || duration_minutes === null || duration_minutes === ''
+    ? null
+    : Number(duration_minutes);
+  // Practice sets may run without a timer; exams still need one.
+  if (!isPractice && (!Number.isFinite(parsedDuration) || (parsedDuration as number) < 1)) {
     return json(
       { success: false, message: 'Duration is required and must be at least 1 minute' },
       { status: 400 }
     );
+  }
+  if (isPractice && parsedDuration !== null && (!Number.isFinite(parsedDuration) || (parsedDuration as number) < 1)) {
+    return json({ success: false, message: 'Duration must be at least 1 minute or left empty' }, { status: 400 });
   }
 
   try {
@@ -131,11 +139,12 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!Number.isFinite(parsedAttempts) || parsedAttempts < 1) {
       return json({ success: false, message: 'Attempts must be at least 1 or empty for unlimited' }, { status: 400 });
     }
+    const resolvedType = assessment_type === 'exercise' ? 'exercise' : 'exam';
     const payload = {
       title: title.trim(),
       description,
       lesson_id,
-      assessment_type: 'exam',
+      assessment_type: resolvedType,
       duration_minutes: parsedDuration,
       attempts_allowed: parsedAttempts,
       passing_score: passing_score !== undefined && passing_score !== null ? Number(passing_score) : null,

@@ -39,6 +39,11 @@
     { id: 'quick_practice', text: $t('components.exam.mode_quick_practice') }
   ];
 
+  const assessmentTypeOptions = [
+    { id: 'exam', text: '考試 / Exam' },
+    { id: 'exercise', text: '練習 / Practice' }
+  ];
+
   function handleClose() {
     $createExamModal.open = false;
     $createExamModal.title = '';
@@ -50,6 +55,7 @@
     $createExamModal.passingScore = 60;
     $createExamModal.showResultPolicy = 'after_grade';
     $createExamModal.examMode = 'traditional';
+    $createExamModal.assessmentType = 'exam';
     selectedCourseId = '';
     selectedLessonId = '';
     availableFrom = '';
@@ -127,11 +133,12 @@
     }
     const duration = Number($createExamModal.durationMinutes);
     if (
-      $createExamModal.durationMinutes === '' ||
+      $createExamModal.assessmentType !== 'exercise' &&
+      ($createExamModal.durationMinutes === '' ||
       $createExamModal.durationMinutes === null ||
       $createExamModal.durationMinutes === undefined ||
       !Number.isFinite(duration) ||
-      duration < 1
+      duration < 1)
     ) {
       errors.duration = $t('components.exam.error_duration_min');
     }
@@ -159,7 +166,12 @@
         description: $createExamModal.description || '',
         lesson_id: selectedLessonId,
         course_id: selectedCourseId,
-        duration_minutes: Number($createExamModal.durationMinutes),
+        duration_minutes:
+          $createExamModal.durationMinutes === '' ||
+          $createExamModal.durationMinutes === null ||
+          $createExamModal.durationMinutes === undefined
+            ? undefined
+            : Number($createExamModal.durationMinutes),
         attempts_allowed:
           $createExamModal.attemptsAllowed === '' ||
           $createExamModal.attemptsAllowed === null ||
@@ -173,6 +185,7 @@
             : $createExamModal.showResultPolicy || 'after_grade',
         available_from: availableFrom || undefined,
         available_until: availableUntil || undefined,
+        assessment_type: $createExamModal.assessmentType || 'exam',
         settings: {
           exam_mode: $createExamModal.examMode || 'traditional'
         }
@@ -245,6 +258,20 @@
         placeholder=""
         className="mb-2"
       />
+    </div>
+
+    <div data-guide-target="exam-modal-type">
+      <p class="block text-sm font-light mb-1 dark:text-white">類型 / Type</p>
+      <Dropdown
+        class="w-full bg-gray-100 dark:bg-neutral-800"
+        bind:selectedId={$createExamModal.assessmentType}
+        items={assessmentTypeOptions}
+      />
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        {$createExamModal.assessmentType === 'exercise'
+          ? '練習：學生在課堂頁自行作答，不設時限；題目與考試各自獨立。'
+          : '考試：出現在課程「考試」頁，可設時限、次數、開放日期；題目與練習各自獨立。'}
+      </p>
     </div>
 
     <div data-guide-target="exam-modal-mode">

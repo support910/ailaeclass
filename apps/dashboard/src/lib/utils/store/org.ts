@@ -178,6 +178,7 @@ export const createExamModal = writable({
   passingScore: 60,
   showResultPolicy: 'after_grade',
   examMode: 'traditional',
+  assessmentType: 'exam' as 'exam' | 'exercise',
   isLoading: false
 });
 

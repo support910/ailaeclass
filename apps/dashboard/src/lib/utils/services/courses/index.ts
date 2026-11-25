@@ -750,6 +750,7 @@ export async function deleteExercise(questions: Array<{ id: string }>, exerciseI
 
 interface ExamExerciseInput {
   title: string;
+  assessment_type?: 'exam' | 'exercise';
   description?: string;
   lesson_id: string;
   course_id: string;
