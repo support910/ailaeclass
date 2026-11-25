@@ -4,6 +4,12 @@ import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/su
 import { ROLE } from '$lib/utils/constants/roles';
 import { requestKimiCompletion } from '$lib/utils/services/ai/provider.server';
 
+function isMissingTable(error: any) {
+  const code = String(error?.code || '');
+  return code === '42P01' || code === 'PGRST205' || /schema cache/i.test(String(error?.message || ''));
+}
+
+
 /**
  * FAQ + AI Tutor review.
  *
@@ -124,7 +130,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     const { data, error } = await query;
 
     if (error) {
-      if (error.code === '42P01') return migrationMissing();
+      if (isMissingTable(error)) return migrationMissing();
       throw error;
     }
 
@@ -219,7 +225,7 @@ export const POST: RequestHandler = async ({ request }) => {
       .single();
 
     if (insertError) {
-      if (insertError.code === '42P01') return migrationMissing();
+      if (isMissingTable(insertError)) return migrationMissing();
       throw insertError;
     }
 
@@ -311,7 +317,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
       .maybeSingle();
 
     if (readError) {
-      if (readError.code === '42P01') return migrationMissing();
+      if (isMissingTable(readError)) return migrationMissing();
       throw readError;
     }
     if (!row) return json({ success: false, message: 'FAQ not found' }, { status: 404 });

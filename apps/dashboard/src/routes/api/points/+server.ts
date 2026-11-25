@@ -3,6 +3,12 @@ import { json } from '@sveltejs/kit';
 import { getServerSupabase, getUserIdFromRequest } from '$lib/utils/functions/supabase.server';
 import { ROLE } from '$lib/utils/constants/roles';
 
+function isMissingTable(error: any) {
+  const code = String(error?.code || '');
+  return code === '42P01' || code === 'PGRST205' || /schema cache/i.test(String(error?.message || ''));
+}
+
+
 /**
  * Course points ledger API — table public.points_ledger
  * (migration: E:\Data\Admin\AI\Projects\newailaeclass\migration\02_apply_points_ledger.sql)
@@ -89,7 +95,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
     const { data: rows, error } = await rowsQuery;
 
     if (error) {
-      if (error.code === '42P01') return migrationMissing();
+      if (isMissingTable(error)) return migrationMissing();
       throw error;
     }
 
@@ -199,7 +205,7 @@ export const POST: RequestHandler = async ({ request }) => {
       .single();
 
     if (error) {
-      if (error.code === '42P01') return migrationMissing();
+      if (isMissingTable(error)) return migrationMissing();
       throw error;
     }
 
