@@ -23,6 +23,8 @@ export interface CurrentOrg {
   avatar_url: string;
   memberId: string;
   role_id: number;
+  /** Raw organization role before the "org admin not super admin → tutor" downgrade. */
+  actual_role_id?: number;
   landingpage: {
     [key: string]: unknown;
   };

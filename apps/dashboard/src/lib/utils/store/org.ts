@@ -40,6 +40,18 @@ export const isOrgAdmin = derived(currentOrg, ($currentOrg) => {
   return $currentOrg.role_id === ROLE.ADMIN && $currentOrg.verified === true;
 });
 
+/**
+ * School admin: a verified ADMIN of this organization even when the org role was
+ * downgraded to TUTOR because the user is not the super admin. They must be able to
+ * see every course's data (e.g. submissions) in their own org.
+ */
+export const isSchoolAdmin = derived(currentOrg, ($currentOrg) => {
+  const rawRole = $currentOrg.actual_role_id ?? $currentOrg.role_id;
+  if (!rawRole) return false;
+
+  return rawRole === ROLE.ADMIN && $currentOrg.verified === true;
+});
+
 export const isOrgTeacher = derived(currentOrg, ($currentOrg) => {
   if (!$currentOrg.role_id) return null;
 

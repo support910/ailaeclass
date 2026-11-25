@@ -2,7 +2,7 @@
   import { profile } from '$lib/utils/store/user';
   import { group } from '../Course/store';
   import type { GroupPerson } from '$lib/utils/types';
-  import { isOrgAdmin } from '$lib/utils/store/org';
+  import { isOrgAdmin, isSchoolAdmin } from '$lib/utils/store/org';
   import { browser } from '$app/environment';
 
   export let allowedRoles: number[] = [];
@@ -23,7 +23,7 @@
 
       userRole = user ? user.role_id : userRole;
 
-      if (!$isOrgAdmin && user && $group.people.length && !isAllowed(userRole)) {
+      if (!$isOrgAdmin && !$isSchoolAdmin && user && $group.people.length && !isAllowed(userRole)) {
         onDenied();
       }
     }
@@ -32,7 +32,7 @@
   $: if (onlyStudent) {
     show = isAllowed(userRole);
   } else {
-    show = isAllowed(userRole) || !!$isOrgAdmin;
+    show = isAllowed(userRole) || !!$isOrgAdmin || !!$isSchoolAdmin;
   }
 </script>
 

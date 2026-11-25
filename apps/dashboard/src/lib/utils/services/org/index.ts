@@ -108,6 +108,7 @@ export async function getOrganizations(userId: string, isOrgSite?: boolean, orgS
         ...(org || {}),
         memberId: orgMember?.id,
         role_id: effectiveRoleId,
+        actual_role_id: parseInt(orgMember?.role_id),
         verified: !!orgMember?.verified,
         shortName: org?.name?.substring(0, 2)?.toUpperCase() || ''
       });
