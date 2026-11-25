@@ -33,7 +33,8 @@
 
   $: canRegister = $currentOrg?.role_id === 1 || $currentOrg?.role_id === 2;
   $: isStudentView = apiRoleId !== null ? apiRoleId === 3 : $currentOrg?.role_id === 3;
-  $: ownBalance = balances[$profile?.id] ?? Object.values(balances).reduce((a, b) => a + b, 0);
+  $: ownBalance = balances[$profile?.id] ?? 0;
+  $: orgTotal = Object.values(balances).reduce((a, b) => a + b, 0);
 
   const kindLabels: Record<string, string> = {
     register: '註冊獎勵',
@@ -139,8 +140,12 @@
 <PageBody width="w-full max-w-6xl">
   <div class="mb-4 grid gap-3 md:grid-cols-3">
     <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
-      <p class="text-xs text-gray-500 dark:text-gray-400">目前積分</p>
-      <p class="text-3xl font-bold dark:text-white">{loading ? '—' : ownBalance}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        {isStudentView ? '目前積分' : '機構積分合計'}
+      </p>
+      <p class="text-3xl font-bold dark:text-white">
+        {loading ? '—' : isStudentView ? ownBalance : orgTotal}
+      </p>
       <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">4 分 = HK$1（可兌換折扣／權益，不可兌現金）</p>
     </div>
     <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
