@@ -203,6 +203,13 @@
       show: true
     },
     {
+      path: '/faq',
+      group: 'support',
+      label: '常見問題 / FAQ',
+      isActive: $page.url.pathname.includes(`${$currentOrgPath}/faq`),
+      show: true
+    },
+    {
       path: '/guide',
       group: 'support',
       label: $t('org_navigation.guide'),
