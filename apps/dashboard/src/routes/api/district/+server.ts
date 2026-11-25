@@ -136,9 +136,10 @@ export const GET: RequestHandler = async ({ request }) => {
       for (const p of profiles || []) personName[p.id] = p.fullname || p.email || p.id.slice(0, 8);
     }
 
-    // 所有已分配地區的學校（供地區 admin 揀選申請；只對已驗證機構成員開放）
+    // 所有已分配地區的學校（供地區 admin 揀選申請）。只回學校名稱＋地區，不含任何學生資料；
+    // 地區 admin 可能唔屬於任何學校機構，所以唔可以用 roles.length 做閘。
     let schools: any[] = [];
-    if (roles.length > 0) {
+    {
       const { data: links, error: linkError } = await supabase
         .from('district_school')
         .select('organization_id, district_id');
