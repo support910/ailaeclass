@@ -104,6 +104,11 @@
       link: '/lms/payment'
     },
     {
+      name: '常見問題 / FAQ',
+      icon: HelpIcon,
+      link: '/lms/faq'
+    },
+    {
       name: $t('lms_navigation.guide'),
       icon: HelpIcon,
       link: '/lms/guide'
