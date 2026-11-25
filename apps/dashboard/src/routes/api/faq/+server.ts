@@ -247,7 +247,10 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    const finalAnswer = cleanAnswer || verdict.answer || '';
+    // Prefer the AI-polished answer once published; keep the submitter's text otherwise.
+    const finalAnswer = verdict.publish
+      ? verdict.answer || cleanAnswer || ''
+      : cleanAnswer || verdict.answer || '';
     const awarded = verdict.publish
       ? await awardPoints(
           supabase,
