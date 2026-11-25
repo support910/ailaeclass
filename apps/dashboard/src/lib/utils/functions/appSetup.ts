@@ -60,6 +60,23 @@ async function autoJoinOrgFromMetadata(
     return null;
   }
 
+  // 已經有任何機構成員身分就唔好再自動加入第一個 org：否則地區／香港層帳號一登入
+  // 就會被塞入學校 org 做 TUTOR／STUDENT，無端取得該校資料權限。
+  const { data: existingMemberships, error: membershipError } = await supabase
+    .from('organizationmember')
+    .select('organization_id')
+    .eq('profile_id', profileId)
+    .limit(1);
+
+  if (membershipError) {
+    console.error('autoJoinOrgFromMetadata membership check failed:', membershipError);
+    return null;
+  }
+
+  if (existingMemberships?.length) {
+    return null;
+  }
+
   const roleId = signUpRole === 'teacher' ? ROLE.TUTOR : ROLE.STUDENT;
   const isVerified = true;
 
@@ -295,7 +312,7 @@ export async function getProfile({
 
     const orgRes = await getOrganizations(profileData.id, isOrgSite, orgSiteName);
 
-    if (isSingleOrgMode() && !orgRes.currentOrg?.id) {
+    if (isSingleOrgMode() && !orgRes.currentOrg?.id && !orgRes.orgs?.length) {
       const siteName = getSingleOrgSiteName();
       const singleOrg = siteName ? await getCurrentOrg(siteName, true) : null;
       const existingRole = orgRes.orgs?.[0]?.role_id;
