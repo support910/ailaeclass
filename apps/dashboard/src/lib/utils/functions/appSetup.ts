@@ -393,6 +393,15 @@ export async function getProfile({
       } else if (shouldRedirectOnAuth(path)) {
         goto(`/org/${orgRes.currentOrg.siteName}`);
       }
+    } else if (orgRes.orgs?.length) {
+      // 有機構身分但當前 site 唔對：用返佢自己第一個機構，唔好踢去 /signup。
+      // （單一機構模式下，非預設機構的帳號以前會被自動塞入預設機構。）
+      const fallbackOrg = orgRes.orgs[0];
+      currentOrg.set(fallbackOrg);
+      orgRes.currentOrg = fallbackOrg;
+      if (shouldRedirectOnAuth(path)) {
+        goto(`/org/${fallbackOrg.siteName}`);
+      }
     } else {
       // No membership found: try auto-join from signup metadata
       const targetRoute = await autoJoinOrgFromMetadata(authUser, profileData.id);
