@@ -42,8 +42,20 @@ export const load = async ({ url, cookies, request }): Promise<LoadOutput> => {
 
   // Single-org mode: resolve the configured org directly, skip all subdomain/custom-domain logic
   if (isSingleOrgMode()) {
-    const siteName = getSingleOrgSiteName()!;
-    const org = (await getCurrentOrg(siteName, true)) || null;
+    const configuredSiteName = getSingleOrgSiteName()!;
+    let siteName = configuredSiteName;
+    let org = (await getCurrentOrg(siteName, true)) || null;
+
+    // 設定錯（例如 Railway 變數被填成 SITE_NAME 之類）唔應該令全站 404：
+    // 退回 'admin'，再有問題才報錯。
+    if (!org && siteName !== 'admin') {
+      console.error(
+        `Single-org mode: organization with siteName "${siteName}" not found, falling back to "admin"`
+      );
+      siteName = 'admin';
+      org = (await getCurrentOrg(siteName, true)) || null;
+    }
+
     if (org) {
       response.org = org;
       response.isOrgSite = true;
