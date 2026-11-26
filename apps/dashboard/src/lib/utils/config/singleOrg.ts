@@ -6,13 +6,16 @@ import { PUBLIC_SINGLE_ORG_SITE_NAME } from '$env/static/public';
  */
 export function getSingleOrgSiteName(): string | null {
   const configuredSiteName = PUBLIC_SINGLE_ORG_SITE_NAME?.trim();
-  const siteName = configuredSiteName || 'admin';
 
-  if (!siteName || ['false', '0', 'none', 'null', 'undefined', 'placeholder'].includes(siteName.toLowerCase())) {
+  // 未設定（或設成哨兵值）＝ 多機構模式。以前會 fallback 去 'admin'，
+  // 令所有帳號被釘死在第一個機構，非學校機構帳號一登入就被塞入學校 org。
+  if (!configuredSiteName) return null;
+
+  if (['false', '0', 'none', 'null', 'undefined', 'placeholder'].includes(configuredSiteName.toLowerCase())) {
     return null;
   }
 
-  return siteName;
+  return configuredSiteName;
 }
 
 export function isSingleOrgMode(): boolean {
